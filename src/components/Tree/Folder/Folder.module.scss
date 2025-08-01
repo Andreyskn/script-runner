@@ -1,0 +1,55 @@
+.folder {
+	&--highlighted {
+		background-color: hsl(var(--accent));
+	}
+
+	&__heading {
+		cursor: pointer;
+		user-select: none;
+
+		display: flex;
+		gap: 8px;
+		align-items: center;
+
+		padding: 8px;
+		border-radius: var(--radius);
+
+		font-size: 14px;
+		font-weight: 500;
+
+		&--outlined {
+			outline: 1px solid hsl(var(--ring));
+		}
+
+		&:hover {
+			background-color: hsl(var(--accent));
+		}
+	}
+
+	&__chevron {
+		flex-shrink: 0;
+
+		&--open {
+			rotate: 90deg;
+		}
+	}
+
+	&__icon {
+		flex-shrink: 0;
+		color: hsl(var(--primary));
+	}
+
+	&__name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__content {
+		margin-left: 24px;
+
+		&--hidden {
+			display: none;
+		}
+	}
+}

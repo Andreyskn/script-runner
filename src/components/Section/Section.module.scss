@@ -1,0 +1,23 @@
+.section {
+	display: flex;
+	flex-direction: column;
+
+	&--card {
+		border-width: 1px;
+		border-radius: 8px;
+	}
+
+	&__header {
+		padding: 16px;
+		border-bottom-width: 1px;
+	}
+
+	&__content {
+		flex: 1;
+		padding: 16px;
+
+		&--no-padding {
+			padding: 0;
+		}
+	}
+}

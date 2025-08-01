@@ -1,0 +1,10 @@
+*,
+::after,
+::before,
+::backdrop {
+	border: 0 solid hsl(var(--border));
+}
+
+#root {
+	height: 100vh;
+}

@@ -1,0 +1,17 @@
+.app {
+	height: 100%;
+	color: hsl(var(--foreground));
+	background-color: hsl(var(--background));
+
+	&__content {
+		display: flex;
+	}
+
+	&__sidebar {
+		border-right-width: 1px;
+	}
+
+	&__main {
+		flex: 1;
+	}
+}

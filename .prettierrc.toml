@@ -1,0 +1,8 @@
+useTabs = true
+tabWidth = 4
+semi = true
+singleQuote = true
+jsxSingleQuote = true
+trailingComma = "es5"
+importOrder = ["^react.*$", "<THIRD_PARTY_MODULES>", "^@(.*)$", "^../(?!.*.s?css$).*", "^./", ".s?css$"]
+importOrderSeparation = true

@@ -1,0 +1,12 @@
+.tree {
+	flex: 1;
+	border-radius: 8px;
+
+	&--highlighted {
+		background-color: hsl(var(--accent));
+	}
+
+	&--outlined {
+		outline: 1px solid hsl(var(--ring));
+	}
+}

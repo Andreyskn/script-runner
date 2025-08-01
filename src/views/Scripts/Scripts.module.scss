@@ -1,0 +1,14 @@
+.scripts {
+	display: flex;
+	height: 100%;
+
+	&__tree-section {
+		width: 500px;
+		border-right-width: 1px;
+
+		&-content {
+			display: flex;
+			flex-direction: column;
+		}
+	}
+}

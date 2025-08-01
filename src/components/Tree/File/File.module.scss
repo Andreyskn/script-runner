@@ -1,0 +1,32 @@
+.file {
+	cursor: pointer;
+
+	display: flex;
+	gap: 8px;
+	align-items: center;
+
+	padding: 8px;
+	border-radius: var(--radius);
+
+	font-size: 14px;
+
+	&--outlined {
+		outline: 1px solid hsl(var(--ring));
+	}
+
+	&--highlighted,
+	&:hover {
+		background-color: hsl(var(--accent));
+	}
+
+	&__icon {
+		flex-shrink: 0;
+		color: hsl(var(--muted-foreground));
+	}
+
+	&__name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}

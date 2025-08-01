@@ -1,0 +1,7 @@
+{
+	"files.exclude": {
+		"**/*.styles.ts": true,
+		"**/node_modules": true,
+		"**/bun.lock": true
+	}
+}
