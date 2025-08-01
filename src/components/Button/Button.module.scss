@@ -1,3 +1,127 @@
 .button {
-	/* empty */
+	cursor: pointer;
+
+	position: relative;
+
+	display: inline-flex;
+	gap: 16px;
+	align-items: center;
+	justify-content: center;
+
+	min-width: max-content;
+	height: 36px;
+	padding: 0 12px;
+	border: 0.8px solid hsl(var(--border));
+	border-radius: 6px;
+
+	color: hsl(var(--foreground));
+
+	background-color: transparent;
+	outline: none;
+
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+	transition-property: color, background-color, border-color;
+
+	&:disabled {
+		pointer-events: none;
+		opacity: 0.5;
+	}
+
+	&:focus-visible {
+		box-shadow:
+			0 0 0 2px hsl(var(--background)),
+			0 0 0 4px hsl(var(--ring));
+	}
+
+	&:hover {
+		&:not([class*='--red'], [class*='--green'], [class*='--minimal']) {
+			background-color: hsl(var(--accent));
+		}
+	}
+
+	&__icon {
+		color: inherit;
+	}
+
+	&__text {
+		font-size: 14px;
+		font-weight: 500;
+		color: inherit;
+	}
+
+	&__loader {
+		animation: spin 1s infinite;
+	}
+
+	&--large {
+		height: 40px;
+		padding: 0 16px;
+	}
+
+	&--small {
+		gap: 8px;
+
+		height: 32px;
+		padding: 0 8px;
+		border-radius: 4px;
+
+		font-weight: normal;
+	}
+
+	&--fill-red {
+		background-color: hsl(var(--destructive));
+
+		&:hover {
+			background-color: hsl(var(--destructive) / 90%);
+		}
+	}
+
+	&--fill-green {
+		background-color: hsl(var(--primary));
+
+		&:hover {
+			background-color: hsl(var(--primary) / 90%);
+		}
+	}
+
+	&--color-red {
+		color: hsl(var(--destructive));
+	}
+
+	&--color-green {
+		color: hsl(var(--primary));
+	}
+
+	&--stretch {
+		width: 100%;
+	}
+
+	&--borderless {
+		border-width: 0;
+	}
+
+	&--minimal {
+		height: auto;
+		padding: 0;
+		border: 0;
+	}
+
+	&--round {
+		border-radius: 999px;
+	}
+
+	&--align-left {
+		justify-content: flex-start;
+	}
+
+	&--align-right {
+		justify-content: flex-end;
+	}
+}
+
+@keyframes spin {
+	to {
+		rotate: 360deg;
+	}
 }

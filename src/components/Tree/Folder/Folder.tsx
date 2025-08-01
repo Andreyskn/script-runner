@@ -1,13 +1,6 @@
 import { useContextMenu } from '@/components/ContextMenu';
 import type { TreeDragData, TreeDropData } from '@/components/Tree/Tree';
-import {
-	ChevronRightIcon,
-	FileTextIcon,
-	FolderIcon,
-	FolderOpenIcon,
-	SquarePenIcon,
-	Trash2Icon,
-} from 'lucide-react';
+import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from 'lucide-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useDnD } from 'src/utils/dnd';
 import { cls } from './Folder.styles';
@@ -25,10 +18,15 @@ export const Folder: React.FC<FolderProps> = (props) => {
 	const { children, name, open, onOpenChange, id, path } = props;
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
-		{ icon: <FileTextIcon />, text: 'New Script', onClick: () => {} },
-		{ icon: <FolderIcon />, text: 'New Folder', onClick: () => {} },
-		{ icon: <SquarePenIcon />, text: 'Rename Folder', onClick: () => {} },
-		{ icon: <Trash2Icon />, text: 'Delete Folder', onClick: () => {} },
+		{ icon: 'file-text', text: 'New Script', onClick: () => {} },
+		{ icon: 'folder', text: 'New Folder', onClick: () => {} },
+		{ icon: 'square-pen', text: 'Rename Folder', onClick: () => {} },
+		{
+			icon: 'trash-2',
+			text: 'Delete Folder',
+			color: 'red',
+			onClick: () => {},
+		},
 	]);
 
 	const { useDraggable, useDropTarget } = useDnD<

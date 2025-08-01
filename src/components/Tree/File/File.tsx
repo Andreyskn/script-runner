@@ -1,6 +1,6 @@
 import { useContextMenu } from '@/components/ContextMenu';
 import type { TreeDragData, TreeDropData } from '@/components/Tree/Tree';
-import { FileTextIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { FileTextIcon } from 'lucide-react';
 import { useDnD } from 'src/utils/dnd';
 import { cls } from './File.styles';
 
@@ -16,8 +16,13 @@ export const File: React.FC<FileProps> = (props) => {
 	const { name, open, onSelect, id, path } = props;
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
-		{ icon: <SquarePenIcon />, text: 'Rename File', onClick: () => {} },
-		{ icon: <Trash2Icon />, text: 'Delete File', onClick: () => {} },
+		{ icon: 'square-pen', text: 'Rename File', onClick: () => {} },
+		{
+			icon: 'trash-2',
+			text: 'Delete File',
+			color: 'red',
+			onClick: () => {},
+		},
 	]);
 
 	const { useDraggable } = useDnD<TreeDragData, TreeDropData>();

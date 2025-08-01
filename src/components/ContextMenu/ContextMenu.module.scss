@@ -11,8 +11,39 @@
 
 .menu {
 	position: fixed;
+	transform: translateX(-4px) scale(0.95);
+
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+
+	min-width: max-content;
+	min-width: 128px;
 	margin: 0;
+	padding: 2px;
+	border-width: 1px;
+	border-radius: 6px;
+
+	opacity: 0;
+	background-color: hsl(var(--background));
+
+	transition: all 150ms allow-discrete;
 
 	position-anchor: --context-menu-anchor;
 	position-area: bottom right;
+	position-try: flip-block, flip-inline;
+
+	& > * {
+		flex-shrink: 0;
+	}
+
+	&:popover-open {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+
+		@starting-style {
+			transform: translateX(-4px) scale(0.95);
+			opacity: 0;
+		}
+	}
 }

@@ -1,3 +1,4 @@
+import { ContextMenu } from '@/components/ContextMenu';
 import { Section } from '@/components/Section';
 import { Header } from 'src/App/Header';
 import { Main } from 'src/App/Main';
@@ -12,6 +13,7 @@ export const App: React.FC = () => {
 			contentClassName={cls.app.content()}
 			noContentPadding
 		>
+			<ContextMenu />
 			<Sidebar className={cls.app.sidebar()} />
 			<Main className={cls.app.main()} />
 		</Section>

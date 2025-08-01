@@ -1,3 +1,4 @@
+import { Button, type ButtonProps } from '@/components/Button';
 import React, {
 	useEffect,
 	useRef,
@@ -20,11 +21,10 @@ export type ContextMenuProps = {
 	menu: React.ReactNode;
 };
 
-export type ContextMenuItem = {
-	icon: React.ReactNode;
-	text: string;
-	onClick: () => void;
-};
+export type ContextMenuItem = Pick<
+	ButtonProps,
+	'icon' | 'text' | 'onClick' | 'color'
+>;
 
 export const useContextMenu = <T extends HTMLElement>(
 	getContent: () => ContextMenuItem[]
@@ -58,7 +58,7 @@ type ContextMenuAPI = {
 };
 
 export const contextMenu: ContextMenuAPI = {
-	register: null as any,
+	register: () => {},
 };
 
 type PositionX = number;
@@ -77,11 +77,19 @@ export const ContextMenu: React.FC = () => {
 				ev.preventDefault();
 				ev.stopImmediatePropagation();
 
-				setAnchorPos([ev.clientX, ev.clientY]);
-				setMenuItems(data.getContent());
 				menu.current?.hidePopover();
-				menu.current?.showPopover();
-				isOpen.setState(data.elementRef);
+			});
+
+			data.elementRef.current?.addEventListener('mouseup', (ev) => {
+				if (ev.button === 2) {
+					ev.stopImmediatePropagation();
+
+					setAnchorPos([ev.clientX, ev.clientY]);
+					setMenuItems(data.getContent());
+
+					menu.current?.showPopover();
+					isOpen.setState(data.elementRef);
+				}
 			});
 		};
 
@@ -111,10 +119,18 @@ export const ContextMenu: React.FC = () => {
 				className={cls.menu.block()}
 			>
 				{menuItems.map((item, i) => (
-					<div key={i}>
-						{item.icon}
-						{item.text}
-					</div>
+					<Button
+						key={i}
+						{...item}
+						borderless
+						size='small'
+						align='left'
+						stretch
+						onClick={(ev) => {
+							menu.current?.hidePopover();
+							item.onClick?.(ev);
+						}}
+					/>
 				))}
 			</div>
 		</>

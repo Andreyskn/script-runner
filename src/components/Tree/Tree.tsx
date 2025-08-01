@@ -1,7 +1,6 @@
 import { useContextMenu } from '@/components/ContextMenu';
 import { File, type FileProps } from '@/components/Tree/File';
 import { Folder, type FolderProps } from '@/components/Tree/Folder';
-import { FileTextIcon, FolderIcon } from 'lucide-react';
 import { DnDProvider, useDnD, type DnDProviderProps } from 'src/utils/dnd';
 import { cls } from './Tree.styles';
 
@@ -71,8 +70,8 @@ const TreeMiddle: React.FC<TreeProps> = (props) => {
 	}));
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
-		{ icon: <FileTextIcon />, text: 'New Script', onClick: () => {} },
-		{ icon: <FolderIcon />, text: 'New Folder', onClick: () => {} },
+		{ icon: 'file-text', text: 'New Script', onClick: () => {} },
+		{ icon: 'folder', text: 'New Folder', onClick: () => {} },
 	]);
 
 	return (
