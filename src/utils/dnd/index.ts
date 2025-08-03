@@ -1,2 +1,2 @@
-export { useDnD, type DnDContextData } from './context';
-export { DnDProvider, type DnDProviderProps } from './DnDProvider';
+export { useDnD, type DnDContextData } from './dndContext';
+export { DnDProvider, type DnDProviderProps } from './dndProvider';

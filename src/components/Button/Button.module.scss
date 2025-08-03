@@ -99,6 +99,11 @@
 
 	&--borderless {
 		border-width: 0;
+
+		&:focus-visible {
+			outline: 1px solid hsl(var(--ring));
+			box-shadow: none;
+		}
 	}
 
 	&--minimal {

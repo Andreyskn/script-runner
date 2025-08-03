@@ -13,11 +13,7 @@
 	position: fixed;
 	transform: translateX(-4px) scale(0.95);
 
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-
-	min-width: max-content;
+	width: min-content;
 	min-width: 128px;
 	margin: 0;
 	padding: 2px;
@@ -31,7 +27,10 @@
 
 	position-anchor: --context-menu-anchor;
 	position-area: bottom right;
-	position-try: flip-block, flip-inline;
+	position-try:
+		top right,
+		bottom left,
+		top left;
 
 	& > * {
 		flex-shrink: 0;

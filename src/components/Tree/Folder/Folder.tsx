@@ -34,7 +34,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		TreeDropData
 	>();
 	const { draggable } = useDraggable<HTMLDivElement>(() => {
-		return { id, name, path };
+		return { id, name, path, type: 'folder' };
 	});
 	const { dropTarget, hasDragOver, hasLongHover } =
 		useDropTarget<HTMLDivElement>(() => {

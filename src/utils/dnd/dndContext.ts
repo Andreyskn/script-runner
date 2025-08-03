@@ -14,7 +14,6 @@ export type DnDContextData<Drag = unknown, Drop = unknown> = {
 		hasDragOver: boolean;
 		hasLongHover: boolean;
 	};
-	isDragging: boolean;
 };
 
 export const DnDContext = createContext<DnDContextData>(null as any);

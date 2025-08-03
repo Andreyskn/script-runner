@@ -27,7 +27,7 @@ export const File: React.FC<FileProps> = (props) => {
 
 	const { useDraggable } = useDnD<TreeDragData, TreeDropData>();
 	const { draggable } = useDraggable<HTMLDivElement>(() => {
-		return { id, name, path };
+		return { id, name, path, type: 'file' };
 	});
 
 	return (

@@ -14,9 +14,12 @@
 		outline: 1px solid hsl(var(--ring));
 	}
 
-	&--highlighted,
-	&:hover {
+	&--highlighted {
 		background-color: hsl(var(--accent));
+	}
+
+	&:hover {
+		background-color: hsl(var(--accent) / 70%);
 	}
 
 	&__icon {

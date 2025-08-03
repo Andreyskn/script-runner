@@ -1,5 +1,5 @@
 import { Section } from '@/components/Section';
-import { Tree, type TreeNode } from '@/components/Tree';
+import { Tree, type TreeNode, type TreeProps } from '@/components/Tree';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { useState } from 'react';
 import { cls } from './Scripts.styles';
@@ -66,6 +66,12 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 		{ id: '8', type: 'file', name: 'test.sh' },
 	]);
 
+	const handleRename: TreeProps['onRename'] = {
+		before(node) {
+			return { text: '' };
+		},
+	};
+
 	return (
 		<div className={cls.scripts.block()}>
 			<Section
@@ -80,6 +86,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 					onFileSelect={console.log}
 					nodes={nodes}
 					onNodeMove={(source, target) => {}}
+					onRename={handleRename}
 				/>
 			</Section>
 			<Placeholder />
