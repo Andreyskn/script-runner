@@ -1,6 +1,12 @@
 import { useContextMenu } from '@/components/ContextMenu';
 import { useNameEditor } from '@/components/Tree/NameEditor';
-import type { TreeDragData, TreeDropData } from '@/components/Tree/Tree';
+import type {
+	FolderNodeWithPath,
+	TreeDragData,
+	TreeDropData,
+	TreeNodeType,
+	TreeNodeWithPath,
+} from '@/components/Tree/treeTypes';
 import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from 'lucide-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useDnD } from 'src/utils/dnd';
@@ -10,24 +16,58 @@ export type FolderProps = {
 	id: string;
 	path: string[];
 	name: string;
-	children: React.ReactNode;
+	children?: React.ReactNode;
 	open?: boolean;
-	onOpenChange: (id: string, isOpen: boolean) => void;
+	renameOnMount?: boolean;
+	onToggleOpen: (id: string, isOpen: boolean) => void;
+	onCreate: (type: TreeNodeType, parent: FolderNodeWithPath) => void;
+	onDelete?: (node: TreeNodeWithPath) => void;
 };
 
 export const Folder: React.FC<FolderProps> = (props) => {
-	const { children, name, open, onOpenChange, id, path } = props;
+	const {
+		children,
+		name,
+		open,
+		onToggleOpen,
+		id,
+		path,
+		renameOnMount,
+		onCreate,
+		onDelete,
+	} = props;
 
-	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor({
+	const [isOpen, setIsOpen] = useState(false);
+
+	const node: FolderNodeWithPath = {
 		id,
 		name,
 		path,
 		type: 'folder',
-	});
+	};
+
+	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor(
+		node,
+		renameOnMount
+	);
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
-		{ icon: 'file-text', text: 'New Script', onClick: () => {} },
-		{ icon: 'folder', text: 'New Folder', onClick: () => {} },
+		{
+			icon: 'file-text',
+			text: 'New Script',
+			onClick: () => {
+				setIsOpen(true);
+				onCreate('file', node);
+			},
+		},
+		{
+			icon: 'folder',
+			text: 'New Folder',
+			onClick: () => {
+				setIsOpen(true);
+				onCreate('folder', node);
+			},
+		},
 		{
 			icon: 'square-pen',
 			text: 'Rename Folder',
@@ -37,7 +77,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			icon: 'trash-2',
 			text: 'Delete Folder',
 			color: 'red',
-			onClick: () => {},
+			onClick: () => onDelete?.(node),
 		},
 	]);
 
@@ -45,15 +85,9 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		TreeDragData,
 		TreeDropData
 	>();
-	const { draggable } = useDraggable<HTMLDivElement>(() => {
-		return { id, name, path, type: 'folder' };
-	});
+	const { draggable } = useDraggable<HTMLDivElement>(() => node);
 	const { dropTarget, hasDragOver, hasLongHover } =
-		useDropTarget<HTMLDivElement>(() => {
-			return { id, name, path };
-		});
-
-	const [isOpen, setIsOpen] = useState(false);
+		useDropTarget<HTMLDivElement>(() => node);
 
 	useLayoutEffect(() => {
 		if (open) {
@@ -62,7 +96,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 	}, [open]);
 
 	useEffect(() => {
-		onOpenChange(id, isOpen);
+		onToggleOpen(id, isOpen);
 	}, [isOpen]);
 
 	useLayoutEffect(() => {

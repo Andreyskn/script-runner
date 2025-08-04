@@ -125,6 +125,7 @@ export const DnDProvider = <Source, Target>(
 			ev.stopImmediatePropagation();
 
 			if (!session.canDrop(ref)) {
+				session.setTarget(null);
 				ev.dataTransfer!.dropEffect = 'none';
 				return;
 			}
