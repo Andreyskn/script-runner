@@ -1,4 +1,5 @@
 import { useContextMenu } from '@/components/ContextMenu';
+import { useNameEditor } from '@/components/Tree/NameEditor';
 import type { TreeDragData, TreeDropData } from '@/components/Tree/Tree';
 import { FileTextIcon } from 'lucide-react';
 import { useDnD } from 'src/utils/dnd';
@@ -15,11 +16,18 @@ export type FileProps = {
 export const File: React.FC<FileProps> = (props) => {
 	const { name, open, onSelect, id, path } = props;
 
+	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor({
+		id,
+		name,
+		path,
+		type: 'file',
+	});
+
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
-		{ icon: 'square-pen', text: 'Rename File', onClick: () => {} },
+		{ icon: 'square-pen', text: 'Rename Script', onClick: showNameEditor },
 		{
 			icon: 'trash-2',
-			text: 'Delete File',
+			text: 'Delete Script',
 			color: 'red',
 			onClick: () => {},
 		},
@@ -43,7 +51,11 @@ export const File: React.FC<FileProps> = (props) => {
 			}}
 		>
 			<FileTextIcon size={16} className={cls.file.icon()} />
-			<span className={cls.file.name()}>{name}</span>
+			{isRenaming ? (
+				<NameEditorAnchor />
+			) : (
+				<span className={cls.file.name()}>{name}</span>
+			)}
 		</div>
 	);
 };

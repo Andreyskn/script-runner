@@ -68,7 +68,32 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 
 	const handleRename: TreeProps['onRename'] = {
 		before(node) {
-			return { text: '' };
+			if (node.type === 'file') {
+				return {
+					text: node.name.slice(0, node.name.lastIndexOf('.sh')),
+				};
+			}
+		},
+		change(node, newName) {
+			if (!newName) {
+				return {
+					error: <>A {node.type} name must be provided.</>,
+				};
+			}
+
+			if (/* name collision */ 1 - 1) {
+				return {
+					error: (
+						<>
+							A {node.type} <b>"{newName}"</b> already exists in
+							this location. Please choose a different name.
+						</>
+					),
+				};
+			}
+		},
+		confirm(node, newName) {
+			console.log(node.name, '->', newName);
 		},
 	};
 

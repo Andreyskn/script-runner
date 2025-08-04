@@ -1,6 +1,10 @@
 import { useContextMenu } from '@/components/ContextMenu';
 import { File, type FileProps } from '@/components/Tree/File';
 import { Folder, type FolderProps } from '@/components/Tree/Folder';
+import {
+	NameEditor,
+	type TreeNodeRenameHandler,
+} from '@/components/Tree/NameEditor';
 import { DnDProvider, useDnD, type DnDProviderProps } from 'src/utils/dnd';
 import { cls } from './Tree.styles';
 
@@ -22,7 +26,7 @@ export type FolderNode = TreeNodeBase & {
 
 export type TreeNode = FileNode | FolderNode;
 
-export type TreeNodeWithPath = TreeNode & {
+export type TreeNodeWithPath = Omit<TreeNode, 'nodes'> & {
 	path: string[];
 };
 
@@ -39,25 +43,12 @@ export type TreeDropData = {
 	path: string[];
 };
 
-export type OnTreeNodeRename = {
-	before?: (node: TreeNodeWithPath) => {
-		text?: string;
-		selection?: [number, number];
-	};
-	change?: (node: TreeNodeWithPath) => {
-		hint?: React.ReactNode;
-		error?: React.ReactNode;
-	};
-	cancel?: (node: TreeNodeWithPath) => void;
-	confirm?: (node: TreeNodeWithPath) => void;
-};
-
 export type TreeProps = {
 	nodes: TreeNode[];
 	activePath?: string[];
 	onFileSelect?: FileProps['onSelect'];
 	onNodeMove?: DnDProviderProps<TreeDragData, TreeDropData>['onDrop'];
-	onRename?: OnTreeNodeRename;
+	onRename?: TreeNodeRenameHandler;
 };
 
 type TreeBaseProps = OmitType<TreeProps, 'onNodeMove'> & {
@@ -68,24 +59,22 @@ type TreeBaseProps = OmitType<TreeProps, 'onNodeMove'> & {
 };
 
 export const Tree: React.FC<TreeProps> = (props) => {
-	const { onNodeMove, ...restProps } = props;
+	const { onNodeMove, onRename, ...restProps } = props;
 
 	const handleDrop = (source: TreeDragData, target: TreeDropData) => {
 		onNodeMove?.(source, target);
 	};
 
 	const canDrop = (source: TreeDragData, target: TreeDropData) => {
-		if (source.type === 'file') {
-			const parentDir = source.path.slice(0, -1);
+		const parentDir = source.path.slice(0, -1);
 
+		if (source.type === 'file') {
 			if (target.path.length !== parentDir.length) {
 				return true;
 			}
 
 			return !parentDir.every((v, i) => v === target.path[i]);
 		} else {
-			const parentDir = source.path.slice(0, -1);
-
 			if (
 				target.path.length === parentDir.length &&
 				parentDir.every((v, i) => v === target.path[i])
@@ -99,6 +88,7 @@ export const Tree: React.FC<TreeProps> = (props) => {
 
 	return (
 		<DnDProvider onDrop={handleDrop} canDrop={canDrop}>
+			<NameEditor onRename={onRename} />
 			<TreeMiddle {...restProps} />
 		</DnDProvider>
 	);

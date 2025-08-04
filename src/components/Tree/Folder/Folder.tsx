@@ -1,4 +1,5 @@
 import { useContextMenu } from '@/components/ContextMenu';
+import { useNameEditor } from '@/components/Tree/NameEditor';
 import type { TreeDragData, TreeDropData } from '@/components/Tree/Tree';
 import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from 'lucide-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
@@ -17,10 +18,21 @@ export type FolderProps = {
 export const Folder: React.FC<FolderProps> = (props) => {
 	const { children, name, open, onOpenChange, id, path } = props;
 
+	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor({
+		id,
+		name,
+		path,
+		type: 'folder',
+	});
+
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
 		{ icon: 'file-text', text: 'New Script', onClick: () => {} },
 		{ icon: 'folder', text: 'New Folder', onClick: () => {} },
-		{ icon: 'square-pen', text: 'Rename Folder', onClick: () => {} },
+		{
+			icon: 'square-pen',
+			text: 'Rename Folder',
+			onClick: showNameEditor,
+		},
 		{
 			icon: 'trash-2',
 			text: 'Delete Folder',
@@ -85,7 +97,11 @@ export const Folder: React.FC<FolderProps> = (props) => {
 				) : (
 					<FolderIcon size={16} className={cls.folder.icon()} />
 				)}
-				<span className={cls.folder.name()}>{name}</span>
+				{isRenaming ? (
+					<NameEditorAnchor />
+				) : (
+					<span className={cls.folder.name()}>{name}</span>
+				)}
 			</div>
 			<div className={cls.folder.content({ hidden: !isOpen })}>
 				{children}

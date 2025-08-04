@@ -93,10 +93,9 @@ export const ContextMenu: React.FC = () => {
 			});
 		};
 
-		menu.current?.addEventListener('toggle', (ev) => {
-			ev.stopImmediatePropagation();
-
-			if (!document.querySelector('#context-menu-popover:popover-open')) {
+		menu.current?.addEventListener('beforetoggle', (ev) => {
+			// @ts-expect-error
+			if (ev.newState === 'closed') {
 				isOpen.setState(null);
 			}
 		});
@@ -112,12 +111,7 @@ export const ContextMenu: React.FC = () => {
 				}}
 			/>
 
-			<div
-				id='context-menu-popover'
-				ref={menu}
-				popover='auto'
-				className={cls.menu.block()}
-			>
+			<div ref={menu} popover='auto' className={cls.menu.block()}>
 				{menuItems.map((item, i) => (
 					<Button
 						key={i}
