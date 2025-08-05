@@ -16,9 +16,14 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 			name: 'automation',
 			nodes: [
 				{
+					id: '3',
+					type: 'file',
+					name: 'deploy.sh',
+				},
+				{
 					id: '11',
 					type: 'folder',
-					name: 'inner',
+					name: 'inner2',
 					nodes: [
 						{
 							id: '22',
@@ -33,9 +38,16 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 					name: 'backup.sh',
 				},
 				{
-					id: '3',
-					type: 'file',
-					name: 'deploy.sh',
+					id: '111',
+					type: 'folder',
+					name: 'inner1',
+					nodes: [
+						// {
+						// 	id: '222',
+						// 	type: 'file',
+						// 	name: 'inner.sh',
+						// },
+					],
 				},
 			],
 		},
@@ -110,7 +122,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 					// activePath={['test.sh']}
 					onFileSelect={console.log}
 					nodes={nodes}
-					onNodeMove={(source, target) => {}}
+					onMove={(source, target) => {}}
 					onRename={handleRename}
 				/>
 			</Section>

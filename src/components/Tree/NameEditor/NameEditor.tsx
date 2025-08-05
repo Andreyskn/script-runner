@@ -1,11 +1,14 @@
-import type { TreeNodeWithPath } from '@/components/Tree/Tree';
-import EventEmitter from 'eventemitter3';
 import React, {
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 	useSyncExternalStore,
 } from 'react';
+
+import type { TreeNodeWithPath } from '@/components/Tree/treeTypes';
+import { ComponentStore } from '@/utils';
+
 import { cls } from './NameEditor.styles';
 
 type RenameInitialData = {
@@ -14,17 +17,17 @@ type RenameInitialData = {
 };
 
 export type TreeNodeRenameHandler = {
-	before?: (node: TreeNodeWithPath) => Maybe<{
+	before?: (node: TreeNodeWithPath) => {
 		text?: string;
 		selection?: [number, number];
-	}>;
+	} | void;
 	change?: (
 		node: TreeNodeWithPath,
 		newName: string
-	) => Maybe<{
+	) => {
 		hint?: React.ReactNode;
 		error?: React.ReactNode;
-	}>;
+	} | void;
 	cancel?: (node: TreeNodeWithPath) => void;
 	confirm?: (node: TreeNodeWithPath, newName: string) => void;
 };
@@ -49,9 +52,11 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 
 	useEffect(() => {
 		popover.current?.addEventListener('beforetoggle', (ev) => {
+			ev.stopImmediatePropagation();
+
 			// @ts-expect-error
 			if (ev.newState === 'closed') {
-				if (session.status !== SessionStatus.Submitted) {
+				if (session.status !== SessionStatus.Confirmed) {
 					onRename?.cancel?.(session.activeNode!);
 					session.setStatus(SessionStatus.Cancelled);
 				}
@@ -70,10 +75,12 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 			}
 		});
 
-		popover.current?.addEventListener('toggle', () => {
+		popover.current?.addEventListener('toggle', (ev) => {
+			ev.stopImmediatePropagation();
+
 			// closed
 			if (
-				session.status === SessionStatus.Submitted ||
+				session.status === SessionStatus.Confirmed ||
 				session.status === SessionStatus.Cancelled
 			) {
 				session.toggle(null);
@@ -87,16 +94,13 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 				return;
 			}
 
-			const [selectionStart, selectionEnd] =
-				initialData.current.selection;
-
 			input.current.focus();
-			input.current.setSelectionRange(selectionStart, selectionEnd);
+			input.current.setSelectionRange(...initialData.current.selection);
 		});
 	}, []);
 
 	const activeNode = useSyncExternalStore(
-		session.subscribe,
+		session.subscribe('toggle'),
 		() => session.activeNode
 	);
 	const shouldShowEditor = !!activeNode;
@@ -115,7 +119,7 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		}
 
 		onRename?.confirm?.(session.activeNode, input.current.value);
-		session.setStatus(SessionStatus.Submitted);
+		session.setStatus(SessionStatus.Confirmed);
 		popover.current?.hidePopover();
 	};
 
@@ -154,25 +158,13 @@ type RenamingEvent = 'toggle';
 const enum SessionStatus {
 	Inactive,
 	Active,
-	Submitted,
+	Confirmed,
 	Cancelled,
 }
 
-class RenamingSession {
-	#ee = new EventEmitter<RenamingEvent>();
-
+class RenamingSession extends ComponentStore<RenamingEvent> {
 	activeNode: TreeNodeWithPath | null = null;
 	status: SessionStatus = SessionStatus.Inactive;
-
-	constructor() {}
-
-	subscribe = (listener: () => void) => {
-		this.#ee.on('toggle', listener);
-
-		return () => {
-			this.#ee.off('toggle', listener);
-		};
-	};
 
 	toggle = (node: TreeNodeWithPath | null) => {
 		if (!node) {
@@ -182,7 +174,7 @@ class RenamingSession {
 		}
 
 		this.activeNode = node;
-		this.#ee.emit('toggle');
+		this.emit('toggle');
 	};
 
 	setStatus = (status: SessionStatus) => {
@@ -196,13 +188,22 @@ const NameEditorAnchor: React.FC = () => {
 	return <div className={cls.anchor.block()} />;
 };
 
-export const useNameEditor = (node: TreeNodeWithPath) => {
+export const useNameEditor = (
+	node: TreeNodeWithPath,
+	renameOnMount?: boolean
+) => {
 	const showNameEditor = () => {
 		session.toggle(node);
 	};
 
+	useLayoutEffect(() => {
+		if (renameOnMount) {
+			showNameEditor();
+		}
+	}, []);
+
 	const isRenaming = useSyncExternalStore(
-		session.subscribe,
+		session.subscribe('toggle'),
 		() => session.activeNode?.id === node.id
 	);
 

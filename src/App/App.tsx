@@ -1,7 +1,9 @@
-import { Section } from '@/components/Section';
 import { Header } from 'src/App/Header';
 import { Main } from 'src/App/Main';
 import { Sidebar } from 'src/App/Sidebar';
+
+import { Section } from '@/components/Section';
+
 import { cls } from './App.styles';
 
 export const App: React.FC = () => {

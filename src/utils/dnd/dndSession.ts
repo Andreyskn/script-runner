@@ -1,12 +1,10 @@
-import { EventEmitter } from 'eventemitter3';
-import type { ElementRef, ElementRefMeta } from 'src/utils/dnd/dndProvider';
+import { ComponentStore } from '@/utils';
+import type { ElementRef, ElementRefMeta } from '@/utils/dnd/dndProvider';
 
 type ChangeEvent = 'source' | 'target' | 'long-hover';
 type ElementData = any;
 
-export class DnDSession {
-	#ee = new EventEmitter<ChangeEvent, undefined>();
-
+export class DnDSession extends ComponentStore<ChangeEvent> {
 	#elementRefs: Map<ElementRef, ElementRefMeta>;
 	#elementData: Map<ElementRef, ElementData> = new Map();
 
@@ -22,9 +20,10 @@ export class DnDSession {
 		longHoverThreshold?: number,
 		canDrop?: (source: ElementData, target: ElementData) => boolean
 	) {
+		super();
 		this.#elementRefs = refs;
 		this.#canDropFn = canDrop;
-		this.longHover = new LongHover(this.#ee, longHoverThreshold);
+		this.longHover = new LongHover(this.emit, longHoverThreshold);
 	}
 
 	getData = (ref: ElementRef) => {
@@ -55,23 +54,15 @@ export class DnDSession {
 		return canDrop;
 	};
 
-	subscribe = (event: ChangeEvent, listener: () => void) => {
-		this.#ee.on(event, listener);
-
-		return () => {
-			this.#ee.off(event, listener);
-		};
-	};
-
 	setSource = (source: ElementRef | null) => {
 		this.source = source;
-		this.#ee.emit('source');
+		this.emit('source');
 	};
 
 	setTarget = (target: ElementRef | null) => {
 		if (target !== this.target) {
 			this.target = target;
-			this.#ee.emit('target');
+			this.emit('target');
 		}
 
 		this.longHover.setHover(target);
@@ -100,7 +91,7 @@ class LongHover {
 	#threshold: number;
 
 	constructor(
-		private ee: EventEmitter<ChangeEvent>,
+		private emit: DnDSession['emit'],
 		threshold: number = 700
 	) {
 		this.#threshold = threshold;
@@ -114,7 +105,7 @@ class LongHover {
 			};
 			if (this.active) {
 				this.active = null;
-				this.ee.emit('long-hover');
+				this.emit('long-hover');
 			}
 			return;
 		}
@@ -131,7 +122,7 @@ class LongHover {
 
 		if (performance.now() - this.#candidate.startTime! >= this.#threshold) {
 			this.active = this.#candidate.ref;
-			this.ee.emit('long-hover');
+			this.emit('long-hover');
 		}
 	};
 }

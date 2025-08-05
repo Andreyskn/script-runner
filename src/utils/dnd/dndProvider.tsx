@@ -5,8 +5,9 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react';
-import { DnDContext, type DnDContextData } from 'src/utils/dnd/dndContext';
-import { DnDSession } from 'src/utils/dnd/dndSession';
+
+import { DnDContext, type DnDContextData } from '@/utils/dnd/dndContext';
+import { DnDSession } from '@/utils/dnd/dndSession';
 
 export type ElementRef = React.RefObject<HTMLElement | null>;
 
@@ -56,7 +57,7 @@ export const DnDProvider = <Source, Target>(
 			}, []);
 
 			const isDragged = useSyncExternalStore(
-				session.subscribe.bind(session, 'source'),
+				session.subscribe('source'),
 				() =>
 					!!draggable.current &&
 					session.source?.current === draggable.current
@@ -85,14 +86,14 @@ export const DnDProvider = <Source, Target>(
 			}, []);
 
 			const hasDragOver = useSyncExternalStore(
-				session.subscribe.bind(session, 'target'),
+				session.subscribe('target'),
 				() =>
 					!!dropTarget.current &&
 					session.target?.current === dropTarget.current
 			);
 
 			const hasLongHover = useSyncExternalStore(
-				session.subscribe.bind(session, 'long-hover'),
+				session.subscribe('long-hover'),
 				() =>
 					!!dropTarget.current &&
 					session.longHover.active?.current === dropTarget.current
@@ -125,6 +126,7 @@ export const DnDProvider = <Source, Target>(
 			ev.stopImmediatePropagation();
 
 			if (!session.canDrop(ref)) {
+				session.setTarget(null);
 				ev.dataTransfer!.dropEffect = 'none';
 				return;
 			}

@@ -1,8 +1,15 @@
+import { FileTextIcon } from 'lucide-react';
+
 import { useContextMenu } from '@/components/ContextMenu';
 import { useNameEditor } from '@/components/Tree/NameEditor';
-import type { TreeDragData, TreeDropData } from '@/components/Tree/Tree';
-import { FileTextIcon } from 'lucide-react';
-import { useDnD } from 'src/utils/dnd';
+import type {
+	FileNodeWithPath,
+	TreeDragData,
+	TreeDropData,
+	TreeNodeWithPath,
+} from '@/components/Tree/treeTypes';
+import { useDnD } from '@/utils';
+
 import { cls } from './File.styles';
 
 export type FileProps = {
@@ -10,18 +17,25 @@ export type FileProps = {
 	path: string[];
 	name: string;
 	open?: boolean;
+	renameOnMount?: boolean;
 	onSelect?: (id: string, path: string[]) => void;
+	onDelete?: (node: TreeNodeWithPath) => void;
 };
 
 export const File: React.FC<FileProps> = (props) => {
-	const { name, open, onSelect, id, path } = props;
+	const { name, open, onSelect, id, path, renameOnMount, onDelete } = props;
 
-	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor({
+	const node: FileNodeWithPath = {
 		id,
 		name,
 		path,
 		type: 'file',
-	});
+	};
+
+	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor(
+		node,
+		renameOnMount
+	);
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
 		{ icon: 'square-pen', text: 'Rename Script', onClick: showNameEditor },
@@ -29,14 +43,12 @@ export const File: React.FC<FileProps> = (props) => {
 			icon: 'trash-2',
 			text: 'Delete Script',
 			color: 'red',
-			onClick: () => {},
+			onClick: () => onDelete?.(node),
 		},
 	]);
 
 	const { useDraggable } = useDnD<TreeDragData, TreeDropData>();
-	const { draggable } = useDraggable<HTMLDivElement>(() => {
-		return { id, name, path, type: 'file' };
-	});
+	const { draggable } = useDraggable(() => node);
 
 	return (
 		<div

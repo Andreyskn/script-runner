@@ -1,4 +1,5 @@
 import { bem } from '@andrey/bem';
+
 import styles from './Tree.module.scss';
 
 export const cls = bem(
