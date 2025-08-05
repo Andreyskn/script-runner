@@ -1,5 +1,6 @@
 import { LoaderCircle } from 'lucide-react';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
+
 import { cls } from './Button.styles';
 
 type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
@@ -16,6 +17,7 @@ export type ButtonProps = {
 	loading?: boolean;
 	borderless?: boolean;
 	align?: 'left' | 'right' | 'center';
+	layout?: 'horizontal' | 'vertical';
 } & ButtonAttributes;
 
 export const Button: React.FC<ButtonProps> = (props) => {
@@ -33,6 +35,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
 		loading,
 		borderless,
 		align,
+		layout,
 		...attrs
 	} = props;
 
@@ -53,6 +56,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
 					minimal,
 					round,
 					borderless,
+					vertical: layout === 'vertical',
 				},
 				className
 			)}

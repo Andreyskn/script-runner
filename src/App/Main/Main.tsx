@@ -1,4 +1,5 @@
 import { Scripts } from 'src/views/Scripts';
+
 import { cls } from './Main.styles';
 
 export type MainProps = {

@@ -3,8 +3,16 @@
 	height: 100%;
 
 	&__tree-section {
-		width: 500px;
+		width: 300px;
 		border-right-width: 1px;
+
+		&-title {
+			font-size: 14px;
+			font-weight: 600;
+			line-height: 20px;
+			color: hsl(var(--muted-foreground));
+			letter-spacing: 0.35px;
+		}
 
 		&-content {
 			display: flex;

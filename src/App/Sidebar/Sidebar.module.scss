@@ -1,7 +1,13 @@
 .sidebar {
-	width: 160px;
-
 	&__nav {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 		padding: 8px;
+
+		&-button {
+			padding: 8px 4px;
+			font-size: 12px;
+		}
 	}
 }

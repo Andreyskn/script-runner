@@ -1,0 +1,23 @@
+.output {
+	flex: 1;
+
+	&__header {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		font-weight: 500;
+	}
+
+	&__content {
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+			'Liberation Mono', 'Courier New', monospace;
+	}
+
+	&__placeholder {
+		font-size: 14px;
+		line-height: 20px;
+		color: hsl(var(--muted-foreground));
+		text-wrap: balance;
+	}
+}

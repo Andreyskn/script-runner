@@ -1,0 +1,46 @@
+.script-viewer {
+	flex: 1;
+
+	&__content {
+		display: flex;
+		gap: 16px;
+	}
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+
+	&__info {
+		display: grid;
+		grid-template:
+			'icon . title' auto
+			'icon . subtitle' auto
+			/ auto 12px auto;
+	}
+
+	&__icon {
+		grid-area: icon;
+		align-self: center;
+		color: hsl(var(--primary));
+	}
+
+	&__title {
+		grid-area: title;
+		font-size: 16px;
+		font-weight: 600;
+		line-height: 24px;
+	}
+
+	&__subtitle {
+		grid-area: subtitle;
+		font-size: 14px;
+		line-height: 20px;
+		color: hsl(var(--muted-foreground));
+	}
+
+	&__actions {
+		display: flex;
+		gap: 8px;
+	}
+}

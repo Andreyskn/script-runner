@@ -1,3 +1,16 @@
 .header {
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	&__title {
+		display: flex;
+		gap: 8px;
+		font-size: 20px;
+		font-weight: 700;
+
+		svg {
+			color: hsl(var(--primary));
+		}
+	}
 }
