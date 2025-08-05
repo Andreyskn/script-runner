@@ -1,10 +1,12 @@
-import { Button, type ButtonProps } from '@/components/Button';
 import React, {
 	useEffect,
 	useRef,
 	useState,
 	useSyncExternalStore,
 } from 'react';
+
+import { Button, type ButtonProps } from '@/components/Button';
+
 import { cls } from './ContextMenu.styles';
 
 declare module 'react' {

@@ -10,7 +10,7 @@ import type {
 	TreeProps,
 } from '@/components/Tree/treeTypes';
 import { getUniqueId, isMatchingPath } from '@/components/Tree/treeUtils';
-import { DnDProvider, useDnD } from 'src/utils/dnd';
+import { DnDProvider, useDnD } from '@/utils';
 
 // TODO: optimize nodes rerender
 
@@ -90,9 +90,7 @@ const TreeMiddle: React.FC<TreeMiddleProps> = (props) => {
 	};
 
 	const { useDropTarget } = useDnD<TreeDragData, TreeDropData>();
-	const { dropTarget, hasDragOver } = useDropTarget<HTMLDivElement>(
-		() => root
-	);
+	const { dropTarget, hasDragOver } = useDropTarget(() => root);
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
 		{

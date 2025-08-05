@@ -1,5 +1,3 @@
-import type { TreeNodeWithPath } from '@/components/Tree/treeTypes';
-import EventEmitter from 'eventemitter3';
 import React, {
 	useEffect,
 	useLayoutEffect,
@@ -7,6 +5,10 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react';
+
+import type { TreeNodeWithPath } from '@/components/Tree/treeTypes';
+import { ComponentStore } from '@/utils';
+
 import { cls } from './NameEditor.styles';
 
 type RenameInitialData = {
@@ -98,7 +100,7 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 	}, []);
 
 	const activeNode = useSyncExternalStore(
-		session.subscribe,
+		session.subscribe('toggle'),
 		() => session.activeNode
 	);
 	const shouldShowEditor = !!activeNode;
@@ -160,19 +162,9 @@ const enum SessionStatus {
 	Cancelled,
 }
 
-class RenamingSession {
-	#ee = new EventEmitter<RenamingEvent>();
-
+class RenamingSession extends ComponentStore<RenamingEvent> {
 	activeNode: TreeNodeWithPath | null = null;
 	status: SessionStatus = SessionStatus.Inactive;
-
-	subscribe = (listener: () => void) => {
-		this.#ee.on('toggle', listener);
-
-		return () => {
-			this.#ee.off('toggle', listener);
-		};
-	};
 
 	toggle = (node: TreeNodeWithPath | null) => {
 		if (!node) {
@@ -182,7 +174,7 @@ class RenamingSession {
 		}
 
 		this.activeNode = node;
-		this.#ee.emit('toggle');
+		this.emit('toggle');
 	};
 
 	setStatus = (status: SessionStatus) => {
@@ -211,7 +203,7 @@ export const useNameEditor = (
 	}, []);
 
 	const isRenaming = useSyncExternalStore(
-		session.subscribe,
+		session.subscribe('toggle'),
 		() => session.activeNode?.id === node.id
 	);
 

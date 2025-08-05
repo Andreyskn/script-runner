@@ -6,6 +6,7 @@ import type {
 	TreeBaseProps,
 	TreeNode,
 } from '@/components/Tree/treeTypes';
+
 import { cls } from './Tree.styles';
 
 let openFolders = new Set<FolderNode['id']>();

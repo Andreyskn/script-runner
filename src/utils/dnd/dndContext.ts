@@ -1,13 +1,13 @@
 import { createContext, useContext } from 'react';
 
 export type DnDContextData<Drag = unknown, Drop = unknown> = {
-	useDraggable: <T extends HTMLElement>(
+	useDraggable: <T extends HTMLElement = HTMLDivElement>(
 		getData: () => Drag
 	) => {
 		draggable: React.RefObject<T | null>;
 		isDragged: boolean;
 	};
-	useDropTarget: <T extends HTMLElement>(
+	useDropTarget: <T extends HTMLElement = HTMLDivElement>(
 		getData: () => Drop
 	) => {
 		dropTarget: React.RefObject<T | null>;

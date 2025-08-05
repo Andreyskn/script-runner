@@ -1,3 +1,7 @@
+import { useEffect, useLayoutEffect, useState } from 'react';
+
+import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from 'lucide-react';
+
 import { useContextMenu } from '@/components/ContextMenu';
 import { useNameEditor } from '@/components/Tree/NameEditor';
 import type {
@@ -7,16 +11,15 @@ import type {
 	TreeNodeType,
 	TreeNodeWithPath,
 } from '@/components/Tree/treeTypes';
-import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from 'lucide-react';
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { useDnD } from 'src/utils/dnd';
+import { useDnD } from '@/utils';
+
 import { cls } from './Folder.styles';
 
 export type FolderProps = {
 	id: string;
 	path: string[];
 	name: string;
-	children?: React.ReactNode;
+	children: React.ReactNode;
 	open?: boolean;
 	renameOnMount?: boolean;
 	onToggleOpen: (id: string, isOpen: boolean) => void;
@@ -85,9 +88,8 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		TreeDragData,
 		TreeDropData
 	>();
-	const { draggable } = useDraggable<HTMLDivElement>(() => node);
-	const { dropTarget, hasDragOver, hasLongHover } =
-		useDropTarget<HTMLDivElement>(() => node);
+	const { draggable } = useDraggable(() => node);
+	const { dropTarget, hasDragOver, hasLongHover } = useDropTarget(() => node);
 
 	useLayoutEffect(() => {
 		if (open) {

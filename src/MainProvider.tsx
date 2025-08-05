@@ -1,5 +1,7 @@
-import { ContextMenu } from '@/components/ContextMenu';
 import 'modern-normalize/modern-normalize.css';
+
+import { ContextMenu } from '@/components/ContextMenu';
+
 import './styles/global.scss';
 import './styles/vars.css';
 

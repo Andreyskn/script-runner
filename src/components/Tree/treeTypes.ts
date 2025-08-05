@@ -1,7 +1,7 @@
 import type { FileProps } from '@/components/Tree/File';
 import type { FolderProps } from '@/components/Tree/Folder';
 import type { TreeNodeRenameHandler } from '@/components/Tree/NameEditor';
-import type { DnDProviderProps } from 'src/utils/dnd';
+import type { DnDProviderProps } from '@/utils';
 
 export type TreeNodeType = 'file' | 'folder';
 
@@ -31,7 +31,7 @@ export type FileNodeWithPath = FileNode & {
 	path: string[];
 };
 
-export type FolderNodeWithPath = OmitType<FolderNode, 'nodes'> & {
+export type FolderNodeWithPath = FolderNode & {
 	path: string[];
 };
 

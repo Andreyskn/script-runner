@@ -1,3 +1,5 @@
+import { FileTextIcon } from 'lucide-react';
+
 import { useContextMenu } from '@/components/ContextMenu';
 import { useNameEditor } from '@/components/Tree/NameEditor';
 import type {
@@ -5,9 +7,9 @@ import type {
 	TreeDragData,
 	TreeDropData,
 	TreeNodeWithPath,
-} from '@/components/Tree/Tree';
-import { FileTextIcon } from 'lucide-react';
-import { useDnD } from 'src/utils/dnd';
+} from '@/components/Tree/treeTypes';
+import { useDnD } from '@/utils';
+
 import { cls } from './File.styles';
 
 export type FileProps = {
@@ -46,7 +48,7 @@ export const File: React.FC<FileProps> = (props) => {
 	]);
 
 	const { useDraggable } = useDnD<TreeDragData, TreeDropData>();
-	const { draggable } = useDraggable<HTMLDivElement>(() => node);
+	const { draggable } = useDraggable(() => node);
 
 	return (
 		<div
