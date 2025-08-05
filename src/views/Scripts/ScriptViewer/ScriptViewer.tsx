@@ -26,7 +26,8 @@ export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
 };
 
 const Header: React.FC = () => {
-	const { setEditing, isEditing, saveScript } = useScriptViewerStore();
+	const { setEditing, isEditing, saveScript, runScript } =
+		useScriptViewerStore();
 
 	return (
 		<div className={cls.header.block()}>
@@ -53,7 +54,12 @@ const Header: React.FC = () => {
 					/>
 				)}
 
-				<Button icon='play' text='Run' fill='green' />
+				<Button
+					icon='play'
+					text='Run'
+					fill='green'
+					onClick={runScript}
+				/>
 			</div>
 		</div>
 	);

@@ -1,8 +1,14 @@
 import { useState, useSyncExternalStore } from 'react';
 
-import { ComponentStore } from '@/utils';
+import { ComponentStore, sleep } from '@/utils';
 
-type ScriptViewerEvents = 'toggle-edit' | 'output-change';
+export type ExecutionResult = 'interrupted' | 'failed' | 'succeeded';
+
+export type ExecutionStatus = 'idle' | 'starting' | 'running' | ExecutionResult;
+
+// TODO: cache by script id
+
+type ScriptViewerEvents = 'edit-toggle' | 'output-change' | 'execution-status';
 
 class ScriptViewerStore extends ComponentStore<ScriptViewerEvents> {
 	static store: { current: ScriptViewerStore } = {
@@ -19,33 +25,37 @@ class ScriptViewerStore extends ComponentStore<ScriptViewerEvents> {
 
 	isEditing = false;
 	scriptContent = '';
-	output = '';
+	output: string[] = [];
+	executionStatus: ExecutionStatus = 'idle';
 
 	setEditing = (isEditing: boolean) => {
 		this.isEditing = isEditing;
-		this.emit('toggle-edit');
+		this.emit('edit-toggle');
 	};
 
 	setScriptContent = (content: string) => {
 		this.scriptContent = content;
 	};
 
-	setOutput = (text: string) => {
-		this.output = text;
+	clearOutput = () => {
+		this.output = [];
 		this.emit('output-change');
 	};
 
-	appendOutput = (text: string) => {
-		this.output += text;
+	appendOutputLine = (text: string) => {
+		this.output = [...this.output, text];
 		this.emit('output-change');
+	};
+
+	setExecutionStatus = (status: ExecutionStatus) => {
+		if (status === 'starting') {
+			this.clearOutput();
+		}
+
+		this.executionStatus = status;
+		this.emit('execution-status');
 	};
 }
-
-export const initScriptViewerStore = ScriptViewerStore.init;
-
-export const useInitScriptViewerStore = () => {
-	useState(initScriptViewerStore);
-};
 
 export const useScriptViewerStore = () => {
 	const store = ScriptViewerStore.store.current;
@@ -62,7 +72,7 @@ export const useScriptViewerStore = () => {
 
 		get isEditing() {
 			return useSyncExternalStore(
-				store.subscribe('toggle-edit'),
+				store.subscribe('edit-toggle'),
 				() => store.isEditing
 			);
 		},
@@ -73,5 +83,31 @@ export const useScriptViewerStore = () => {
 				() => store.output
 			);
 		},
+
+		get executionStatus() {
+			return useSyncExternalStore(
+				store.subscribe('execution-status'),
+				() => store.executionStatus
+			);
+		},
+
+		runScript: async () => {
+			store.setExecutionStatus('starting');
+			await sleep(1000);
+			store.setExecutionStatus('running');
+			store.appendOutputLine('Starting backup...');
+			await sleep(1000);
+			store.appendOutputLine('Files backed up successfully!');
+			await sleep(1000);
+			store.appendOutputLine('Backup completed!');
+
+			store.setExecutionStatus('succeeded');
+		},
 	} satisfies Partial<typeof store> & Record<string, any>;
+};
+
+export const initScriptViewerStore = ScriptViewerStore.init;
+
+export const useInitScriptViewerStore = () => {
+	useState(initScriptViewerStore);
 };
