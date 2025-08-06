@@ -1,0 +1,10 @@
+.loader {
+	color: hsl(var(--primary));
+	animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+	to {
+		rotate: 360deg;
+	}
+}

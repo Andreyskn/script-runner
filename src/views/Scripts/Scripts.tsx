@@ -1,13 +1,18 @@
+import { useState } from 'react';
+
 import { Section } from '@/components/Section';
 import { Tree, type TreeNode, type TreeProps } from '@/components/Tree';
-import { Placeholder } from '@/views/Scripts/Placeholder';
-import { useState } from 'react';
+import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
+import { useInitScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+
 import { cls } from './Scripts.styles';
 
 export type ScriptsProps = {};
 
 export const Scripts: React.FC<ScriptsProps> = (props) => {
 	const {} = props;
+
+	useInitScriptViewerStore();
 
 	const [nodes, setNodes] = useState<TreeNode[]>([
 		{
@@ -114,6 +119,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 			<Section
 				header={<div>SCRIPTS</div>}
 				className={cls.scripts.treeSection()}
+				headerClassName={cls.scripts.treeSectionTitle()}
 				contentClassName={cls.scripts.treeSectionContent()}
 			>
 				<Tree
@@ -126,7 +132,8 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 					onRename={handleRename}
 				/>
 			</Section>
-			<Placeholder />
+			{/* <Placeholder /> */}
+			<ScriptViewer />
 		</div>
 	);
 };

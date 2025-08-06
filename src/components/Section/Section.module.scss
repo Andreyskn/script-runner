@@ -10,10 +10,13 @@
 	&__header {
 		padding: 16px;
 		border-bottom-width: 1px;
+		white-space: nowrap;
 	}
 
 	&__content {
+		overflow: auto;
 		flex: 1;
+		min-height: 0;
 		padding: 16px;
 
 		&--no-padding {
