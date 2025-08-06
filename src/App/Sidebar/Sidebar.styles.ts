@@ -7,5 +7,6 @@ export const cls = bem(
 		scripts: string;
 		'scripts__tree-section': string;
 		'scripts__tree-section-content': string;
+		'scripts__tree-section-title': string;
 	}
 );

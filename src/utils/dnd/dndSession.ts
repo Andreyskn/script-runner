@@ -1,19 +1,26 @@
 import { ComponentStore } from '@/utils';
 import type { ElementRef, ElementRefMeta } from '@/utils/dnd/dndProvider';
 
-type ChangeEvent = 'source' | 'target' | 'long-hover';
 type ElementData = any;
 
-export class DnDSession extends ComponentStore<ChangeEvent> {
+type SessionState = {
+	source: ElementRef | null;
+	target: ElementRef | null;
+};
+
+export class DnDSession extends ComponentStore<SessionState> {
+	state: SessionState = {
+		source: null,
+		target: null,
+	};
+
+	longHover: LongHover;
+
 	#elementRefs: Map<ElementRef, ElementRefMeta>;
 	#elementData: Map<ElementRef, ElementData> = new Map();
 
 	#canDropFn?: (source: ElementData, target: ElementData) => boolean;
 	#canDropMap: Map<ElementRef, boolean> = new Map();
-
-	source: ElementRef | null = null;
-	target: ElementRef | null = null;
-	longHover: LongHover;
 
 	constructor(
 		refs: Map<ElementRef, ElementRefMeta>,
@@ -23,7 +30,7 @@ export class DnDSession extends ComponentStore<ChangeEvent> {
 		super();
 		this.#elementRefs = refs;
 		this.#canDropFn = canDrop;
-		this.longHover = new LongHover(this.emit, longHoverThreshold);
+		this.longHover = new LongHover(longHoverThreshold);
 	}
 
 	getData = (ref: ElementRef) => {
@@ -46,7 +53,7 @@ export class DnDSession extends ComponentStore<ChangeEvent> {
 			return this.#canDropMap.get(target)!;
 		}
 
-		const sourceData = this.getData(this.source!);
+		const sourceData = this.getData(this.state.source!);
 		const targetData = this.getData(target);
 		const canDrop = this.#canDropFn(sourceData, targetData);
 		this.#canDropMap.set(target, canDrop);
@@ -55,14 +62,16 @@ export class DnDSession extends ComponentStore<ChangeEvent> {
 	};
 
 	setSource = (source: ElementRef | null) => {
-		this.source = source;
-		this.emit('source');
+		this.setState((state) => {
+			state.source = source;
+		});
 	};
 
 	setTarget = (target: ElementRef | null) => {
-		if (target !== this.target) {
-			this.target = target;
-			this.emit('target');
+		if (target !== this.state.target) {
+			this.setState((state) => {
+				state.target = target;
+			});
 		}
 
 		this.longHover.setHover(target);
@@ -82,18 +91,23 @@ type LongHoverCandidate = {
 	startTime: number | null;
 };
 
-class LongHover {
-	active: ElementRef | null = null;
+type LongHoverState = {
+	active: ElementRef | null;
+};
+
+class LongHover extends ComponentStore<LongHoverState> {
+	state: LongHoverState = {
+		active: null,
+	};
+
 	#candidate: LongHoverCandidate = {
 		ref: null,
 		startTime: null,
 	};
 	#threshold: number;
 
-	constructor(
-		private emit: DnDSession['emit'],
-		threshold: number = 700
-	) {
+	constructor(threshold: number = 700) {
+		super();
 		this.#threshold = threshold;
 	}
 
@@ -103,14 +117,15 @@ class LongHover {
 				ref: null,
 				startTime: null,
 			};
-			if (this.active) {
-				this.active = null;
-				this.emit('long-hover');
+			if (this.state.active) {
+				this.setState((state) => {
+					state.active = null;
+				});
 			}
 			return;
 		}
 
-		if (ref === this.active) {
+		if (ref === this.state.active) {
 			return;
 		}
 
@@ -121,8 +136,9 @@ class LongHover {
 		}
 
 		if (performance.now() - this.#candidate.startTime! >= this.#threshold) {
-			this.active = this.#candidate.ref;
-			this.emit('long-hover');
+			this.setState((state) => {
+				state.active = this.#candidate.ref;
+			});
 		}
 	};
 }

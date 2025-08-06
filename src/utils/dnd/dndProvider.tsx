@@ -1,10 +1,4 @@
-import {
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DnDContext, type DnDContextData } from '@/utils/dnd/dndContext';
 import { DnDSession } from '@/utils/dnd/dndSession';
@@ -56,11 +50,10 @@ export const DnDProvider = <Source, Target>(
 				};
 			}, []);
 
-			const isDragged = useSyncExternalStore(
-				session.subscribe('source'),
-				() =>
-					!!draggable.current &&
-					session.source?.current === draggable.current
+			const isDragged = session.useSelector(
+				(state) => state.source,
+				(source) =>
+					!!draggable.current && source?.current === draggable.current
 			);
 
 			return { draggable, isDragged };
@@ -85,18 +78,18 @@ export const DnDProvider = <Source, Target>(
 				};
 			}, []);
 
-			const hasDragOver = useSyncExternalStore(
-				session.subscribe('target'),
-				() =>
+			const hasDragOver = session.useSelector(
+				(state) => state.target,
+				(target) =>
 					!!dropTarget.current &&
-					session.target?.current === dropTarget.current
+					target?.current === dropTarget.current
 			);
 
-			const hasLongHover = useSyncExternalStore(
-				session.subscribe('long-hover'),
-				() =>
+			const hasLongHover = session.longHover.useSelector(
+				(state) => state.active,
+				(active) =>
 					!!dropTarget.current &&
-					session.longHover.active?.current === dropTarget.current
+					active?.current === dropTarget.current
 			);
 
 			return { dropTarget, hasDragOver, hasLongHover };
@@ -139,7 +132,7 @@ export const DnDProvider = <Source, Target>(
 			ev.preventDefault();
 			ev.stopImmediatePropagation();
 
-			const source = session.source!;
+			const source = session.state.source!;
 			const sourceData = session.getData(source);
 			const targetData = session.getData(ref);
 

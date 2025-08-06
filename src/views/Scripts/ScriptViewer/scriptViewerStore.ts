@@ -1,6 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
-
-import { ComponentStore, sleep } from '@/utils';
+import { ComponentStore, getStoreInitHook, sleep } from '@/utils';
 
 export type ExecutionResult = 'interrupted' | 'failed' | 'succeeded';
 
@@ -8,43 +6,43 @@ export type ExecutionStatus = 'idle' | 'starting' | 'running' | ExecutionResult;
 
 // TODO: cache by script id
 
-type ScriptViewerEvents = 'edit-toggle' | 'output-change' | 'execution-status';
+type State = {
+	isEditing: boolean;
+	modifiedScriptContent: string;
+	output: string[];
+	executionStatus: ExecutionStatus;
+};
 
-class ScriptViewerStore extends ComponentStore<ScriptViewerEvents> {
-	static store: { current: ScriptViewerStore } = {
-		get current() {
-			throw new Error('ScriptViewerStore is not initialized');
-			return null as any;
-		},
+class ScriptViewerStore extends ComponentStore<State> {
+	state: State = {
+		isEditing: false,
+		modifiedScriptContent: '',
+		output: [],
+		executionStatus: 'idle',
 	};
-
-	static init = () => {
-		this.store = { current: new ScriptViewerStore() };
-		return this.store.current;
-	};
-
-	isEditing = false;
-	modifiedScriptContent = '';
-	output: string[] = [];
-	executionStatus: ExecutionStatus = 'idle';
 
 	setEditing = (isEditing: boolean) => {
-		this.isEditing = isEditing;
-		this.emit('edit-toggle');
+		this.setState((state) => {
+			state.isEditing = isEditing;
+		});
 	};
 
 	setModifiedScriptContent = (content: string) => {
-		this.modifiedScriptContent = content;
+		this.setState((state) => {
+			state.modifiedScriptContent = content;
+		});
 	};
 
 	clearOutput = () => {
-		this.output = [];
-		this.emit('output-change');
+		this.setState((state) => {
+			state.output = [];
+		});
 	};
 
 	appendOutputLine = (text: string) => {
-		this.output = [...this.output, text];
-		this.emit('output-change');
+		this.setState((state) => {
+			state.output = [...state.output, text];
+		});
 	};
 
 	setExecutionStatus = (status: ExecutionStatus) => {
@@ -52,13 +50,20 @@ class ScriptViewerStore extends ComponentStore<ScriptViewerEvents> {
 			this.clearOutput();
 		}
 
-		this.executionStatus = status;
-		this.emit('execution-status');
+		this.setState((state) => {
+			state.executionStatus = status;
+		});
 	};
 }
 
+const { getStore, useInitStore: useInitScriptViewerStore } =
+	getStoreInitHook(ScriptViewerStore);
+
+export { useInitScriptViewerStore };
+
 export const useScriptViewerStore = () => {
-	const store = ScriptViewerStore.store.current;
+	const store = getStore();
+	const { state } = store;
 
 	return {
 		setEditing: store.setEditing,
@@ -68,33 +73,24 @@ export const useScriptViewerStore = () => {
 		saveScript: () => {
 			store.setEditing(false);
 
-			if (!store.modifiedScriptContent) {
+			if (!state.modifiedScriptContent) {
 				return;
 			}
 
-			console.log(store.modifiedScriptContent);
+			console.log(state.modifiedScriptContent);
 			store.setModifiedScriptContent('');
 		},
 
 		get isEditing() {
-			return useSyncExternalStore(
-				store.subscribe('edit-toggle'),
-				() => store.isEditing
-			);
+			return store.useSelector((state) => state.isEditing);
 		},
 
 		get output() {
-			return useSyncExternalStore(
-				store.subscribe('output-change'),
-				() => store.output
-			);
+			return store.useSelector((state) => state.output);
 		},
 
 		get executionStatus() {
-			return useSyncExternalStore(
-				store.subscribe('execution-status'),
-				() => store.executionStatus
-			);
+			return store.useSelector((state) => state.executionStatus);
 		},
 
 		runScript: async () => {
@@ -110,10 +106,4 @@ export const useScriptViewerStore = () => {
 			store.setExecutionStatus('succeeded');
 		},
 	} satisfies Partial<typeof store> & Record<string, any>;
-};
-
-export const initScriptViewerStore = ScriptViewerStore.init;
-
-export const useInitScriptViewerStore = () => {
-	useState(initScriptViewerStore);
 };
