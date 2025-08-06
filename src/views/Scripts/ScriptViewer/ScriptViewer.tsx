@@ -26,8 +26,11 @@ export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
 };
 
 const Header: React.FC = () => {
-	const { setEditing, isEditing, saveScript, runScript } =
+	const { setEditing, isEditing, saveScript, runScript, executionStatus } =
 		useScriptViewerStore();
+
+	const hasActiveExecution =
+		executionStatus === 'running' || executionStatus === 'starting';
 
 	return (
 		<div className={cls.header.block()}>
@@ -54,12 +57,21 @@ const Header: React.FC = () => {
 					/>
 				)}
 
-				<Button
-					icon='play'
-					text='Run'
-					fill='green'
-					onClick={runScript}
-				/>
+				{hasActiveExecution ? (
+					<Button
+						icon='play'
+						text='Running...'
+						fill='green'
+						disabled
+					/>
+				) : (
+					<Button
+						icon='play'
+						text='Run'
+						fill='green'
+						onClick={runScript}
+					/>
+				)}
 			</div>
 		</div>
 	);

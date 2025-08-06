@@ -24,7 +24,7 @@ class ScriptViewerStore extends ComponentStore<ScriptViewerEvents> {
 	};
 
 	isEditing = false;
-	scriptContent = '';
+	modifiedScriptContent = '';
 	output: string[] = [];
 	executionStatus: ExecutionStatus = 'idle';
 
@@ -33,8 +33,8 @@ class ScriptViewerStore extends ComponentStore<ScriptViewerEvents> {
 		this.emit('edit-toggle');
 	};
 
-	setScriptContent = (content: string) => {
-		this.scriptContent = content;
+	setModifiedScriptContent = (content: string) => {
+		this.modifiedScriptContent = content;
 	};
 
 	clearOutput = () => {
@@ -63,11 +63,17 @@ export const useScriptViewerStore = () => {
 	return {
 		setEditing: store.setEditing,
 
-		setScriptContent: store.setScriptContent,
+		setScriptContent: store.setModifiedScriptContent,
 
 		saveScript: () => {
 			store.setEditing(false);
-			console.log(store.scriptContent);
+
+			if (!store.modifiedScriptContent) {
+				return;
+			}
+
+			console.log(store.modifiedScriptContent);
+			store.setModifiedScriptContent('');
 		},
 
 		get isEditing() {

@@ -1,6 +1,6 @@
 .loader {
 	color: hsl(var(--primary));
-	animation: spin 1s infinite;
+	animation: spin 1s infinite linear;
 }
 
 @keyframes spin {

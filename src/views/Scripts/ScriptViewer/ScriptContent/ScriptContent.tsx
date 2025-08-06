@@ -43,12 +43,7 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 					className={cls.scriptContent.text()}
 				/>
 			) : (
-				<pre
-					contentEditable={isEditing}
-					className={cls.scriptContent.text()}
-				>
-					{scriptText}
-				</pre>
+				<pre className={cls.scriptContent.text()}>{scriptText}</pre>
 			)}
 		</Section>
 	);

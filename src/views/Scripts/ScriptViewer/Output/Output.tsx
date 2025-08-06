@@ -64,7 +64,7 @@ export const Output: React.FC<OutputProps> = (props) => {
 					)}
 					{executionStatus === 'failed' && (
 						<div className={cls.output.line({ error: true })}>
-							⛔ Script failed
+							❌ Script failed
 						</div>
 					)}
 					{executionStatus === 'interrupted' && (
