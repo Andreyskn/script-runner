@@ -14,7 +14,8 @@ echo 'Deployment complete!'`;
 export type ScriptContentProps = {};
 
 export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
-	const { isEditing, setScriptContent, saveScript } = useScriptViewerStore();
+	const { isEditing, setScriptContent, saveScript, setEditing } =
+		useScriptViewerStore();
 
 	useHotkeys('ctrl+s', saveScript, {
 		enabled: isEditing,
@@ -43,7 +44,12 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 					className={cls.scriptContent.text()}
 				/>
 			) : (
-				<pre className={cls.scriptContent.text()}>{scriptText}</pre>
+				<pre
+					className={cls.scriptContent.text()}
+					onDoubleClick={() => setEditing(true)}
+				>
+					{scriptText}
+				</pre>
 			)}
 		</Section>
 	);

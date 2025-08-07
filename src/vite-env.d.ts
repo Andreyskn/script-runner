@@ -19,6 +19,10 @@ declare global {
 	type AnyObject = Record<string | number, any>;
 
 	type AnyFunction = (...args: any[]) => any;
+
+	type DeepPartial<T> = {
+		[P in keyof T]?: DeepPartial<T[P]>;
+	};
 }
 
 export {};

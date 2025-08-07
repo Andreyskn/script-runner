@@ -1,28 +1,29 @@
-import { useSyncExternalStore } from 'react';
-
 import type { TemporaryNode } from '@/components/Tree/treeTypes';
 import { isMatchingPath } from '@/components/Tree/treeUtils';
 import { ComponentStore } from '@/utils';
 
-type TreeEvent = 'tmp-node';
+type State = {
+	tmpNode: TemporaryNode | null;
+};
 
-class TreeStore extends ComponentStore<TreeEvent> {
-	tmpNode: TemporaryNode | null = null;
+class TreeStore extends ComponentStore<State> {
+	state: State = {
+		tmpNode: null,
+	};
 
 	setTmpNode = (node: TemporaryNode | null) => {
-		this.tmpNode = node;
-		this.emit('tmp-node');
+		this.setState((state) => {
+			state.tmpNode = node;
+		});
 	};
 }
 
 export const treeStore = new TreeStore();
 
 export const useTreeStore = (path: string[]) => {
-	const tmpNode = useSyncExternalStore(
-		treeStore.subscribe('tmp-node'),
-		() => {
-			const { tmpNode } = treeStore;
-
+	const tmpNode = treeStore.useSelector(
+		(state) => state.tmpNode,
+		(tmpNode) => {
 			if (
 				tmpNode &&
 				isMatchingPath(path, tmpNode.parent.path, { exact: true })

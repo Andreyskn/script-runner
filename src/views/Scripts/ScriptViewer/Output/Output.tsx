@@ -53,8 +53,10 @@ export const Output: React.FC<OutputProps> = (props) => {
 						$ Executing backup.sh...
 					</div>
 
-					{output.map((line) => (
-						<div className={cls.output.line()}>{line}</div>
+					{output.map((line, i) => (
+						<div key={i} className={cls.output.line()}>
+							{line}
+						</div>
 					))}
 
 					{executionStatus === 'succeeded' && (

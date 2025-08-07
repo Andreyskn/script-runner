@@ -1,10 +1,4 @@
-import React, {
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import type { TreeNodeWithPath } from '@/components/Tree/treeTypes';
 import { ComponentStore } from '@/utils';
@@ -54,21 +48,23 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		popover.current?.addEventListener('beforetoggle', (ev) => {
 			ev.stopImmediatePropagation();
 
+			const { state } = session;
+
 			// @ts-expect-error
 			if (ev.newState === 'closed') {
-				if (session.status !== SessionStatus.Confirmed) {
-					onRename?.cancel?.(session.activeNode!);
+				if (state.status !== SessionStatus.Confirmed) {
+					onRename?.cancel?.(state.activeNode!);
 					session.setStatus(SessionStatus.Cancelled);
 				}
 				return;
 			}
 
 			// @ts-expect-error
-			if (ev.newState === 'open' && session.activeNode && input.current) {
+			if (ev.newState === 'open' && state.activeNode && input.current) {
 				initialData.current = {
-					text: session.activeNode.name,
-					selection: [0, session.activeNode.name.length],
-					...onRename?.before?.(session.activeNode),
+					text: state.activeNode.name,
+					selection: [0, state.activeNode.name.length],
+					...onRename?.before?.(state.activeNode),
 				};
 
 				input.current.value = initialData.current.text;
@@ -78,10 +74,12 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		popover.current?.addEventListener('toggle', (ev) => {
 			ev.stopImmediatePropagation();
 
+			const { state } = session;
 			// closed
+
 			if (
-				session.status === SessionStatus.Confirmed ||
-				session.status === SessionStatus.Cancelled
+				state.status === SessionStatus.Confirmed ||
+				state.status === SessionStatus.Cancelled
 			) {
 				session.toggle(null);
 				setError(null);
@@ -99,10 +97,7 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		});
 	}, []);
 
-	const activeNode = useSyncExternalStore(
-		session.subscribe('toggle'),
-		() => session.activeNode
-	);
+	const activeNode = session.useSelector((state) => state.activeNode);
 	const shouldShowEditor = !!activeNode;
 
 	useEffect(() => {
@@ -114,17 +109,20 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 	const handleSubmit: React.FormEventHandler<HTMLFormElement> = (ev) => {
 		ev.preventDefault();
 
-		if (!session.activeNode || !input.current) {
+		const { state } = session;
+
+		if (!state.activeNode || !input.current) {
 			return;
 		}
 
-		onRename?.confirm?.(session.activeNode, input.current.value);
+		onRename?.confirm?.(state.activeNode, input.current.value);
 		session.setStatus(SessionStatus.Confirmed);
 		popover.current?.hidePopover();
 	};
 
 	const handleChange: React.ChangeEventHandler<HTMLInputElement> = (ev) => {
-		const result = onRename?.change?.(session.activeNode!, ev.target.value);
+		const { state } = session;
+		const result = onRename?.change?.(state.activeNode!, ev.target.value);
 		setHint(result?.hint);
 		setError(result?.error);
 	};
@@ -153,8 +151,6 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 	);
 };
 
-type RenamingEvent = 'toggle';
-
 const enum SessionStatus {
 	Inactive,
 	Active,
@@ -162,23 +158,33 @@ const enum SessionStatus {
 	Cancelled,
 }
 
-class RenamingSession extends ComponentStore<RenamingEvent> {
-	activeNode: TreeNodeWithPath | null = null;
-	status: SessionStatus = SessionStatus.Inactive;
+type State = {
+	activeNode: TreeNodeWithPath | null;
+	status: SessionStatus;
+};
+
+class RenamingSession extends ComponentStore<State> {
+	state: State = {
+		activeNode: null,
+		status: SessionStatus.Inactive,
+	};
 
 	toggle = (node: TreeNodeWithPath | null) => {
-		if (!node) {
-			this.setStatus(SessionStatus.Inactive);
-		} else {
-			this.setStatus(SessionStatus.Active);
-		}
+		this.setState((state) => {
+			if (node) {
+				state.status = SessionStatus.Active;
+			} else {
+				state.status = SessionStatus.Inactive;
+			}
 
-		this.activeNode = node;
-		this.emit('toggle');
+			state.activeNode = node;
+		});
 	};
 
 	setStatus = (status: SessionStatus) => {
-		this.status = status;
+		this.setState((state) => {
+			state.status = status;
+		});
 	};
 }
 
@@ -202,9 +208,9 @@ export const useNameEditor = (
 		}
 	}, []);
 
-	const isRenaming = useSyncExternalStore(
-		session.subscribe('toggle'),
-		() => session.activeNode?.id === node.id
+	const isRenaming = session.useSelector(
+		(state) => state.activeNode,
+		(activeNode) => activeNode?.id === node.id
 	);
 
 	return { showNameEditor, isRenaming, NameEditorAnchor };

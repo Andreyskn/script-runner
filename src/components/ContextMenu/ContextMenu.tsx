@@ -1,11 +1,7 @@
-import React, {
-	useEffect,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Button, type ButtonProps } from '@/components/Button';
+import { ComponentStore } from '@/utils';
 
 import { cls } from './ContextMenu.styles';
 
@@ -40,11 +36,14 @@ export const useContextMenu = <T extends HTMLElement>(
 		});
 	}, []);
 
-	const isContextMenuOpen = useSyncExternalStore(
-		isOpen.subscribe,
-		() =>
-			!!contextMenuTrigger.current &&
-			isOpen.current?.current === contextMenuTrigger.current
+	const isContextMenuOpen = store.useSelector(
+		(state) => state.activeElement,
+		(el) => {
+			return (
+				!!contextMenuTrigger.current &&
+				el === contextMenuTrigger.current
+			);
+		}
 	);
 
 	return { contextMenuTrigger, isContextMenuOpen };
@@ -90,15 +89,16 @@ export const ContextMenu: React.FC = () => {
 					setMenuItems(data.getContent());
 
 					menu.current?.showPopover();
-					isOpen.setState(data.elementRef);
+					store.setActive(data.elementRef.current);
 				}
 			});
 		};
 
 		menu.current?.addEventListener('beforetoggle', (ev) => {
+			ev.stopImmediatePropagation();
 			// @ts-expect-error
 			if (ev.newState === 'closed') {
-				isOpen.setState(null);
+				store.setActive(null);
 			}
 		});
 	}, []);
@@ -133,17 +133,20 @@ export const ContextMenu: React.FC = () => {
 	);
 };
 
-export const isOpen = {
-	current: null as ElementRef | null,
-	listeners: new Set<() => void>(),
-
-	subscribe(listener: () => void) {
-		isOpen.listeners.add(listener);
-		return () => isOpen.listeners.delete(listener);
-	},
-
-	setState(value: ElementRef | null) {
-		isOpen.current = value;
-		isOpen.listeners.forEach((listener) => listener());
-	},
+type ContextMenuState = {
+	activeElement: HTMLElement | null;
 };
+
+class ContextMenuStore extends ComponentStore<ContextMenuState> {
+	state: ContextMenuState = {
+		activeElement: null,
+	};
+
+	setActive = (ref: HTMLElement | null) => {
+		this.setState((state) => {
+			state.activeElement = ref;
+		});
+	};
+}
+
+const store = new ContextMenuStore();
