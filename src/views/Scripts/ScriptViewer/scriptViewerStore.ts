@@ -78,6 +78,7 @@ export const useScriptViewerStore = () => {
 			}
 
 			console.log(state.modifiedScriptContent);
+
 			store.setModifiedScriptContent('');
 		},
 

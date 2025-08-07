@@ -171,9 +171,11 @@ class RenamingSession extends ComponentStore<State> {
 
 	toggle = (node: TreeNodeWithPath | null) => {
 		this.setState((state) => {
-			this.setStatus(
-				node ? SessionStatus.Active : SessionStatus.Inactive
-			);
+			if (node) {
+				state.status = SessionStatus.Active;
+			} else {
+				state.status = SessionStatus.Inactive;
+			}
 
 			state.activeNode = node;
 		});

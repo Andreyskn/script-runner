@@ -23,12 +23,12 @@ export const treeStore = new TreeStore();
 export const useTreeStore = (path: string[]) => {
 	const tmpNode = treeStore.useSelector(
 		(state) => state.tmpNode,
-		(node) => {
+		(tmpNode) => {
 			if (
-				node &&
-				isMatchingPath(path, node.parent.path, { exact: true })
+				tmpNode &&
+				isMatchingPath(path, tmpNode.parent.path, { exact: true })
 			) {
-				return node.node;
+				return tmpNode.node;
 			}
 		}
 	);

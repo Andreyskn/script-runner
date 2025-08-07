@@ -22,9 +22,14 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 	) => {
 		const paths = useRef<string[]>([]);
 
-		const selectAndProcess = () => {
+		const selectAndProcess = (): any => {
 			const data = select(this.state);
-			return (process?.(data) ?? data) as any;
+
+			if (process) {
+				return process(data);
+			} else {
+				return data;
+			}
 		};
 
 		const [data, setData] = useState<T>(() => {
@@ -32,23 +37,24 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 			return selectAndProcess();
 		});
 
-		useEffect(() => {
+		const [cleanup] = useState(() => {
 			const pathSet = new Set(paths.current);
-
 			const listener = () => {
 				setData(selectAndProcess());
 			};
 
 			for (const p of pathSet) {
-				this.ee.on(p, listener);
+				this.ee.addListener(p, listener);
 			}
 
 			return () => {
 				for (const p of pathSet) {
-					this.ee.off(p, listener);
+					this.ee.removeListener(p, listener);
 				}
 			};
-		}, []);
+		});
+
+		useEffect(() => cleanup, []);
 
 		return data;
 	};
@@ -63,8 +69,9 @@ export const getStoreInitHook = <S extends new () => any>(Store: S) => {
 	};
 
 	const useInitStore = () => {
-		store = { current: new Store() };
-		useState(store);
+		useState(() => {
+			store = { current: new Store() };
+		});
 	};
 
 	const getStore = () => {
@@ -80,7 +87,7 @@ function isObject(value: any) {
 
 const appendPath = (key: string, paths: string[], index = paths.length) => {
 	if (!paths[index]) {
-		paths[index] = '/';
+		paths[index] = '';
 	}
 	paths[index] += `${key}/`;
 	return index;

@@ -33,14 +33,14 @@ export const Tree: React.FC<TreeProps> = (props) => {
 		before: onRename?.before,
 		change: onRename?.change,
 		cancel(node) {
-			if (node.id === treeStore.tmpNode?.node.id) {
+			if (node.id === treeStore.state.tmpNode?.node.id) {
 				treeStore.setTmpNode(null);
 			} else {
 				onRename?.cancel?.(node);
 			}
 		},
 		confirm(node, name) {
-			if (node.id === treeStore.tmpNode?.node.id) {
+			if (node.id === treeStore.state.tmpNode?.node.id) {
 				treeStore.setTmpNode(null);
 				onCreate?.({ name, path: node.path, type: node.type });
 			} else {
