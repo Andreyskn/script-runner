@@ -44,12 +44,12 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 			};
 
 			for (const p of pathSet) {
-				this.ee.addListener(p, listener);
+				this.ee.on(p, listener);
 			}
 
 			return () => {
 				for (const p of pathSet) {
-					this.ee.removeListener(p, listener);
+					this.ee.off(p, listener);
 				}
 			};
 		});
@@ -60,7 +60,9 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 	};
 }
 
-export const getStoreInitHook = <S extends new () => any>(Store: S) => {
+export const getStoreInitHook = <S extends new (...args: any[]) => any>(
+	Store: S
+) => {
 	let store: { current: InstanceType<S> } = {
 		get current() {
 			throw new Error(`${Store.name} is not initialized`);
@@ -68,10 +70,11 @@ export const getStoreInitHook = <S extends new () => any>(Store: S) => {
 		},
 	};
 
-	const useInitStore = () => {
-		useState(() => {
-			store = { current: new Store() };
-		});
+	const useInitStore = (...args: ConstructorParameters<S>) => {
+		return useState(() => {
+			store = { current: new Store(...args) };
+			return store.current;
+		})[0];
 	};
 
 	const getStore = () => {
