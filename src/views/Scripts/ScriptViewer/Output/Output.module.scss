@@ -1,4 +1,4 @@
-.output {
+.output-section {
 	flex: 1;
 
 	&__content {
@@ -13,6 +13,12 @@
 		color: hsl(var(--muted-foreground));
 		text-wrap: balance;
 	}
+}
+
+.output {
+	font-family:
+		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		'Liberation Mono', 'Courier New', monospace;
 
 	&__line {
 		font-size: 14px;
@@ -47,8 +53,8 @@
 
 	&__interrupt-button {
 		position: absolute;
-		top: 100%;
-		right: 0;
+		top: 9.5px;
+		right: 8px;
 	}
 
 	&__loader {

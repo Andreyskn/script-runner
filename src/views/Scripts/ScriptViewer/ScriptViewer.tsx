@@ -2,7 +2,7 @@ import { CodeXmlIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
-import { Output } from '@/views/Scripts/ScriptViewer/Output';
+import { OutputSection } from '@/views/Scripts/ScriptViewer/Output';
 import { ScriptContent } from '@/views/Scripts/ScriptViewer/ScriptContent';
 import { useScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
 
@@ -20,7 +20,7 @@ export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
 			contentClassName={cls.scriptViewer.content()}
 		>
 			<ScriptContent />
-			<Output />
+			<OutputSection />
 		</Section>
 	);
 };

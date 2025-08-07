@@ -1,0 +1,137 @@
+.history-entry {
+	border-width: 1px;
+	border-radius: var(--radius);
+
+	&__main {
+		display: grid;
+		grid-template:
+			'title . info actions' auto
+			'. . . .' 12px
+			'output-toggle . . status' auto
+			/ auto minmax(8px, 1fr) auto auto;
+		align-items: center;
+
+		padding: 16px;
+
+		background-color: hsl(var(--muted) / 20%);
+	}
+
+	&__output {
+		padding: 12px;
+		border-radius: 6px;
+		background-color: hsl(var(--muted));
+
+		&-wrapper {
+			padding: 16px;
+			border-top-width: 1px;
+		}
+	}
+}
+
+.title {
+	display: grid;
+	grid-area: title;
+	grid-template:
+		'indicator . name' auto
+		'indicator . path' auto
+		/ auto 12px auto;
+
+	&__name {
+		grid-area: name;
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 24px;
+	}
+
+	&__path {
+		grid-area: path;
+		font-size: 14px;
+		line-height: 20px;
+		color: hsl(var(--muted-foreground));
+	}
+
+	&__indicator {
+		grid-area: indicator;
+		align-self: center;
+
+		width: 8px;
+		height: 8px;
+		border-radius: 9999px;
+
+		background-color: hsl(var(--muted-foreground));
+
+		&--success {
+			background-color: hsl(var(--primary));
+			filter: brightness(1.4);
+		}
+
+		&--fail {
+			background-color: hsl(var(--destructive));
+		}
+	}
+}
+
+.info {
+	grid-area: info;
+
+	margin-right: 16px;
+
+	font-size: 14px;
+	line-height: 20px;
+	color: hsl(var(--muted-foreground));
+	text-align: right;
+
+	&__time {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	&__duration {
+		margin-top: 4px;
+	}
+}
+
+.actions {
+	display: flex;
+	grid-area: actions;
+	gap: 8px;
+}
+
+.status {
+	grid-area: status;
+	place-self: center end;
+	align-content: center;
+
+	height: 22px;
+	padding: 0 10px;
+	border-radius: 9999px;
+
+	font-size: 12px;
+	font-weight: 600;
+
+	background-color: hsl(var(--muted-foreground));
+
+	&--success {
+		background-color: hsl(var(--primary));
+	}
+
+	&--fail {
+		color: hsl(var(--destructive));
+	}
+}
+
+.output-toggle {
+	grid-area: output-toggle;
+	justify-self: flex-start;
+
+	&:not(:hover) {
+		color: hsl(var(--muted-foreground));
+	}
+
+	&--open {
+		> svg:last-of-type {
+			rotate: 90deg;
+		}
+	}
+}

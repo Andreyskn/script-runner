@@ -3,22 +3,21 @@ import { TerminalIcon } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Loader } from '@/components/Loader';
 import { Section } from '@/components/Section';
-import { useScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+import {
+	useScriptViewerStore,
+	type ExecutionResult,
+} from '@/views/Scripts/ScriptViewer/scriptViewerStore';
 
 import { cls } from './Output.styles';
 
-export type OutputProps = {};
-
-export const Output: React.FC<OutputProps> = (props) => {
-	const {} = props;
-
-	const { output, executionStatus } = useScriptViewerStore();
+export const OutputSection: React.FC = () => {
+	const { output, executionStatus, executionResult } = useScriptViewerStore();
 
 	return (
 		<Section
 			card
-			className={cls.output.block()}
-			contentClassName={cls.output.content()}
+			className={cls.outputSection.block()}
+			contentClassName={cls.outputSection.content()}
 			headerClassName={cls.header.block()}
 			header={
 				<>
@@ -29,9 +28,9 @@ export const Output: React.FC<OutputProps> = (props) => {
 					{executionStatus === 'running' && (
 						<Button
 							icon='ban'
-							text='Interrupt'
 							color='red'
 							borderless
+							size='small'
 							className={cls.header.interruptButton()}
 						/>
 					)}
@@ -39,43 +38,62 @@ export const Output: React.FC<OutputProps> = (props) => {
 			}
 		>
 			{executionStatus === 'idle' ? (
-				<div className={cls.output.placeholder()}>
+				<div className={cls.outputSection.placeholder()}>
 					No output yet. Run the script to see results.
 				</div>
 			) : (
-				<>
-					<div
-						className={cls.output.line({
-							success: true,
-							initial: true,
-						})}
-					>
-						$ Executing backup.sh...
-					</div>
-
-					{output.map((line, i) => (
-						<div key={i} className={cls.output.line()}>
-							{line}
-						</div>
-					))}
-
-					{executionStatus === 'succeeded' && (
-						<div className={cls.output.line({ success: true })}>
-							✅ Script completed successfully
-						</div>
-					)}
-					{executionStatus === 'failed' && (
-						<div className={cls.output.line({ error: true })}>
-							❌ Script failed
-						</div>
-					)}
-					{executionStatus === 'interrupted' && (
-						<div className={cls.output.line({ error: true })}>
-							🚫 Script interrupted
-						</div>
-					)}
-				</>
+				<Output
+					lines={output}
+					result={executionResult}
+					name='backup.sh'
+				/>
 			)}
 		</Section>
+	);
+};
+
+export type OutputProps = {
+	name: string;
+	lines: string[];
+	result: ExecutionResult | null;
+	className?: string;
+};
+
+export const Output: React.FC<OutputProps> = (props) => {
+	const { lines, result, name, className } = props;
+
+	return (
+		<div className={cls.output.block(null, className)}>
+			<div
+				className={cls.output.line({
+					success: true,
+					initial: true,
+				})}
+			>
+				$ Executing {name}...
+			</div>
+
+			{lines.map((line, i) => (
+				<div key={i} className={cls.output.line()}>
+					{line}
+				</div>
+			))}
+
+			{result === 'success' && (
+				<div className={cls.output.line({ success: true })}>
+					✅ Script completed successfully
+				</div>
+			)}
+			{result === 'fail' && (
+				<div className={cls.output.line({ error: true })}>
+					❌ Script failed
+				</div>
+			)}
+			{result === 'interrupt' && (
+				<div className={cls.output.line({ error: true })}>
+					🚫 Script interrupted
+				</div>
+			)}
+		</div>
 	);
 };

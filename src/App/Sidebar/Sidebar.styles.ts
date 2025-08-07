@@ -4,9 +4,9 @@ import styles from './Sidebar.module.scss';
 
 export const cls = bem(
 	styles as {
-		scripts: string;
-		'scripts__tree-section': string;
-		'scripts__tree-section-content': string;
-		'scripts__tree-section-title': string;
+		sidebar: string;
+		sidebar__nav: string;
+		'sidebar__nav-button': string;
+		'sidebar__nav-button-text': string;
 	}
 );

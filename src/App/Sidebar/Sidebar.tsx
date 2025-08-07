@@ -18,6 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					text='Scripts'
 					fill='green'
 					className={cls.sidebar.navButton()}
+					textClassName={cls.sidebar.navButtonText()}
 				/>
 				<Button
 					layout='vertical'
@@ -25,6 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					text='History'
 					borderless
 					className={cls.sidebar.navButton()}
+					textClassName={cls.sidebar.navButtonText()}
 				/>
 			</div>
 		</div>

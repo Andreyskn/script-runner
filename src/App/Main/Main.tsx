@@ -1,4 +1,4 @@
-import { Scripts } from 'src/views/Scripts';
+import { History } from '@/views/History';
 
 import { cls } from './Main.styles';
 
@@ -11,7 +11,8 @@ export const Main: React.FC<MainProps> = (props) => {
 
 	return (
 		<div className={cls.main.block(null, className)}>
-			<Scripts />
+			<History />
+			{/* <Scripts /> */}
 		</div>
 	);
 };

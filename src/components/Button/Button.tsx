@@ -7,6 +7,7 @@ type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export type ButtonProps = {
 	icon?: IconName;
+	iconEnd?: IconName;
 	color?: 'none' | 'green' | 'red';
 	fill?: 'none' | 'green' | 'red';
 	text?: string;
@@ -18,6 +19,7 @@ export type ButtonProps = {
 	borderless?: boolean;
 	align?: 'left' | 'right' | 'center';
 	layout?: 'horizontal' | 'vertical';
+	textClassName?: string;
 } & ButtonAttributes;
 
 export const Button: React.FC<ButtonProps> = (props) => {
@@ -36,6 +38,8 @@ export const Button: React.FC<ButtonProps> = (props) => {
 		borderless,
 		align,
 		layout,
+		textClassName,
+		iconEnd,
 		...attrs
 	} = props;
 
@@ -73,7 +77,20 @@ export const Button: React.FC<ButtonProps> = (props) => {
 								className={cls.button.icon()}
 							/>
 						)}
-						<span className={cls.button.text()}>{text}</span>
+						{text && (
+							<span
+								className={cls.button.text(null, textClassName)}
+							>
+								{text}
+							</span>
+						)}
+						{iconEnd && (
+							<DynamicIcon
+								name={iconEnd}
+								size={16}
+								className={cls.button.icon()}
+							/>
+						)}
 					</>
 				))}
 		</button>
