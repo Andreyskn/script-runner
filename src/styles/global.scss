@@ -8,3 +8,25 @@
 #root {
 	height: 100vh;
 }
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	border-radius: 6px;
+	background-color: #555;
+
+	&:hover {
+		background-color: #666;
+	}
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
