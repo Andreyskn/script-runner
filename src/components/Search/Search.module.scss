@@ -1,0 +1,33 @@
+.dialog {
+	top: 10px;
+	left: 50%;
+	translate: -50%;
+
+	overflow: visible;
+
+	width: 400px;
+	max-width: 95%;
+	margin: 0;
+	padding: 0;
+
+	background-color: transparent;
+	outline: none;
+
+	&::backdrop {
+		display: none;
+	}
+}
+
+.search {
+	&__select {
+		color: transparent;
+
+		&::picker(select) {
+			translate: -50%;
+
+			&:popover-open {
+				transition: all 0ms allow-discrete;
+			}
+		}
+	}
+}

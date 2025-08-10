@@ -1,4 +1,4 @@
-import { History } from '@/views/History';
+import { Select } from '@/components/Select';
 
 import { cls } from './Main.styles';
 
@@ -11,8 +11,17 @@ export const Main: React.FC<MainProps> = (props) => {
 
 	return (
 		<div className={cls.main.block(null, className)}>
-			<History />
+			{/* <History /> */}
 			{/* <Scripts /> */}
+			<Select
+				name='asd'
+				options={[
+					{ text: 'automation', icon: 'folder-open' },
+					{ text: 'monitoring', icon: 'folder-open' },
+					{ text: 'utilities', icon: 'folder-open' },
+					{ text: 'Create new folder', icon: 'plus', selected: true },
+				]}
+			/>
 		</div>
 	);
 };
