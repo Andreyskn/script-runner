@@ -5,8 +5,10 @@ import { Button } from '@/components/Button';
 
 import { cls } from './Select.styles';
 
-export type Option = {
-	text: string;
+export type SelectOption<
+	T extends Record<string, unknown> = Record<string, any>,
+> = T & {
+	text?: string;
 	icon?: IconName;
 	value?: string | number;
 	selected?: boolean;
@@ -14,12 +16,13 @@ export type Option = {
 
 export type SelectProps = {
 	name: string;
-	options: Option[];
+	options: SelectOption[];
 	customToggle?: boolean;
 	className?: string;
 	ref?: React.RefObject<HTMLSelectElement | null>;
 	tabIndex?: number;
-	renderOption?: (option: Option) => React.ReactNode;
+	renderOption?: (option: SelectOption) => React.ReactNode;
+	onSelect?: (value: string) => void;
 } & Pick<React.DOMAttributes<HTMLSelectElement>, 'onKeyDown'>;
 
 export const Select: React.FC<SelectProps> = (props) => {
@@ -32,6 +35,7 @@ export const Select: React.FC<SelectProps> = (props) => {
 		tabIndex,
 		onKeyDown,
 		renderOption,
+		onSelect,
 	} = props;
 
 	return (
@@ -41,9 +45,7 @@ export const Select: React.FC<SelectProps> = (props) => {
 			tabIndex={tabIndex}
 			className={cls.select.block(null, className)}
 			onKeyDown={onKeyDown}
-			onChange={(ev) => {
-				console.log('change', ev.target.value);
-			}}
+			onChange={(ev) => onSelect?.(ev.target.value)}
 		>
 			{!customToggle && (
 				<Button
@@ -61,19 +63,28 @@ export const Select: React.FC<SelectProps> = (props) => {
 				</Button>
 			)}
 			{options.map((opt, i) => (
-				<option key={i} value={opt.value} selected={opt.selected}>
-					<div className={cls.select.optionContent()}>
-						{renderOption ? (
-							renderOption(opt)
-						) : (
-							<>
-								{opt.icon && (
-									<DynamicIcon name={opt.icon} size={16} />
-								)}
+				<option
+					key={i}
+					value={opt.value}
+					selected={opt.selected}
+					className={cls.select.option()}
+				>
+					{renderOption ? (
+						renderOption(opt)
+					) : (
+						<div className={cls.select.optionContent()}>
+							{opt.icon && (
+								<DynamicIcon
+									name={opt.icon}
+									size={16}
+									className={cls.select.optionIcon()}
+								/>
+							)}
+							<div className={cls.select.optionText()}>
 								{opt.text}
-							</>
-						)}
-					</div>
+							</div>
+						</div>
+					)}
 				</option>
 			))}
 		</select>

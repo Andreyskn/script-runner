@@ -1,21 +1,28 @@
 import { useEffect, useRef } from 'react';
 
 import { Input, type InputProps } from '@/components/Input';
-import { Select, type SelectProps } from '@/components/Select';
+import {
+	Select,
+	type SelectOption,
+	type SelectProps,
+} from '@/components/Select';
 import { useUpdate } from '@/utils';
 
 import { cls } from './Combobox.styles';
+
+export type ComboboxOption<T extends Record<string, unknown> = {}> =
+	SelectOption<T>;
 
 export type ComboboxProps = {
 	inputRef?: InputProps['ref'];
 	selectRef?: SelectProps['ref'];
 	selectClassName?: string;
 	placeholder?: string;
+	options: ComboboxOption[];
+	renderOption?: (option: ComboboxOption) => React.ReactNode;
+	onInputChange?: (value: string) => void;
+	onSelect?: SelectProps['onSelect'];
 } & Pick<InputProps, 'placeholder' | 'name'>;
-
-type ComboboxOption = {
-	name: string;
-};
 
 export const Combobox: React.FC<ComboboxProps> = (props) => {
 	const {
@@ -24,6 +31,10 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 		selectClassName,
 		placeholder,
 		name,
+		renderOption,
+		options,
+		onInputChange,
+		onSelect,
 	} = props;
 
 	const { update } = useUpdate();
@@ -40,14 +51,16 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 			<Input
 				ref={inputRef}
 				icon='search'
-				name='qwe'
+				name={name}
 				placeholder={placeholder}
 				wrapperClassName={cls.combobox.input()}
-				onChange={() => {
+				onChange={(ev) => {
 					try {
 						selectRef.current?.showPicker();
 						inputRef.current?.focus();
 					} catch (error) {}
+
+					onInputChange?.(ev.target.value);
 				}}
 				onClick={() => {
 					try {
@@ -75,13 +88,11 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 				tabIndex={-1}
 				customToggle
 				ref={selectRef}
-				name='asd'
-				options={[
-					{ text: 'automation' },
-					{ text: 'monitoring' },
-					{ text: 'utilities' },
-				]}
+				name='_'
+				options={options}
+				renderOption={renderOption}
 				className={cls.combobox.select(null, selectClassName)}
+				onSelect={onSelect}
 				onKeyDown={(ev) => {
 					if (ev.key.length === 1) {
 						inputRef.current?.focus();
@@ -94,6 +105,9 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 						ev.key === 'ArrowLeft'
 					) {
 						ev.preventDefault();
+					} else if (ev.key === 'Enter') {
+						ev.preventDefault();
+						onSelect?.((ev.target as any).value);
 					}
 				}}
 			/>

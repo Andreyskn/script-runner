@@ -21,6 +21,7 @@
 		top: calc(anchor(bottom) + 4px);
 		left: 0;
 
+		width: anchor-size();
 		padding: 4px;
 		border: 0.8px solid hsl(var(--border));
 		border-radius: 6px;
@@ -66,18 +67,18 @@
 		padding-right: 30px;
 	}
 
-	&__option-content {
+	&__option {
 		display: flex;
 		gap: 8px;
 		align-items: center;
-	}
 
-	option {
-		height: 30px;
+		min-height: 30px;
+		padding: 0 8px;
 		border-radius: 6px;
 
 		font-size: 14px;
 		font-weight: 400;
+		line-height: 20px;
 		color: hsl(var(--foreground));
 
 		outline: none;
@@ -87,6 +88,25 @@
 		&:focus {
 			color: hsl(var(--accent-foreground));
 			background-color: hsl(var(--accent));
+		}
+
+		&-content {
+			display: flex;
+			flex: 1;
+			gap: 8px;
+			align-items: center;
+
+			min-width: 0;
+		}
+
+		&-icon {
+			flex-shrink: 0;
+		}
+
+		&-text {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 	}
 }
