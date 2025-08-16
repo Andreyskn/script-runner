@@ -2,8 +2,6 @@ import { memo } from 'react';
 
 import { TerminalIcon } from 'lucide-react';
 
-import { Button } from '@/components/Button';
-
 import { cls } from './Header.styles';
 
 export type HeaderProps = {
@@ -19,7 +17,7 @@ export const Header: React.FC<HeaderProps> = memo((props) => {
 				<TerminalIcon />
 				Script Runner
 			</div>
-			<Button icon='plus' text='New Script' />
+			{/* <Button icon='plus' text='New Script' /> */}
 		</div>
 	);
 });

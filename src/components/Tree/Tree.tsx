@@ -9,7 +9,7 @@ import type {
 	TreeMiddleProps,
 	TreeProps,
 } from '@/components/Tree/treeTypes';
-import { getUniqueId, isMatchingPath } from '@/components/Tree/treeUtils';
+import { isMatchingPath } from '@/components/Tree/treeUtils';
 import { DnDProvider, useDnD } from '@/utils';
 
 // TODO: optimize nodes rerender
@@ -21,7 +21,7 @@ export const Tree: React.FC<TreeProps> = (props) => {
 		treeStore.setTmpNode({
 			node: {
 				isTemporary: true,
-				id: getUniqueId(),
+				id: crypto.randomUUID(),
 				name: '',
 				type,
 			},

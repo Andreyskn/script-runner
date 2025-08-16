@@ -12,6 +12,7 @@
 	"dependencies": {
 		"@andrey/bem": "^0.1.1",
 		"eventemitter3": "^5.0.1",
+		"fuse.js": "^7.1.0",
 		"lucide-react": "0.536.0",
 		"modern-normalize": "^3.0.1",
 		"react": "^19.1.1",

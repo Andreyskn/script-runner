@@ -3,6 +3,12 @@
 declare global {
 	type Maybe<T> = T | undefined;
 
+	type ReactFalsy = false | '' | null | undefined;
+
+	type ReactFalsyOptions<T> = {
+		[K in keyof T]: undefined extends T[K] ? T[K] | ReactFalsy : T[K];
+	};
+
 	type Replace<
 		T extends Record<any, any>,
 		R extends Partial<Record<keyof T, unknown>>,

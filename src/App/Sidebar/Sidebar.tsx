@@ -1,5 +1,7 @@
 import { Button } from '@/components/Button';
 
+import { useAppStore } from 'src/App/appStore';
+
 import { cls } from './Sidebar.styles';
 
 export type SidebarProps = {
@@ -8,6 +10,7 @@ export type SidebarProps = {
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
 	const { className } = props;
+	const { view, setView } = useAppStore();
 
 	return (
 		<div className={cls.sidebar.block(null, className)}>
@@ -16,17 +19,21 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					layout='vertical'
 					icon='code-xml'
 					text='Scripts'
-					fill='green'
+					fill={view === 'scripts' ? 'green' : 'none'}
+					borderless={view !== 'scripts'}
 					className={cls.sidebar.navButton()}
 					textClassName={cls.sidebar.navButtonText()}
+					onClick={() => setView('scripts')}
 				/>
 				<Button
 					layout='vertical'
 					icon='history'
 					text='History'
-					borderless
+					fill={view === 'history' ? 'green' : 'none'}
+					borderless={view !== 'history'}
 					className={cls.sidebar.navButton()}
 					textClassName={cls.sidebar.navButtonText()}
+					onClick={() => setView('history')}
 				/>
 			</div>
 		</div>
