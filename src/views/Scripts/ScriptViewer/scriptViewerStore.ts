@@ -1,19 +1,23 @@
-import { ComponentStore, getStoreInitHook, sleep } from '@/utils';
+import { ComponentStore, getStoreInitHook } from '@/utils';
 
 export type ExecutionResult = 'interrupt' | 'fail' | 'success';
 
-export type ExecutionStatus = 'idle' | 'starting' | 'running' | 'ended';
+export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
+
+export type OutputLine = { text: string; isError: boolean };
 
 type State = {
+	execCount: number;
 	isEditing: boolean;
 	modifiedScriptContent: string;
-	output: string[];
+	output: OutputLine[];
 	executionStatus: ExecutionStatus;
 	result: ExecutionResult | null;
 };
 
 class ScriptViewerStore extends ComponentStore<State> {
 	state: State = {
+		execCount: 0,
 		isEditing: false,
 		modifiedScriptContent: '',
 		output: [],
@@ -33,18 +37,14 @@ class ScriptViewerStore extends ComponentStore<State> {
 		});
 	};
 
-	appendOutputLine = (text: string) => {
+	appendOutputLine = (text: string, isError: boolean) => {
 		this.setState((state) => {
-			state.output = [...state.output, text];
+			state.output = [...state.output, { isError, text }];
 		});
 	};
 
 	setExecutionStatus = (status: ExecutionStatus) => {
 		this.setState((state) => {
-			if (status === 'starting') {
-				state.output = [];
-			}
-
 			state.executionStatus = status;
 		});
 	};
@@ -55,12 +55,34 @@ class ScriptViewerStore extends ComponentStore<State> {
 			state.result = result;
 		});
 	};
+
+	clearExecution = () => {
+		this.setState((state) => {
+			state.execCount++;
+			state.executionStatus = 'idle';
+			state.output = [];
+			state.result = null;
+		});
+	};
 }
+
+type RunScriptData =
+	| {
+			isDone: false;
+			isError: boolean;
+			line: string;
+	  }
+	| {
+			isDone: true;
+			code: number | string;
+	  };
 
 const { getStore, useInitStore: useInitScriptViewerStore } =
 	getStoreInitHook(ScriptViewerStore);
 
 export { useInitScriptViewerStore };
+
+let eventSource: EventSource | undefined;
 
 export const useScriptViewerStore = () => {
 	const store = getStore();
@@ -99,17 +121,53 @@ export const useScriptViewerStore = () => {
 			return store.useSelector((state) => state.result);
 		},
 
-		runScript: async () => {
-			store.setExecutionStatus('starting');
-			await sleep(1000);
-			store.setExecutionStatus('running');
-			store.appendOutputLine('Starting backup...');
-			await sleep(1000);
-			store.appendOutputLine('Files backed up successfully!');
-			await sleep(1000);
-			store.appendOutputLine('Backup completed!');
+		get execCount() {
+			return store.useSelector((state) => state.execCount);
+		},
 
-			store.setExecutionResult('success');
+		interruptScript: () => {
+			eventSource?.close();
+			store.setExecutionResult('interrupt');
+		},
+
+		// TODO: move to store
+		runScript: async () => {
+			store.clearExecution();
+
+			eventSource = new EventSource('http://localhost:3001/api/script');
+
+			eventSource.onopen = () => {
+				store.setExecutionStatus('running');
+			};
+
+			eventSource.onerror = () => {
+				store.setExecutionStatus('disconnected');
+				eventSource?.close();
+			};
+
+			eventSource.onmessage = (event) => {
+				const data = JSON.parse(event.data) as RunScriptData;
+
+				if (data.isDone) {
+					eventSource?.close();
+
+					switch (true) {
+						case data.code === 0: {
+							store.setExecutionResult('success');
+							break;
+						}
+						case typeof data.code === 'string': {
+							store.appendOutputLine(data.code, true);
+							store.setExecutionResult('fail');
+							break;
+						}
+						default:
+							store.setExecutionResult('fail');
+					}
+				} else {
+					store.appendOutputLine(data.line, data.isError);
+				}
+			};
 		},
 	} satisfies Partial<typeof store> & Record<string, any>;
 };
