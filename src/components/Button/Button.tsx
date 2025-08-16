@@ -5,7 +5,7 @@ import { cls } from './Button.styles';
 
 type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export type ButtonProps = {
+export type ButtonProps = ReactFalsyOptions<{
 	icon?: IconName;
 	iconEnd?: IconName;
 	color?: 'none' | 'green' | 'red';
@@ -20,7 +20,8 @@ export type ButtonProps = {
 	align?: 'left' | 'right' | 'center';
 	layout?: 'horizontal' | 'vertical';
 	textClassName?: string;
-} & ButtonAttributes;
+}> &
+	ButtonAttributes;
 
 export const Button: React.FC<ButtonProps> = (props) => {
 	const {

@@ -8,6 +8,8 @@ import { Combobox, type ComboboxOption } from '@/components/Combobox';
 
 import { cls } from './Search.styles';
 
+// TODO: highlight matching characters
+
 type SearchOption = ComboboxOption<{
 	name: string;
 	dir: string;
@@ -33,9 +35,13 @@ const NO_RESULTS: SearchOption[] = [
 ];
 
 const fuse = new Fuse(options, {
-	keys: ['value'],
+	keys: [
+		{ name: 'name', weight: 0.9 },
+		{ name: 'value', weight: 0.1 },
+	],
 	includeScore: true,
 	findAllMatches: true,
+	includeMatches: true,
 	threshold: 0.65,
 });
 
@@ -82,7 +88,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 				<FileTextIcon size={16} className={cls.option.icon()} />
 				<div className={cls.option.name()}>{option.name}</div>
 				<div className={cls.option.dir()}>{option.dir}</div>
-				{true && <PlayIcon size={16} className={cls.option.play()} />}
+				{false && <PlayIcon size={16} className={cls.option.play()} />}
 			</div>
 		);
 	};

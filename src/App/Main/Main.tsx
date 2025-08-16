@@ -1,4 +1,7 @@
-import { Select } from '@/components/Select';
+import { History } from '@/views/History';
+import { Scripts } from '@/views/Scripts';
+
+import { useAppStore } from 'src/App/appStore';
 
 import { cls } from './Main.styles';
 
@@ -8,20 +11,16 @@ export type MainProps = {
 
 export const Main: React.FC<MainProps> = (props) => {
 	const { className } = props;
+	const { view } = useAppStore();
 
-	return (
-		<div className={cls.main.block(null, className)}>
-			{/* <History /> */}
-			{/* <Scripts /> */}
-			<Select
-				name='asd'
-				options={[
-					{ text: 'automation', icon: 'folder-open' },
-					{ text: 'monitoring', icon: 'folder-open' },
-					{ text: 'utilities', icon: 'folder-open' },
-					{ text: 'Create new folder', icon: 'plus', selected: true },
-				]}
-			/>
-		</div>
-	);
+	const views: Record<typeof view, React.ReactNode> = {
+		get scripts() {
+			return <Scripts />;
+		},
+		get history() {
+			return <History />;
+		},
+	};
+
+	return <div className={cls.main.block(null, className)}>{views[view]}</div>;
 };
