@@ -61,8 +61,6 @@ export const runScript = (path: string, signal: AbortSignal) => {
 		return writer.write(`data: ${JSON.stringify(data)}\n\n`);
 	};
 
-	path = 'test.sh';
-
 	const proc = spawn(abs(path), {
 		signal,
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -74,7 +72,7 @@ export const runScript = (path: string, signal: AbortSignal) => {
 
 	proc.on('close', async (code) => {
 		try {
-			await write({ isDone: true, code: code ?? 'ABORTED' });
+			await write({ isDone: true, code: code ?? 'Aborted' });
 			await writer.close();
 		} catch (error) {}
 	});
@@ -103,32 +101,83 @@ export const runScript = (path: string, signal: AbortSignal) => {
 	return readable;
 };
 
-type QueryParams =
-	| {
-			path?: string;
-	  }
-	| undefined;
+const getQueryParams = <T extends Record<string, unknown>>(
+	req: Bun.BunRequest
+): Partial<T> => {
+	const { searchParams } = URL.parse(req.url)!;
+	return Object.fromEntries(searchParams.entries()) as Partial<T>;
+};
+
+type ScriptQueryParams = {
+	path: string;
+};
+
+const cors: ResponseInit = {
+	headers: {
+		'Access-Control-Allow-Origin': '*',
+		'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+	},
+};
 
 const server = Bun.serve({
 	development: true,
 	port: 3001,
 	routes: {
-		'/api/script': async (req) => {
-			const query = URL.parse(req.url)?.searchParams as QueryParams;
+		'/api/files': async () => {
+			return Response.json({ files: await getFilesList() }, cors);
+		},
 
-			return new Response(runScript(query?.path ?? '', req.signal), {
+		'/api/script': {
+			GET: async (req) => {
+				const { path } = getQueryParams<ScriptQueryParams>(req);
+
+				if (!path) {
+					throw new Error('Script path was not provided');
+				}
+
+				return new Response(await readScript(path), cors);
+			},
+		},
+
+		'/api/script/run': async (req) => {
+			const { path } = getQueryParams<ScriptQueryParams>(req);
+
+			const init: ResponseInit = {
 				status: 200,
 				headers: {
 					'Content-Type': 'text/event-stream',
 					'Cache-Control': 'no-cache',
 					Connection: 'keep-alive',
-
-					'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Methods':
-						'GET, POST, PUT, DELETE, OPTIONS',
+					...cors.headers,
 				},
-			});
+			};
+
+			if (!path) {
+				return new Response(
+					new ReadableStream({
+						start(controller) {
+							controller.enqueue(
+								`data: ${JSON.stringify({ isDone: true, code: 'Script path was not provided' })}\n\n`
+							);
+							controller.close();
+						},
+					}),
+					init
+				);
+			}
+
+			return new Response(runScript(path, req.signal), init);
 		},
+	},
+	error(error) {
+		console.error(error);
+		return new Response(`Internal Error: ${error.message}`, {
+			status: 500,
+			headers: {
+				'Content-Type': 'text/plain',
+				...cors.headers,
+			},
+		});
 	},
 });
 

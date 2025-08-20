@@ -2,18 +2,14 @@ import { useHotkeys } from 'react-hotkeys-hook';
 
 import { Section } from '@/components/Section';
 import { useScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+import { useFilesStore } from '@/views/Scripts/filesStore';
 
 import { cls } from './ScriptContent.styles';
-
-const scriptText = `#!/bin/bash
-# Deploy script
-echo 'Deploying application...'
-echo 'Building project...'
-echo 'Deployment complete!'`;
 
 export type ScriptContentProps = {};
 
 export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
+	const { selectedScript } = useFilesStore();
 	const { isEditing, setScriptContent, saveScript, setEditing } =
 		useScriptViewerStore();
 
@@ -39,7 +35,7 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 			{isEditing ? (
 				<textarea
 					autoFocus
-					defaultValue={scriptText}
+					defaultValue={selectedScript?.text}
 					onChange={onContentChange}
 					className={cls.scriptContent.text()}
 				/>
@@ -48,7 +44,7 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 					className={cls.scriptContent.text()}
 					onDoubleClick={() => setEditing(true)}
 				>
-					{scriptText}
+					{selectedScript?.text}
 				</pre>
 			)}
 		</Section>

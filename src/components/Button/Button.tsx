@@ -5,7 +5,7 @@ import { cls } from './Button.styles';
 
 type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export type ButtonProps = ReactFalsyOptions<{
+export type ButtonProps = NonRenderableOptions<{
 	icon?: IconName;
 	iconEnd?: IconName;
 	color?: 'none' | 'green' | 'red';

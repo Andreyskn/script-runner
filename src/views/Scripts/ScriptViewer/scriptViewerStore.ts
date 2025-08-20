@@ -25,6 +25,14 @@ class ScriptViewerStore extends ComponentStore<State> {
 		result: null,
 	};
 
+	#evSource: EventSource | undefined;
+	#path: string;
+
+	constructor(scriptPath: string) {
+		super();
+		this.#path = scriptPath;
+	}
+
 	setEditing = (isEditing: boolean) => {
 		this.setState((state) => {
 			state.isEditing = isEditing;
@@ -56,13 +64,57 @@ class ScriptViewerStore extends ComponentStore<State> {
 		});
 	};
 
-	clearExecution = () => {
+	execute = () => {
 		this.setState((state) => {
 			state.execCount++;
 			state.executionStatus = 'idle';
 			state.output = [];
 			state.result = null;
 		});
+
+		this.#evSource = new EventSource(
+			`http://localhost:3001/api/script/run?path=${this.#path}`
+		);
+
+		this.#evSource.onopen = () => {
+			this.setExecutionStatus('running');
+		};
+
+		this.#evSource.onerror = (error) => {
+			console.log(error);
+
+			this.setExecutionStatus('disconnected');
+			this.#evSource?.close();
+		};
+
+		this.#evSource.onmessage = (event) => {
+			const data = JSON.parse(event.data) as RunScriptData;
+
+			if (data.isDone) {
+				this.#evSource?.close();
+
+				switch (true) {
+					case data.code === 0: {
+						this.setExecutionResult('success');
+						break;
+					}
+					case typeof data.code === 'string': {
+						this.appendOutputLine(data.code, true);
+						this.setExecutionResult('fail');
+						break;
+					}
+					default:
+						this.setExecutionResult('fail');
+				}
+			} else {
+				this.appendOutputLine(data.line, data.isError);
+			}
+		};
+	};
+
+	interruptExecution = () => {
+		this.#evSource?.close();
+		this.setExecutionResult('interrupt');
 	};
 }
 
@@ -81,8 +133,6 @@ const { getStore, useInitStore: useInitScriptViewerStore } =
 	getStoreInitHook(ScriptViewerStore);
 
 export { useInitScriptViewerStore };
-
-let eventSource: EventSource | undefined;
 
 export const useScriptViewerStore = () => {
 	const store = getStore();
@@ -105,6 +155,10 @@ export const useScriptViewerStore = () => {
 			store.setModifiedScriptContent('');
 		},
 
+		runScript: store.execute,
+
+		interrupt: store.interruptExecution,
+
 		get isEditing() {
 			return store.useSelector((state) => state.isEditing);
 		},
@@ -123,51 +177,6 @@ export const useScriptViewerStore = () => {
 
 		get execCount() {
 			return store.useSelector((state) => state.execCount);
-		},
-
-		interruptScript: () => {
-			eventSource?.close();
-			store.setExecutionResult('interrupt');
-		},
-
-		// TODO: move to store
-		runScript: async () => {
-			store.clearExecution();
-
-			eventSource = new EventSource('http://localhost:3001/api/script');
-
-			eventSource.onopen = () => {
-				store.setExecutionStatus('running');
-			};
-
-			eventSource.onerror = () => {
-				store.setExecutionStatus('disconnected');
-				eventSource?.close();
-			};
-
-			eventSource.onmessage = (event) => {
-				const data = JSON.parse(event.data) as RunScriptData;
-
-				if (data.isDone) {
-					eventSource?.close();
-
-					switch (true) {
-						case data.code === 0: {
-							store.setExecutionResult('success');
-							break;
-						}
-						case typeof data.code === 'string': {
-							store.appendOutputLine(data.code, true);
-							store.setExecutionResult('fail');
-							break;
-						}
-						default:
-							store.setExecutionResult('fail');
-					}
-				} else {
-					store.appendOutputLine(data.line, data.isError);
-				}
-			};
 		},
 	} satisfies Partial<typeof store> & Record<string, any>;
 };

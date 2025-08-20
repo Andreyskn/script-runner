@@ -1,9 +1,8 @@
-import { useState } from 'react';
-
 import { Section } from '@/components/Section';
-import { Tree, type TreeNode, type TreeProps } from '@/components/Tree';
+import { Tree, type TreeProps } from '@/components/Tree';
+import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
-import { useInitScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+import { useFilesStore } from '@/views/Scripts/filesStore';
 
 import { cls } from './Scripts.styles';
 
@@ -12,76 +11,7 @@ export type ScriptsProps = {};
 export const Scripts: React.FC<ScriptsProps> = (props) => {
 	const {} = props;
 
-	useInitScriptViewerStore();
-
-	const [nodes, setNodes] = useState<TreeNode[]>([
-		{
-			id: '1',
-			type: 'folder',
-			name: 'automation',
-			nodes: [
-				{
-					id: '3',
-					type: 'file',
-					name: 'deploy.sh',
-				},
-				{
-					id: '11',
-					type: 'folder',
-					name: 'inner2',
-					nodes: [
-						{
-							id: '22',
-							type: 'file',
-							name: 'inner.sh',
-						},
-					],
-				},
-				{
-					id: '2',
-					type: 'file',
-					name: 'backup.sh',
-				},
-				{
-					id: '111',
-					type: 'folder',
-					name: 'inner1',
-					nodes: [
-						// {
-						// 	id: '222',
-						// 	type: 'file',
-						// 	name: 'inner.sh',
-						// },
-					],
-				},
-			],
-		},
-		{
-			id: '4',
-			type: 'folder',
-			name: 'monitoring',
-			nodes: [
-				{
-					id: '5',
-					type: 'file',
-					name: 'health-check.sh',
-				},
-			],
-		},
-		{
-			id: '6',
-			type: 'folder',
-			name: 'utilities',
-			nodes: [
-				{
-					id: '7',
-					type: 'file',
-					name: 'cleanup.sh',
-				},
-			],
-		},
-		{ id: '8', type: 'file', name: 'test.sh' },
-	]);
+	const { nodes, selectedScript, setSelectedScript } = useFilesStore();
 
 	const handleRename: TreeProps['onRename'] = {
 		before(node) {
@@ -123,17 +53,18 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				contentClassName={cls.scripts.treeSectionContent()}
 			>
 				<Tree
-					// activePath={['automation', 'inner', 'inner.sh']}
-					// activePath={['utilities', 'cleanup.sh']}
-					// activePath={['test.sh']}
-					onFileSelect={console.log}
+					activePath={selectedScript?.path.split('/') ?? undefined}
+					onFileSelect={setSelectedScript}
 					nodes={nodes}
 					onMove={(source, target) => {}}
 					onRename={handleRename}
 				/>
 			</Section>
-			{/* <Placeholder /> */}
-			<ScriptViewer />
+			{selectedScript ? (
+				<ScriptViewer script={selectedScript} />
+			) : (
+				<Placeholder />
+			)}
 		</div>
 	);
 };

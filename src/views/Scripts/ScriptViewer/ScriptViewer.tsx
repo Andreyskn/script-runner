@@ -4,18 +4,26 @@ import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
 import { OutputSection } from '@/views/Scripts/ScriptViewer/Output';
 import { ScriptContent } from '@/views/Scripts/ScriptViewer/ScriptContent';
-import { useScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+import {
+	useInitScriptViewerStore,
+	useScriptViewerStore,
+} from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+import type { ScriptData } from '@/views/Scripts/filesStore';
 
 import { cls } from './ScriptViewer.styles';
 
-export type ScriptViewerProps = {};
+export type ScriptViewerProps = {
+	script: ScriptData;
+};
 
 export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
-	const {} = props;
+	const { script } = props;
+
+	useInitScriptViewerStore(script.path);
 
 	return (
 		<Section
-			header={<Header />}
+			header={<Header script={script} />}
 			className={cls.scriptViewer.block()}
 			contentClassName={cls.scriptViewer.content()}
 		>
@@ -25,21 +33,21 @@ export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
 	);
 };
 
-const Header: React.FC = () => {
+type HeaderProps = {
+	script: ScriptData;
+};
+
+const Header: React.FC<HeaderProps> = (props) => {
+	const { script } = props;
 	const { setEditing, isEditing, saveScript, runScript, executionStatus } =
 		useScriptViewerStore();
-
-	const hasActiveExecution =
-		executionStatus === 'running' || executionStatus === 'starting';
 
 	return (
 		<div className={cls.header.block()}>
 			<div className={cls.header.info()}>
 				<CodeXmlIcon size={20} className={cls.header.icon()} />
-				<span className={cls.header.title()}>backup.sh</span>
-				<span className={cls.header.subtitle()}>
-					automation/backup.sh
-				</span>
+				<span className={cls.header.title()}>{script.name}</span>
+				<span className={cls.header.subtitle()}>{script.path}</span>
 			</div>
 			<div className={cls.header.actions()}>
 				{isEditing ? (
@@ -57,7 +65,7 @@ const Header: React.FC = () => {
 					/>
 				)}
 
-				{hasActiveExecution ? (
+				{executionStatus === 'running' ? (
 					<Button
 						icon='play'
 						text='Running...'

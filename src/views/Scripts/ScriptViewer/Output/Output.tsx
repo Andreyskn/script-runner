@@ -14,13 +14,8 @@ import {
 import { cls } from './Output.styles';
 
 export const OutputSection: React.FC = () => {
-	const {
-		output,
-		executionStatus,
-		executionResult,
-		interruptScript,
-		execCount,
-	} = useScriptViewerStore();
+	const { output, executionStatus, executionResult, interrupt, execCount } =
+		useScriptViewerStore();
 
 	const hasActiveExecution = useRef(false);
 	if (executionStatus !== 'idle') {
@@ -43,7 +38,7 @@ export const OutputSection: React.FC = () => {
 							borderless
 							size='small'
 							className={cls.header.interruptButton()}
-							onClick={interruptScript}
+							onClick={interrupt}
 						/>
 					)}
 				</>
@@ -106,7 +101,7 @@ export const Output: React.FC<OutputProps> = (props) => {
 
 			{status === 'disconnected' && (
 				<div className={cls.output.line({ error: true })}>
-					🔌 Disconnected from server
+					🔌 Server error
 				</div>
 			)}
 
