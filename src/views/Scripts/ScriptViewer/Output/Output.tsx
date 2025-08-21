@@ -5,17 +5,23 @@ import { TerminalIcon } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
 import {
-	useScriptViewerStore,
+	ScriptStore,
 	type ExecutionResult,
 	type ExecutionStatus,
 	type OutputLine,
-} from '@/views/Scripts/ScriptViewer/scriptViewerStore';
+} from '@/views/Scripts/stores/scriptStore';
 
 import { cls } from './Output.styles';
 
-export const OutputSection: React.FC = () => {
-	const { output, executionStatus, executionResult, interrupt, execCount } =
-		useScriptViewerStore();
+type Props = {
+	script: ScriptStore;
+};
+
+export const OutputSection: React.FC<Props> = ({ script }) => {
+	const {
+		selectors: { output, executionStatus, result, execCount },
+		interruptExecution,
+	} = script;
 
 	const hasActiveExecution = useRef(false);
 	if (executionStatus !== 'idle') {
@@ -38,7 +44,7 @@ export const OutputSection: React.FC = () => {
 							borderless
 							size='small'
 							className={cls.header.interruptButton()}
-							onClick={interrupt}
+							onClick={interruptExecution}
 						/>
 					)}
 				</>
@@ -48,7 +54,7 @@ export const OutputSection: React.FC = () => {
 				<Output
 					key={execCount}
 					lines={output}
-					result={executionResult}
+					result={result}
 					status={executionStatus}
 					name='backup.sh'
 				/>

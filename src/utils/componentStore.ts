@@ -3,7 +3,52 @@ import { useEffect, useRef, useState } from 'react';
 import EventEmitter from 'eventemitter3';
 
 export abstract class ComponentStore<S extends Record<string, unknown>> {
+	static store: InstanceType<any> | undefined;
+
+	static init<T extends new (...args: any) => any>(
+		this: T,
+		...args: ConstructorParameters<T>
+	) {
+		const staticProps = this as any as typeof ComponentStore & T;
+		const instance = new this(...args) as InstanceType<T>;
+		staticProps.store = instance;
+		const { state, selectors, useSelector } = instance as InstanceType<
+			typeof ComponentStore
+		>;
+
+		Object.keys(state).forEach((key) => {
+			Object.defineProperty(selectors, key, {
+				get: function () {
+					return useSelector((state: any) => state[key]);
+				},
+			});
+		});
+
+		return instance;
+	}
+
+	static useInit<T extends new (...args: any) => any>(
+		this: T,
+		...args: ConstructorParameters<T>
+	) {
+		return useState(() => {
+			return (this as any as typeof ComponentStore & T).init(...args);
+		})[0];
+	}
+
+	static use<T extends new (...args: any) => any>(this: T) {
+		const self = this as any as typeof ComponentStore & T;
+
+		if (self.store) {
+			return useState(() => self.store)[0] as InstanceType<T>;
+		}
+
+		return self.useInit(...([] as any));
+	}
+
 	abstract state: S;
+
+	public selectors: S = {} as any;
 
 	private ee = new EventEmitter<string>();
 

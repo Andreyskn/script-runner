@@ -4,9 +4,10 @@ import styles from './Section.module.scss';
 
 export const cls = bem(
 	styles as {
-		scripts: string;
-		'scripts__tree-section': string;
-		'scripts__tree-section-content': string;
-		'scripts__tree-section-title': string;
+		section: string;
+		'section--card': string;
+		section__content: string;
+		'section__content--no-padding': string;
+		section__header: string;
 	}
 );

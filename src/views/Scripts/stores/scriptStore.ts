@@ -1,4 +1,4 @@
-import { ComponentStore, getStoreInitHook } from '@/utils';
+import { ComponentStore } from '@/utils';
 
 export type ExecutionResult = 'interrupt' | 'fail' | 'success';
 
@@ -6,31 +6,54 @@ export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
 
 export type OutputLine = { text: string; isError: boolean };
 
+type RunScriptData =
+	| {
+			isDone: false;
+			isError: boolean;
+			line: string;
+	  }
+	| {
+			isDone: true;
+			code: number | string;
+	  };
+
 type State = {
 	execCount: number;
 	isEditing: boolean;
-	modifiedScriptContent: string;
+	modifiedText: string | null;
+	text: string;
 	output: OutputLine[];
 	executionStatus: ExecutionStatus;
 	result: ExecutionResult | null;
 };
 
-class ScriptViewerStore extends ComponentStore<State> {
+export class ScriptStore extends ComponentStore<State> {
 	state: State = {
 		execCount: 0,
 		isEditing: false,
-		modifiedScriptContent: '',
+		modifiedText: null,
+		text: '',
 		output: [],
 		executionStatus: 'idle',
 		result: null,
 	};
 
 	#evSource: EventSource | undefined;
-	#path: string;
 
-	constructor(scriptPath: string) {
+	path: string;
+	name: string;
+
+	constructor(path: string) {
 		super();
-		this.#path = scriptPath;
+		this.path = path;
+		this.name = path.slice(path.lastIndexOf('/') + 1);
+
+		(async () => {
+			const result = await fetch(
+				`http://localhost:3001/api/script?path=${path}`
+			);
+			this.setText(await result.text());
+		})();
 	}
 
 	setEditing = (isEditing: boolean) => {
@@ -39,9 +62,26 @@ class ScriptViewerStore extends ComponentStore<State> {
 		});
 	};
 
-	setModifiedScriptContent = (content: string) => {
+	setText = (text: string) => {
 		this.setState((state) => {
-			state.modifiedScriptContent = content;
+			state.text = text;
+		});
+	};
+
+	setModifiedText = (text: string) => {
+		this.setState((state) => {
+			state.modifiedText = text;
+		});
+	};
+
+	saveScriptText = () => {
+		this.setState((state) => {
+			state.isEditing = false;
+
+			if (state.modifiedText !== null) {
+				state.text = state.modifiedText;
+				state.modifiedText = null;
+			}
 		});
 	};
 
@@ -73,7 +113,7 @@ class ScriptViewerStore extends ComponentStore<State> {
 		});
 
 		this.#evSource = new EventSource(
-			`http://localhost:3001/api/script/run?path=${this.#path}`
+			`http://localhost:3001/api/script/run?path=${this.path}`
 		);
 
 		this.#evSource.onopen = () => {
@@ -117,66 +157,3 @@ class ScriptViewerStore extends ComponentStore<State> {
 		this.setExecutionResult('interrupt');
 	};
 }
-
-type RunScriptData =
-	| {
-			isDone: false;
-			isError: boolean;
-			line: string;
-	  }
-	| {
-			isDone: true;
-			code: number | string;
-	  };
-
-const { getStore, useInitStore: useInitScriptViewerStore } =
-	getStoreInitHook(ScriptViewerStore);
-
-export { useInitScriptViewerStore };
-
-export const useScriptViewerStore = () => {
-	const store = getStore();
-	const { state } = store;
-
-	return {
-		setEditing: store.setEditing,
-
-		setScriptContent: store.setModifiedScriptContent,
-
-		saveScript: () => {
-			store.setEditing(false);
-
-			if (!state.modifiedScriptContent) {
-				return;
-			}
-
-			console.log(state.modifiedScriptContent);
-
-			store.setModifiedScriptContent('');
-		},
-
-		runScript: store.execute,
-
-		interrupt: store.interruptExecution,
-
-		get isEditing() {
-			return store.useSelector((state) => state.isEditing);
-		},
-
-		get output() {
-			return store.useSelector((state) => state.output);
-		},
-
-		get executionStatus() {
-			return store.useSelector((state) => state.executionStatus);
-		},
-
-		get executionResult() {
-			return store.useSelector((state) => state.result);
-		},
-
-		get execCount() {
-			return store.useSelector((state) => state.execCount);
-		},
-	} satisfies Partial<typeof store> & Record<string, any>;
-};

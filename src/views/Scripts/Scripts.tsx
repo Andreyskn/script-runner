@@ -2,7 +2,7 @@ import { Section } from '@/components/Section';
 import { Tree, type TreeProps } from '@/components/Tree';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
-import { useFilesStore } from '@/views/Scripts/filesStore';
+import { FilesStore } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Scripts.styles';
 
@@ -11,7 +11,10 @@ export type ScriptsProps = {};
 export const Scripts: React.FC<ScriptsProps> = (props) => {
 	const {} = props;
 
-	const { nodes, selectedScript, setSelectedScript } = useFilesStore();
+	const {
+		selectors: { nodes, selectedScript },
+		setSelectedScript,
+	} = FilesStore.use();
 
 	const handleRename: TreeProps['onRename'] = {
 		before(node) {

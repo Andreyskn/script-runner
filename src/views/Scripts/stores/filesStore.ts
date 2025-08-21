@@ -1,26 +1,21 @@
 import type { FolderNode, TreeNode } from '@/components/Tree';
 import { ComponentStore } from '@/utils';
+import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 type ScriptPath = string;
 
-export type ScriptData = {
-	text: string;
-	path: ScriptPath;
-	name: string;
-};
-
 type State = {
 	nodes: TreeNode[];
-	selectedScript: ScriptData | null;
+	selectedScript: ScriptStore | null;
 };
 
-class FilesStore extends ComponentStore<State> {
+export class FilesStore extends ComponentStore<State> {
 	state: State = {
 		nodes: [],
 		selectedScript: null,
 	};
 
-	#cache = new Map<ScriptPath, ScriptData>();
+	#cache = new Map<ScriptPath, ScriptStore>();
 
 	constructor() {
 		super();
@@ -94,18 +89,10 @@ class FilesStore extends ComponentStore<State> {
 			return this.#cache.get(path)!;
 		}
 
-		const result = await fetch(
-			`http://localhost:3001/api/script?path=${path}`
-		);
-		const text = await result.text();
-		const data: ScriptData = {
-			text,
-			path,
-			name: path.slice(path.lastIndexOf('/') + 1),
-		};
+		const script = ScriptStore.init(path);
 
-		this.#cache.set(path, data);
-		return data;
+		this.#cache.set(path, script);
+		return script;
 	};
 
 	setSelectedScript = async (path: ScriptPath) => {
@@ -116,19 +103,3 @@ class FilesStore extends ComponentStore<State> {
 		});
 	};
 }
-
-const filesStore = new FilesStore();
-
-export const useFilesStore = () => {
-	return {
-		setSelectedScript: filesStore.setSelectedScript,
-
-		get nodes() {
-			return filesStore.useSelector((state) => state.nodes);
-		},
-
-		get selectedScript() {
-			return filesStore.useSelector((state) => state.selectedScript);
-		},
-	} satisfies Partial<FilesStore> & Partial<State> & Record<string, any>;
-};

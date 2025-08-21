@@ -1,19 +1,23 @@
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { Section } from '@/components/Section';
-import { useScriptViewerStore } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
-import { useFilesStore } from '@/views/Scripts/filesStore';
+import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 import { cls } from './ScriptContent.styles';
 
-export type ScriptContentProps = {};
+type Props = {
+	script: ScriptStore;
+};
 
-export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
-	const { selectedScript } = useFilesStore();
-	const { isEditing, setScriptContent, saveScript, setEditing } =
-		useScriptViewerStore();
+export const ScriptContent: React.FC<Props> = ({ script }) => {
+	const {
+		selectors: { isEditing, text, modifiedText },
+		setModifiedText,
+		setEditing,
+		saveScriptText,
+	} = script;
 
-	useHotkeys('ctrl+s', saveScript, {
+	useHotkeys('ctrl+s', saveScriptText, {
 		enabled: isEditing,
 		preventDefault: true,
 		enableOnFormTags: true,
@@ -22,7 +26,7 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 	const onContentChange: React.ChangeEventHandler<HTMLTextAreaElement> = (
 		ev
 	) => {
-		setScriptContent(ev.target.value);
+		setModifiedText(ev.target.value);
 	};
 
 	return (
@@ -35,7 +39,7 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 			{isEditing ? (
 				<textarea
 					autoFocus
-					defaultValue={selectedScript?.text}
+					defaultValue={modifiedText ?? text}
 					onChange={onContentChange}
 					className={cls.scriptContent.text()}
 				/>
@@ -44,7 +48,7 @@ export const ScriptContent: React.FC<ScriptContentProps> = (props) => {
 					className={cls.scriptContent.text()}
 					onDoubleClick={() => setEditing(true)}
 				>
-					{selectedScript?.text}
+					{text}
 				</pre>
 			)}
 		</Section>
