@@ -96,7 +96,7 @@ export const ContextMenu: React.FC = () => {
 
 		menu.current?.addEventListener('beforetoggle', (ev) => {
 			ev.stopImmediatePropagation();
-			// @ts-expect-error
+
 			if (ev.newState === 'closed') {
 				store.setActive(null);
 			}

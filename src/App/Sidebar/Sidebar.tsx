@@ -1,6 +1,6 @@
 import { Button } from '@/components/Button';
 
-import { useAppStore } from 'src/App/appStore';
+import { AppStore } from 'src/App/appStore';
 
 import { cls } from './Sidebar.styles';
 
@@ -10,7 +10,10 @@ export type SidebarProps = {
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
 	const { className } = props;
-	const { view, setView } = useAppStore();
+	const {
+		selectors: { view },
+		setView,
+	} = AppStore.use();
 
 	return (
 		<div className={cls.sidebar.block(null, className)}>

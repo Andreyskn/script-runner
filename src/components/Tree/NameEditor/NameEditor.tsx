@@ -50,7 +50,6 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 
 			const { state } = session;
 
-			// @ts-expect-error
 			if (ev.newState === 'closed') {
 				if (state.status !== SessionStatus.Confirmed) {
 					onRename?.cancel?.(state.activeNode!);
@@ -59,7 +58,6 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 				return;
 			}
 
-			// @ts-expect-error
 			if (ev.newState === 'open' && state.activeNode && input.current) {
 				initialData.current = {
 					text: state.activeNode.name,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DnDContext, type DnDContextData } from '@/utils/dnd/dndContext';
-import { useInitDnDSession } from '@/utils/dnd/dndSession';
+import { DnDSession } from '@/utils/dnd/dndSession';
 
 export type ElementRef = React.RefObject<HTMLElement | null>;
 
@@ -29,7 +29,7 @@ export const DnDProvider = <Source, Target>(
 
 	const [elements] = useState(() => new Map<ElementRef, ElementRefMeta>());
 	const [uninitialized] = useState(() => new Set<ElementRef>());
-	const session = useInitDnDSession(elements, longHoverThreshold, canDrop);
+	const session = DnDSession.use(elements, longHoverThreshold, canDrop);
 
 	const useDraggable: DnDContextData['useDraggable'] = useCallback(
 		<T extends HTMLElement>(getData: () => unknown) => {

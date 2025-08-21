@@ -3,18 +3,18 @@ import { useEffect, useRef, useState } from 'react';
 import EventEmitter from 'eventemitter3';
 
 export abstract class ComponentStore<S extends Record<string, unknown>> {
-	static store: InstanceType<any> | undefined;
+	private static store: InstanceType<any> | undefined;
 
-	static init<T extends new (...args: any) => any>(
+	public static init<T extends new (...args: any) => any>(
 		this: T,
 		...args: ConstructorParameters<T>
 	) {
 		const staticProps = this as any as typeof ComponentStore & T;
-		const instance = new this(...args) as InstanceType<T>;
-		staticProps.store = instance;
-		const { state, selectors, useSelector } = instance as InstanceType<
+		const instance = new this(...args) as InstanceType<
 			typeof ComponentStore
 		>;
+		staticProps.store = instance;
+		const { state, selectors, useSelector } = instance;
 
 		Object.keys(state).forEach((key) => {
 			Object.defineProperty(selectors, key, {
@@ -24,10 +24,10 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 			});
 		});
 
-		return instance;
+		return instance as InstanceType<T>;
 	}
 
-	static useInit<T extends new (...args: any) => any>(
+	public static useInit<T extends new (...args: any) => any>(
 		this: T,
 		...args: ConstructorParameters<T>
 	) {
@@ -36,14 +36,17 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 		})[0];
 	}
 
-	static use<T extends new (...args: any) => any>(this: T) {
+	public static use<T extends new (...args: any) => any>(
+		this: T,
+		...args: ConstructorParameters<T>
+	) {
 		const self = this as any as typeof ComponentStore & T;
 
 		if (self.store) {
 			return useState(() => self.store)[0] as InstanceType<T>;
 		}
 
-		return self.useInit(...([] as any));
+		return self.useInit(...args);
 	}
 
 	abstract state: S;
@@ -105,33 +108,9 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 	};
 }
 
-export const getStoreInitHook = <S extends new (...args: any[]) => any>(
-	Store: S
-) => {
-	let store: { current: InstanceType<S> } = {
-		get current() {
-			throw new Error(`${Store.name} is not initialized`);
-			return null as any;
-		},
-	};
-
-	const useInitStore = (...args: ConstructorParameters<S>) => {
-		return useState(() => {
-			store = { current: new Store(...args) };
-			return store.current;
-		})[0];
-	};
-
-	const getStore = () => {
-		return store.current;
-	};
-
-	return { useInitStore, getStore };
-};
-
-function isObject(value: any) {
+const isObject = (value: any) => {
 	return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+};
 
 const appendPath = (key: string, paths: string[], index = paths.length) => {
 	if (!paths[index]) {

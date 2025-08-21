@@ -1,4 +1,4 @@
-import { ComponentStore, getStoreInitHook } from '@/utils';
+import { ComponentStore } from '@/utils';
 import type { ElementRef, ElementRefMeta } from '@/utils/dnd/dndProvider';
 
 type ElementData = any;
@@ -8,7 +8,7 @@ type SessionState = {
 	target: ElementRef | null;
 };
 
-class DnDSession extends ComponentStore<SessionState> {
+export class DnDSession extends ComponentStore<SessionState> {
 	state: SessionState = {
 		source: null,
 		target: null,
@@ -85,10 +85,6 @@ class DnDSession extends ComponentStore<SessionState> {
 		this.#canDropMap.clear();
 	};
 }
-
-const { useInitStore: useInitDnDSession } = getStoreInitHook(DnDSession);
-
-export { useInitDnDSession };
 
 type LongHoverCandidate = {
 	ref: ElementRef | null;
