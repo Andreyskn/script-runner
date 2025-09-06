@@ -3,10 +3,10 @@
 declare global {
 	type Maybe<T> = T | undefined;
 
-	type ReactFalsy = false | '' | null | undefined;
+	type NonRenderable = false | '' | null | undefined;
 
-	type ReactFalsyOptions<T> = {
-		[K in keyof T]: undefined extends T[K] ? T[K] | ReactFalsy : T[K];
+	type NonRenderableOptions<T> = {
+		[K in keyof T]: undefined extends T[K] ? T[K] | NonRenderable : T[K];
 	};
 
 	type Replace<

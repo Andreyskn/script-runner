@@ -1,7 +1,7 @@
 import { History } from '@/views/History';
 import { Scripts } from '@/views/Scripts';
 
-import { useAppStore } from 'src/App/appStore';
+import { AppStore } from 'src/App/appStore';
 
 import { cls } from './Main.styles';
 
@@ -11,7 +11,9 @@ export type MainProps = {
 
 export const Main: React.FC<MainProps> = (props) => {
 	const { className } = props;
-	const { view } = useAppStore();
+	const {
+		selectors: { view },
+	} = AppStore.use();
 
 	const views: Record<typeof view, React.ReactNode> = {
 		get scripts() {

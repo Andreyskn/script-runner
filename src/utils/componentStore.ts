@@ -3,7 +3,52 @@ import { useEffect, useRef, useState } from 'react';
 import EventEmitter from 'eventemitter3';
 
 export abstract class ComponentStore<S extends Record<string, unknown>> {
+	private static store: InstanceType<any> | undefined;
+
+	public static init<T extends new (...args: any) => any>(
+		this: T,
+		...args: ConstructorParameters<T>
+	) {
+		const staticProps = this as any as typeof ComponentStore & T;
+		const instance = new this(...args) as InstanceType<
+			typeof ComponentStore
+		>;
+		staticProps.store = instance;
+		const { state, selectors, useSelector } = instance;
+
+		Object.keys(state).forEach((key) => {
+			Object.defineProperty(selectors, key, {
+				get: function () {
+					return useSelector((state: any) => state[key]);
+				},
+			});
+		});
+
+		return instance as InstanceType<T>;
+	}
+
+	public static useInit<T extends new (...args: any) => any>(
+		this: T,
+		...args: ConstructorParameters<T>
+	) {
+		return useState(() => {
+			return (this as any as typeof ComponentStore & T).init(...args);
+		})[0];
+	}
+
+	public static use<T extends new (...args: any) => any>(this: T) {
+		const self = this as any as typeof ComponentStore & T;
+
+		if (self.store) {
+			return useState(() => self.store)[0] as InstanceType<T>;
+		}
+
+		return self.useInit(...([] as any));
+	}
+
 	abstract state: S;
+
+	public selectors: S = {} as S;
 
 	private ee = new EventEmitter<string>();
 
@@ -60,33 +105,9 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 	};
 }
 
-export const getStoreInitHook = <S extends new (...args: any[]) => any>(
-	Store: S
-) => {
-	let store: { current: InstanceType<S> } = {
-		get current() {
-			throw new Error(`${Store.name} is not initialized`);
-			return null as any;
-		},
-	};
-
-	const useInitStore = (...args: ConstructorParameters<S>) => {
-		return useState(() => {
-			store = { current: new Store(...args) };
-			return store.current;
-		})[0];
-	};
-
-	const getStore = () => {
-		return store.current;
-	};
-
-	return { useInitStore, getStore };
-};
-
-function isObject(value: any) {
+const isObject = (value: any) => {
 	return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+};
 
 const appendPath = (key: string, paths: string[], index = paths.length) => {
 	if (!paths[index]) {

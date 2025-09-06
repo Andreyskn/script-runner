@@ -4,7 +4,7 @@ type State = {
 	view: 'scripts' | 'history';
 };
 
-class AppStore extends ComponentStore<State> {
+export class AppStore extends ComponentStore<State> {
 	state: State = {
 		view: 'scripts',
 	};
@@ -15,15 +15,3 @@ class AppStore extends ComponentStore<State> {
 		});
 	};
 }
-
-const appStore = new AppStore();
-
-export const useAppStore = () => {
-	return {
-		setView: appStore.setView,
-
-		get view() {
-			return appStore.useSelector((state) => state.view);
-		},
-	} satisfies Partial<AppStore> & Partial<State> & Record<string, any>;
-};

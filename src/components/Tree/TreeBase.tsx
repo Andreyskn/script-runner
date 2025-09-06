@@ -9,6 +9,7 @@ import type {
 
 import { cls } from './Tree.styles';
 
+// TODO: handle deleted and moved folders
 let openFolders = new Set<FolderNode['id']>();
 
 const collator = new Intl.Collator('en', { numeric: true });

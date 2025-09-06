@@ -5,9 +5,9 @@ import { cls } from './Button.styles';
 
 type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export type ButtonProps = ReactFalsyOptions<{
-	icon?: IconName;
-	iconEnd?: IconName;
+export type ButtonProps = NonRenderableOptions<{
+	icon?: IconName | React.ReactNode;
+	iconEnd?: IconName | React.ReactNode;
 	color?: 'none' | 'green' | 'red';
 	fill?: 'none' | 'green' | 'red';
 	text?: string;
@@ -72,11 +72,16 @@ export const Button: React.FC<ButtonProps> = (props) => {
 				) : (
 					<>
 						{icon && (
-							<DynamicIcon
-								name={icon}
-								size={16}
-								className={cls.button.icon()}
-							/>
+							<div className={cls.button.icon()}>
+								{typeof icon === 'string' ? (
+									<DynamicIcon
+										name={icon as IconName}
+										size={16}
+									/>
+								) : (
+									icon
+								)}
+							</div>
 						)}
 						{text && (
 							<span
@@ -86,11 +91,16 @@ export const Button: React.FC<ButtonProps> = (props) => {
 							</span>
 						)}
 						{iconEnd && (
-							<DynamicIcon
-								name={iconEnd}
-								size={16}
-								className={cls.button.icon()}
-							/>
+							<div className={cls.button.icon()}>
+								{typeof iconEnd === 'string' ? (
+									<DynamicIcon
+										name={iconEnd as IconName}
+										size={16}
+									/>
+								) : (
+									iconEnd
+								)}
+							</div>
 						)}
 					</>
 				))}

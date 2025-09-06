@@ -4,6 +4,7 @@ import { ClockIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import { Output } from '@/views/Scripts/ScriptViewer/Output';
+import type { OutputLine } from '@/views/Scripts/ScriptViewer/scriptViewerStore';
 
 import { cls } from './HistoryEntry.styles';
 
@@ -14,10 +15,11 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 
 	const [shouldShowOutput, setShowOutput] = useState(false);
 
-	const output = [
-		'Starting backup...',
-		'Files backed up successfully!',
-		'Backup completed!',
+	const output: OutputLine[] = [
+		// { text: 'Starting backup...', isError: false },
+		// { text: 'Files backed up successfully!', isError: false },
+		// { text: 'Backup completed!', isError: false },
+		// { text: 'Something went wrong', isError: true },
 	];
 
 	return (
@@ -42,21 +44,23 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 					Success
 				</div>
 				<Button
-					text='Show Output'
+					text={output.length ? 'Show Output' : 'No Output'}
 					icon='terminal'
-					iconEnd='chevron-right'
+					iconEnd={output.length > 0 && 'chevron-right'}
 					borderless
 					className={cls.outputToggle.block({
 						open: shouldShowOutput,
 					})}
 					onClick={() => setShowOutput((s) => !s)}
+					disabled={!output.length}
 				/>
 			</div>
 			{shouldShowOutput && (
 				<div className={cls.historyEntry.outputWrapper()}>
 					<Output
 						name='backup.sh'
-						result='success'
+						result={null}
+						status='ended'
 						lines={output}
 						className={cls.historyEntry.output()}
 					/>
