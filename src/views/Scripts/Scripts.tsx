@@ -14,6 +14,9 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 	const {
 		selectors: { nodes, selectedScript },
 		setSelectedScript,
+		moveNode,
+		createNode,
+		deleteNode,
 	} = FilesStore.use();
 
 	const handleRename: TreeProps['onRename'] = {
@@ -43,7 +46,14 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 			}
 		},
 		confirm(node, newName) {
-			console.log(node.name, '->', newName);
+			if (node.type === 'file' && !newName.endsWith('.sh')) {
+				newName = `${newName}.sh`;
+			}
+
+			moveNode(
+				node.path.join('/'),
+				node.path.toSpliced(-1, 1, newName).join('/')
+			);
 		},
 	};
 
@@ -59,8 +69,22 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 					activePath={selectedScript?.path.split('/') ?? undefined}
 					onFileSelect={setSelectedScript}
 					nodes={nodes}
-					onMove={(source, target) => {}}
+					onMove={(source, target) => {
+						moveNode(
+							source.path.join('/'),
+							[...target.path, source.name]
+								.filter(Boolean)
+								.join('/')
+						);
+					}}
 					onRename={handleRename}
+					onCreate={({ path, name, type }) => {
+						if (type === 'file' && !name.endsWith('.sh')) {
+							name = `${name}.sh`;
+						}
+						createNode([...path, name].filter(Boolean).join('/'));
+					}}
+					onDelete={({ path }) => deleteNode(path.join('/'))}
 				/>
 			</Section>
 			{selectedScript ? (

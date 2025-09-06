@@ -1,105 +1,16 @@
-import { spawn } from 'node:child_process';
-import { chmod, mkdir, readdir, rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import {
+	createFolder,
+	createScript,
+	deleteFile,
+	getFilesList,
+	moveFile,
+	readScript,
+	runScript,
+	updateScript,
+} from './handlers';
 
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
-
-const SCRIPTS_DIR = '/home/andrey/Projects/scripts';
-
-const abs = (path: string) => join(SCRIPTS_DIR, path);
-
-export const getFilesList = async () => {
-	return readdir(SCRIPTS_DIR, {
-		recursive: true,
-	}).then((files) => files.filter((f) => !f.startsWith('.')));
-};
-
-export const createFolder = async (path: string) => {
-	await mkdir(abs(path));
-};
-
-export const deleteFolder = async (path: string) => {
-	await rm(abs(path), { recursive: true, force: true });
-};
-
-export const createScript = async (path: string) => {
-	await Bun.write(abs(path), '#!/bin/sh\n\n');
-	await chmod(abs(path), 0o755);
-};
-
-export const updateScript = async (path: string, data: string) => {
-	await Bun.write(abs(path), data);
-	await chmod(abs(path), 0o755);
-};
-
-export const deleteScript = async (path: string) => {
-	await Bun.file(abs(path)).delete();
-};
-
-export const readScript = async (path: string) => {
-	return await Bun.file(abs(path)).text();
-};
-
-type RunScriptData =
-	| {
-			isDone: false;
-			isError: boolean;
-			line: string;
-	  }
-	| {
-			isDone: true;
-			code: number | string;
-	  };
-
-export const runScript = (path: string, signal: AbortSignal) => {
-	const { readable, writable } = new TransformStream<string, string>();
-	const writer = writable.getWriter();
-	const decoder = new TextDecoder();
-
-	const write = async (data: RunScriptData) => {
-		return writer.write(`data: ${JSON.stringify(data)}\n\n`);
-	};
-
-	const proc = spawn(abs(path), {
-		signal,
-		stdio: ['ignore', 'pipe', 'pipe'],
-	});
-
-	proc.on('spawn', () => {
-		writer.write('event: "start"\n\n');
-	});
-
-	proc.on('close', async (code) => {
-		try {
-			await write({ isDone: true, code: code ?? 'Aborted' });
-			await writer.close();
-		} catch (error) {}
-	});
-
-	proc.on('error', async (error) => {
-		try {
-			await write({ isDone: true, code: String(error) });
-			await writer.close();
-		} catch (error) {}
-	});
-
-	proc.stdout?.on('data', (chunk) => {
-		const text = decoder.decode(chunk);
-		for (const line of text.split('\n').filter(Boolean)) {
-			write({ isDone: false, isError: false, line });
-		}
-	});
-
-	proc.stderr?.on('data', (chunk) => {
-		const text = decoder.decode(chunk);
-		for (const line of text.split('\n').filter(Boolean)) {
-			write({ isDone: false, isError: true, line });
-		}
-	});
-
-	return readable;
-};
 
 const getQueryParams = <T extends Record<string, unknown>>(
 	req: Bun.BunRequest
@@ -115,7 +26,8 @@ type ScriptQueryParams = {
 const cors: ResponseInit = {
 	headers: {
 		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+		'Access-Control-Allow-Methods':
+			'GET, POST, PUT, PATCH, DELETE, OPTIONS',
 	},
 };
 
@@ -123,8 +35,59 @@ const server = Bun.serve({
 	development: true,
 	port: 3001,
 	routes: {
-		'/api/files': async () => {
+		'/api/file/list': async () => {
 			return Response.json({ files: await getFilesList() }, cors);
+		},
+
+		'/api/file/move': {
+			POST: async (req) => {
+				if (!req.body) {
+					throw new Error('Missing request body');
+				}
+
+				const data = (await req.body.json()) as {
+					oldPath: string;
+					newPath: string;
+				};
+
+				await moveFile(data.oldPath, data.newPath);
+
+				return new Response(null, { ...cors, status: 200 });
+			},
+		},
+
+		'/api/file': {
+			POST: async (req) => {
+				if (!req.body) {
+					throw new Error('Missing request body');
+				}
+
+				const data = (await req.body.json()) as {
+					path: string;
+				};
+
+				if (data.path.endsWith('.sh')) {
+					await createScript(data.path);
+				} else {
+					await createFolder(data.path);
+				}
+
+				return new Response(null, { ...cors, status: 200 });
+			},
+
+			DELETE: async (req) => {
+				if (!req.body) {
+					throw new Error('Missing request body');
+				}
+
+				const data = (await req.body.json()) as {
+					path: string;
+				};
+
+				await deleteFile(data.path);
+
+				return new Response(null, { ...cors, status: 200 });
+			},
 		},
 
 		'/api/script': {
@@ -136,6 +99,21 @@ const server = Bun.serve({
 				}
 
 				return new Response(await readScript(path), cors);
+			},
+
+			POST: async (req) => {
+				if (!req.body) {
+					throw new Error('Missing request body');
+				}
+
+				const data = (await req.body.json()) as {
+					path: string;
+					text: string;
+				};
+
+				await updateScript(data.path, data.text);
+
+				return new Response(null, { ...cors, status: 200 });
 			},
 		},
 
@@ -168,7 +146,12 @@ const server = Bun.serve({
 
 			return new Response(runScript(path, req.signal), init);
 		},
+
+		'/*': {
+			OPTIONS: () => new Response(null, cors),
+		},
 	},
+
 	error(error) {
 		console.error(error);
 		return new Response(`Internal Error: ${error.message}`, {

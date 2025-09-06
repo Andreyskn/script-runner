@@ -36,22 +36,19 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 		})[0];
 	}
 
-	public static use<T extends new (...args: any) => any>(
-		this: T,
-		...args: ConstructorParameters<T>
-	) {
+	public static use<T extends new (...args: any) => any>(this: T) {
 		const self = this as any as typeof ComponentStore & T;
 
 		if (self.store) {
 			return useState(() => self.store)[0] as InstanceType<T>;
 		}
 
-		return self.useInit(...args);
+		return self.useInit(...([] as any));
 	}
 
 	abstract state: S;
 
-	public selectors: S = {} as any;
+	public selectors: S = {} as S;
 
 	private ee = new EventEmitter<string>();
 

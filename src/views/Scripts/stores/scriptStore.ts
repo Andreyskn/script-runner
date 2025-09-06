@@ -40,13 +40,12 @@ export class ScriptStore extends ComponentStore<State> {
 
 	#evSource: EventSource | undefined;
 
-	path: string;
-	name: string;
+	path: string = '';
+	name: string = '';
 
 	constructor(path: string) {
 		super();
-		this.path = path;
-		this.name = path.slice(path.lastIndexOf('/') + 1);
+		this.setPath(path);
 
 		(async () => {
 			const result = await fetch(
@@ -55,6 +54,11 @@ export class ScriptStore extends ComponentStore<State> {
 			this.setText(await result.text());
 		})();
 	}
+
+	setPath = (path: string) => {
+		this.path = path;
+		this.name = path.slice(path.lastIndexOf('/') + 1);
+	};
 
 	setEditing = (isEditing: boolean) => {
 		this.setState((state) => {
@@ -81,6 +85,14 @@ export class ScriptStore extends ComponentStore<State> {
 			if (state.modifiedText !== null) {
 				state.text = state.modifiedText;
 				state.modifiedText = null;
+
+				fetch(`http://localhost:3001/api/script`, {
+					method: 'POST',
+					body: JSON.stringify({
+						path: this.path,
+						text: state.text,
+					}),
+				});
 			}
 		});
 	};

@@ -29,7 +29,7 @@ export const DnDProvider = <Source, Target>(
 
 	const [elements] = useState(() => new Map<ElementRef, ElementRefMeta>());
 	const [uninitialized] = useState(() => new Set<ElementRef>());
-	const session = DnDSession.use(elements, longHoverThreshold, canDrop);
+	const session = DnDSession.useInit(elements, longHoverThreshold, canDrop);
 
 	const useDraggable: DnDContextData['useDraggable'] = useCallback(
 		<T extends HTMLElement>(getData: () => unknown) => {
