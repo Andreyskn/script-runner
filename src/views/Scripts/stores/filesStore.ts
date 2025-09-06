@@ -91,16 +91,38 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	moveNode = (oldPath: string, newPath: string) => {
-		this.#files.delete(oldPath);
-		this.#files.add(newPath);
+		const patches: (() => void)[] = [];
 
-		const script = this.#cache.get(oldPath);
+		const enqueuePatch = (path: string) => {
+			patches.push(() => {
+				const modifiedPath = path.replace(oldPath, newPath);
 
-		if (script) {
-			script.setPath(newPath);
-			this.#cache.delete(oldPath);
-			this.#cache.set(newPath, script);
+				this.#files.delete(path);
+				this.#files.add(modifiedPath);
+
+				const script = this.#cache.get(path);
+
+				if (script) {
+					script.setPath(modifiedPath);
+					this.#cache.delete(path);
+					this.#cache.set(modifiedPath, script);
+				}
+			});
+		};
+
+		if (oldPath.endsWith('.sh')) {
+			enqueuePatch(oldPath);
+		} else {
+			const pathWithSlash = oldPath + '/';
+
+			this.#files.forEach((p) => {
+				if (p === oldPath || p.startsWith(pathWithSlash)) {
+					enqueuePatch(p);
+				}
+			});
 		}
+
+		patches.forEach((patch) => patch());
 
 		this.updateNodes();
 

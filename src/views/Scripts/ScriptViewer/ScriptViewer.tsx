@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = (props) => {
 			<div className={cls.header.info()}>
 				<CodeXmlIcon size={20} className={cls.header.icon()} />
 				<span className={cls.header.title()}>{name}</span>
-				<span className={cls.header.subtitle()}>{path}</span>
+				<span className={cls.header.subtitle()}>/{path}</span>
 			</div>
 			<div className={cls.header.actions()}>
 				{isEditing ? (
