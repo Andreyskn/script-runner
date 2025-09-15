@@ -1,0 +1,43 @@
+.wrapper {
+	display: inline-flex;
+
+	anchor-name: var(--tooltip-anchor);
+}
+
+.tooltip {
+	max-width: 400px;
+	padding: 12px 16px;
+	border: 0;
+	border-radius: 8px;
+
+	font-size: 14px;
+	line-height: 20px;
+	color: white;
+
+	background-color: hsl(var(--accent));
+
+	position-anchor: var(--tooltip-anchor);
+	position-area: bottom;
+	justify-self: anchor-center;
+	margin: 12px 0 0;
+
+	&::backdrop {
+		display: none;
+	}
+
+	&__arrow {
+		position: fixed;
+		top: calc(anchor(bottom) + 8px);
+		rotate: 45deg;
+
+		justify-self: anchor-center;
+
+		width: 18px;
+		height: 18px;
+		border-top-left-radius: 3px;
+
+		background-color: hsl(var(--accent));
+
+		position-anchor: var(--tooltip-anchor);
+	}
+}

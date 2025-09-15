@@ -15,8 +15,9 @@ export class FilesStore extends ComponentStore<State> {
 		selectedScript: null,
 	};
 
-	#files = new Set<ScriptPath>();
-	#cache = new Map<ScriptPath, ScriptStore>();
+	files = new Set<ScriptPath>();
+
+	#scripts = new Map<ScriptPath, ScriptStore>();
 
 	constructor() {
 		super();
@@ -28,7 +29,7 @@ export class FilesStore extends ComponentStore<State> {
 		const result = await fetch('http://localhost:3001/api/file/list');
 		const { files } = (await result.json()) as { files: string[] };
 
-		this.#files = new Set(files);
+		files.forEach((f) => this.files.add(f));
 		this.updateNodes();
 	};
 
@@ -42,7 +43,7 @@ export class FilesStore extends ComponentStore<State> {
 
 		const folders = new Map<string, FolderNode>([['', root]]);
 
-		this.#files.forEach((path) => {
+		this.files.forEach((path) => {
 			const pathSegments = path.split('/');
 
 			pathSegments.forEach((segment, i) => {
@@ -92,20 +93,21 @@ export class FilesStore extends ComponentStore<State> {
 
 	moveNode = (oldPath: string, newPath: string) => {
 		const patches: (() => void)[] = [];
+		// TODO: handle file replacement
 
 		const enqueuePatch = (path: string) => {
 			patches.push(() => {
 				const modifiedPath = path.replace(oldPath, newPath);
 
-				this.#files.delete(path);
-				this.#files.add(modifiedPath);
+				this.files.delete(path);
+				this.files.add(modifiedPath);
 
-				const script = this.#cache.get(path);
+				const script = this.#scripts.get(path);
 
 				if (script) {
 					script.setPath(modifiedPath);
-					this.#cache.delete(path);
-					this.#cache.set(modifiedPath, script);
+					this.#scripts.delete(path);
+					this.#scripts.set(modifiedPath, script);
 				}
 			});
 		};
@@ -115,7 +117,7 @@ export class FilesStore extends ComponentStore<State> {
 		} else {
 			const pathWithSlash = oldPath + '/';
 
-			this.#files.forEach((p) => {
+			this.files.forEach((p) => {
 				if (p === oldPath || p.startsWith(pathWithSlash)) {
 					enqueuePatch(p);
 				}
@@ -133,7 +135,7 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	createNode = async (path: string) => {
-		this.#files.add(path);
+		this.files.add(path);
 
 		this.updateNodes();
 
@@ -148,21 +150,23 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	deleteNode = async (path: string) => {
-		this.#files.delete(path);
-		this.#cache.delete(path);
+		this.files.delete(path);
+		this.#scripts.delete(path);
 
 		if (!path.endsWith('.sh')) {
-			this.#files.forEach((p) => {
-				if (p.startsWith(path)) {
-					this.#files.delete(p);
-					this.#cache.delete(p);
+			const pathWithSlash = path + '/';
+
+			this.files.forEach((p) => {
+				if (p.startsWith(pathWithSlash)) {
+					this.files.delete(p);
+					this.#scripts.delete(p);
 				}
 			});
 		}
 
 		const { selectedScript } = this.state;
 
-		if (selectedScript && !this.#cache.has(selectedScript.path)) {
+		if (selectedScript && !this.#scripts.has(selectedScript.path)) {
 			this.setState((state) => {
 				state.selectedScript = null;
 			});
@@ -177,13 +181,13 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	getScript = async (path: ScriptPath) => {
-		if (this.#cache.has(path)) {
-			return this.#cache.get(path)!;
+		if (this.#scripts.has(path)) {
+			return this.#scripts.get(path)!;
 		}
 
 		const script = ScriptStore.init(path);
 
-		this.#cache.set(path, script);
+		this.#scripts.set(path, script);
 		return script;
 	};
 

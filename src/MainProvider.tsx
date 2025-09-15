@@ -1,5 +1,7 @@
 import { ContextMenu } from '@/components/ContextMenu';
+import { Dialog } from '@/components/Dialog';
 import { Search } from '@/components/Search';
+import { TooltipPopover } from '@/components/Tooltip';
 
 import './styles/global.scss';
 import './styles/vars.css';
@@ -12,6 +14,8 @@ export const MainProvider: React.FC<{ children: React.ReactNode }> = ({
 		<>
 			<ContextMenu />
 			<Search />
+			<TooltipPopover />
+			<Dialog />
 
 			{children}
 		</>

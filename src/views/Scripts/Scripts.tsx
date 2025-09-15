@@ -1,3 +1,5 @@
+import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog';
+import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog';
 import { Section } from '@/components/Section';
 import { Tree, type TreeProps } from '@/components/Tree';
 import { Placeholder } from '@/views/Scripts/Placeholder';
@@ -13,6 +15,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 
 	const {
 		selectors: { nodes, selectedScript },
+		files,
 		setSelectedScript,
 		moveNode,
 		createNode,
@@ -34,7 +37,13 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				};
 			}
 
-			if (/* name collision */ 1 - 1) {
+			if (node.type === 'file' && !newName.endsWith('.sh')) {
+				newName = `${newName}.sh`;
+			}
+
+			const path = node.path.toSpliced(-1, 1, newName).join('/');
+
+			if (files.has(path)) {
 				return {
 					error: (
 						<>
@@ -69,13 +78,21 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 					activePath={selectedScript?.path.split('/') ?? undefined}
 					onFileSelect={setSelectedScript}
 					nodes={nodes}
-					onMove={(source, target) => {
-						moveNode(
-							source.path.join('/'),
-							[...target.path, source.name]
-								.filter(Boolean)
-								.join('/')
-						);
+					onMove={async (source, target) => {
+						const newPath = [...target.path, source.name]
+							.filter(Boolean)
+							.join('/');
+
+						if (files.has(newPath)) {
+							const isConfirmed =
+								await showReplaceConfirmDialog(source);
+
+							if (!isConfirmed) {
+								return;
+							}
+						}
+
+						moveNode(source.path.join('/'), newPath);
 					}}
 					onRename={handleRename}
 					onCreate={({ path, name, type }) => {
@@ -84,7 +101,13 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 						}
 						createNode([...path, name].filter(Boolean).join('/'));
 					}}
-					onDelete={({ path }) => deleteNode(path.join('/'))}
+					onDelete={async (node) => {
+						const isConfirmed = await showDeleteConfirmDialog(node);
+
+						if (isConfirmed) {
+							deleteNode(node.path.join('/'));
+						}
+					}}
 				/>
 			</Section>
 			{selectedScript ? (

@@ -6,7 +6,7 @@ import { cls } from './Button.styles';
 type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export type ButtonProps = NonRenderableOptions<{
-	icon?: IconName | React.ReactNode;
+	icon?: IconName | React.ReactElement;
 	iconEnd?: IconName | React.ReactNode;
 	color?: 'none' | 'green' | 'red';
 	fill?: 'none' | 'green' | 'red';

@@ -4,6 +4,7 @@ import { TerminalIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
+import { Tooltip } from '@/components/Tooltip';
 import {
 	ScriptStore,
 	type ExecutionResult,
@@ -38,14 +39,18 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 				<>
 					<TerminalIcon size={16} /> Terminal Output
 					{executionStatus === 'running' && (
-						<Button
-							icon='ban'
-							color='red'
-							borderless
-							size='small'
-							className={cls.header.interruptButton()}
-							onClick={interruptExecution}
-						/>
+						<Tooltip
+							content='Interrupt'
+							className={cls.header.interrupt()}
+						>
+							<Button
+								icon='ban'
+								color='red'
+								borderless
+								size='small'
+								onClick={interruptExecution}
+							/>
+						</Tooltip>
 					)}
 				</>
 			}
