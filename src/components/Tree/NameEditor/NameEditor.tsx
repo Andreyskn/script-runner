@@ -109,7 +109,7 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 
 		const { state } = session;
 
-		if (!state.activeNode || !input.current) {
+		if (error || !state.activeNode || !input.current?.value) {
 			return;
 		}
 

@@ -1,6 +1,7 @@
 import { $ } from 'bun';
+import { move } from 'fs-extra';
 import { spawn } from 'node:child_process';
-import { chmod, mkdir, readdir, rename } from 'node:fs/promises';
+import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const SCRIPTS_DIR = '/home/andrey/Projects/scripts';
@@ -14,7 +15,7 @@ export const getFilesList = async () => {
 };
 
 export const moveFile = async (oldPath: string, newPath: string) => {
-	await rename(abs(oldPath), abs(newPath));
+	await move(abs(oldPath), abs(newPath), { overwrite: true });
 };
 
 export const deleteFile = async (path: string) => {

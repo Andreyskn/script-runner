@@ -5,7 +5,7 @@ import styles from './Output.module.scss';
 export const cls = bem(
 	styles as {
 		header: string;
-		'header__interrupt-button': string;
+		header__interrupt: string;
 		header__loader: string;
 		output: string;
 		'output-section': string;
