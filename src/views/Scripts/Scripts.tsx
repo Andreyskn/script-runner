@@ -90,6 +90,8 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 							if (!isConfirmed) {
 								return;
 							}
+
+							deleteNode(newPath, true);
 						}
 
 						moveNode(source.path.join('/'), newPath);

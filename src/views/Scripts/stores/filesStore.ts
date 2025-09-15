@@ -93,7 +93,6 @@ export class FilesStore extends ComponentStore<State> {
 
 	moveNode = (oldPath: string, newPath: string) => {
 		const patches: (() => void)[] = [];
-		// TODO: handle file replacement
 
 		const enqueuePatch = (path: string) => {
 			patches.push(() => {
@@ -149,7 +148,7 @@ export class FilesStore extends ComponentStore<State> {
 		}
 	};
 
-	deleteNode = async (path: string) => {
+	deleteNode = async (path: string, clientSideOnly?: boolean) => {
 		this.files.delete(path);
 		this.#scripts.delete(path);
 
@@ -174,10 +173,12 @@ export class FilesStore extends ComponentStore<State> {
 
 		this.updateNodes();
 
-		await fetch(`http://localhost:3001/api/file`, {
-			method: 'DELETE',
-			body: JSON.stringify({ path }),
-		});
+		if (!clientSideOnly) {
+			await fetch(`http://localhost:3001/api/file`, {
+				method: 'DELETE',
+				body: JSON.stringify({ path }),
+			});
+		}
 	};
 
 	getScript = async (path: ScriptPath) => {
