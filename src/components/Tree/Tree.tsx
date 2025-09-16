@@ -13,6 +13,9 @@ import { isMatchingPath } from '@/components/Tree/treeUtils';
 import { DnDProvider, useDnD } from '@/utils';
 
 // TODO: optimize nodes rerender
+// TODO: arrows navigation
+// TODO: scroll active node into view
+// TODO: add action buttons (collapse folders, etc.)
 
 export const Tree: React.FC<TreeProps> = (props) => {
 	const { onMove, onRename, onCreate, ...restProps } = props;

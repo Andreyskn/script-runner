@@ -131,7 +131,14 @@ const newProxy = <T extends Record<string, unknown>>(
 					return newProxy(o[key] as any, paths, index);
 				}
 			}
-			return Reflect.get(o, key);
+
+			const value = Reflect.get(o, key, o);
+
+			if (typeof value === 'function') {
+				return value.bind(o);
+			}
+
+			return value;
 		},
 		ownKeys() {
 			Object.keys(o).forEach((key) => {
@@ -142,7 +149,7 @@ const newProxy = <T extends Record<string, unknown>>(
 		},
 		set(_target, key: string, newValue) {
 			appendPath(key, paths, pathIndex);
-			return Reflect.set(o, key, newValue);
+			return Reflect.set(o, key, newValue, o);
 		},
 	});
 };
