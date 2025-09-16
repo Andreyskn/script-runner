@@ -21,6 +21,8 @@
 		top: calc(anchor(bottom) + 4px);
 		left: 0;
 
+		max-height: 300px;
+
 		width: anchor-size();
 		padding: 4px;
 		border: 0.8px solid hsl(var(--border));
@@ -41,6 +43,28 @@
 				transform: scale(0.95);
 				opacity: 0;
 			}
+		}
+
+		&::-webkit-scrollbar {
+			width: 6px;
+			height: 6px;
+		}
+
+		&::-webkit-scrollbar-track {
+			background: transparent;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			border-radius: 6px;
+			background-color: #555;
+
+			&:hover {
+				background-color: #666;
+			}
+		}
+
+		&::-webkit-scrollbar-corner {
+			background: transparent;
 		}
 	}
 

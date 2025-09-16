@@ -1,21 +1,18 @@
-import type { FolderNode, TreeNode } from '@/components/Tree';
 import { ComponentStore } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 type ScriptPath = string;
 
 type State = {
-	nodes: TreeNode[];
+	files: Set<ScriptPath>;
 	selectedScript: ScriptStore | null;
 };
 
 export class FilesStore extends ComponentStore<State> {
 	state: State = {
-		nodes: [],
 		selectedScript: null,
+		files: new Set(),
 	};
-
-	files = new Set<ScriptPath>();
 
 	#scripts = new Map<ScriptPath, ScriptStore>();
 
@@ -29,77 +26,20 @@ export class FilesStore extends ComponentStore<State> {
 		const result = await fetch('http://localhost:3001/api/file/list');
 		const { files } = (await result.json()) as { files: string[] };
 
-		files.forEach((f) => this.files.add(f));
-		this.updateNodes();
-	};
-
-	updateNodes = () => {
-		const root: FolderNode = {
-			id: '',
-			name: '',
-			type: 'folder',
-			nodes: [],
-		};
-
-		const folders = new Map<string, FolderNode>([['', root]]);
-
-		this.files.forEach((path) => {
-			const pathSegments = path.split('/');
-
-			pathSegments.forEach((segment, i) => {
-				const parentPath = pathSegments.slice(0, i).join('/');
-				const currentPath = pathSegments.slice(0, i + 1).join('/');
-
-				if (!folders.has(parentPath)) {
-					const parentNode: FolderNode = {
-						id: parentPath,
-						name: pathSegments[i - 1]!,
-						type: 'folder',
-						nodes: [],
-					};
-
-					folders.set(parentPath, parentNode);
-					const parentParentPath = pathSegments
-						.slice(0, i - 1)
-						.join('/');
-					folders.get(parentParentPath)!.nodes!.push(parentNode);
-				}
-
-				const parentNode = folders.get(parentPath) as FolderNode;
-
-				if (segment.endsWith('.sh')) {
-					parentNode.nodes!.push({
-						id: currentPath,
-						name: segment,
-						type: 'file',
-					});
-				} else if (!folders.has(currentPath)) {
-					const node: FolderNode = {
-						id: currentPath,
-						name: segment,
-						type: 'folder',
-						nodes: [],
-					};
-					parentNode.nodes!.push(node);
-					folders.set(currentPath, node);
-				}
-			});
-		});
-
 		this.setState((state) => {
-			state.nodes = root.nodes!;
+			files.forEach((f) => state.files.add(f));
 		});
 	};
 
 	moveNode = (oldPath: string, newPath: string) => {
-		const patches: (() => void)[] = [];
+		const patches: ((state: State) => void)[] = [];
 
 		const enqueuePatch = (path: string) => {
-			patches.push(() => {
+			patches.push((state) => {
 				const modifiedPath = path.replace(oldPath, newPath);
 
-				this.files.delete(path);
-				this.files.add(modifiedPath);
+				state.files.delete(path);
+				state.files.add(modifiedPath);
 
 				const script = this.#scripts.get(path);
 
@@ -116,16 +56,16 @@ export class FilesStore extends ComponentStore<State> {
 		} else {
 			const pathWithSlash = oldPath + '/';
 
-			this.files.forEach((p) => {
+			this.state.files.forEach((p) => {
 				if (p === oldPath || p.startsWith(pathWithSlash)) {
 					enqueuePatch(p);
 				}
 			});
 		}
 
-		patches.forEach((patch) => patch());
-
-		this.updateNodes();
+		this.setState((state) => {
+			patches.forEach((patch) => patch(state));
+		});
 
 		fetch(`http://localhost:3001/api/file/move`, {
 			method: 'POST',
@@ -134,9 +74,9 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	createNode = async (path: string) => {
-		this.files.add(path);
-
-		this.updateNodes();
+		this.setState((state) => {
+			state.files.add(path);
+		});
 
 		await fetch(`http://localhost:3001/api/file`, {
 			method: 'POST',
@@ -149,29 +89,27 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	deleteNode = async (path: string, clientSideOnly?: boolean) => {
-		this.files.delete(path);
-		this.#scripts.delete(path);
+		this.setState((state) => {
+			state.files.delete(path);
+			this.#scripts.delete(path);
 
-		if (!path.endsWith('.sh')) {
-			const pathWithSlash = path + '/';
+			if (!path.endsWith('.sh')) {
+				const pathWithSlash = path + '/';
 
-			this.files.forEach((p) => {
-				if (p.startsWith(pathWithSlash)) {
-					this.files.delete(p);
-					this.#scripts.delete(p);
-				}
-			});
-		}
+				state.files.forEach((p) => {
+					if (p.startsWith(pathWithSlash)) {
+						state.files.delete(p);
+						this.#scripts.delete(p);
+					}
+				});
+			}
 
-		const { selectedScript } = this.state;
+			const { selectedScript } = this.state;
 
-		if (selectedScript && !this.#scripts.has(selectedScript.path)) {
-			this.setState((state) => {
+			if (selectedScript && !this.#scripts.has(selectedScript.path)) {
 				state.selectedScript = null;
-			});
-		}
-
-		this.updateNodes();
+			}
+		});
 
 		if (!clientSideOnly) {
 			await fetch(`http://localhost:3001/api/file`, {

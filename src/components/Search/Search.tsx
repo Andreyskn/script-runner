@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import Fuse from 'fuse.js';
 import { FileTextIcon, PlayIcon } from 'lucide-react';
 
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
+import { FilesStore } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Search.styles';
 
@@ -15,17 +16,6 @@ type SearchOption = ComboboxOption<{
 	dir: string;
 }>;
 
-const options: SearchOption[] = [
-	{ name: 'backup.sh', dir: 'automation', value: 'automation/backup.sh' },
-	{ name: 'deploy.sh', dir: 'automation', value: 'automation/deploy.sh' },
-	{
-		name: 'health-check.sh',
-		dir: 'monitoring',
-		value: 'monitoring/health-check.sh',
-	},
-	{ name: 'cleanup.sh', dir: 'utilities', value: 'utilities/cleanup.sh' },
-];
-
 const NO_RESULTS: SearchOption[] = [
 	{
 		dir: '',
@@ -34,23 +24,49 @@ const NO_RESULTS: SearchOption[] = [
 	},
 ];
 
-const fuse = new Fuse(options, {
-	keys: [
-		{ name: 'name', weight: 0.9 },
-		{ name: 'value', weight: 0.1 },
-	],
-	includeScore: true,
-	findAllMatches: true,
-	includeMatches: true,
-	threshold: 0.65,
-});
-
 export type SearchProps = {};
 
 export const Search: React.FC<SearchProps> = (props) => {
 	const {} = props;
 
+	const { useSelector, setSelectedScript } = FilesStore.use();
+
+	const { options, fuse } = useSelector(
+		(state) => state.files,
+		(files) => {
+			// TODO: sort options
+
+			const options: SearchOption[] = [...files]
+				.filter((path) => path.endsWith('.sh'))
+				.map((path) => {
+					const segments = path.split('/');
+					const name = segments.at(-1)!;
+					const dir =
+						segments.length > 1
+							? segments.slice(0, -1).join('/')
+							: '';
+
+					return { name, dir, value: path };
+				});
+
+			const fuse = new Fuse(options, {
+				keys: [
+					{ name: 'name', weight: 0.9 },
+					{ name: 'value', weight: 0.1 },
+				],
+				includeScore: true,
+				findAllMatches: true,
+				includeMatches: true,
+				threshold: 0.65,
+			});
+
+			return { options, fuse };
+		}
+	);
+
 	const [results, setResults] = useState<SearchOption[]>(options);
+
+	useEffect(() => setResults(options), [options]);
 
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const selectRef = useRef<HTMLSelectElement>(null);
@@ -102,12 +118,12 @@ export const Search: React.FC<SearchProps> = (props) => {
 		}
 	};
 
-	const handleSelect = (path: SearchOption['path']) => {
+	const handleSelect = (path: string) => {
 		if (!path) {
 			return;
 		}
 
-		console.log(path);
+		setSelectedScript(path);
 		dialogRef.current?.close();
 	};
 
