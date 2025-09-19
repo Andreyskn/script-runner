@@ -4,9 +4,10 @@ import styles from './HistoryEntry.module.scss';
 
 export const cls = bem(
 	styles as {
-		actions: string;
 		'history-entry': string;
+		'history-entry--last-unseen': string;
 		'history-entry__main': string;
+		'history-entry__main--active': string;
 		'history-entry__output': string;
 		'history-entry__output-wrapper': string;
 		info: string;

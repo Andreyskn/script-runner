@@ -70,9 +70,9 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 	const {
 		selectors: { files, selectedScript },
 		setSelectedScript,
-		moveNode,
-		createNode,
-		deleteNode,
+		moveFile,
+		createFile,
+		deleteFile,
 		useSelector,
 	} = FilesStore.use();
 
@@ -115,7 +115,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				newName = `${newName}.sh`;
 			}
 
-			moveNode(
+			moveFile(
 				node.path.join('/'),
 				node.path.toSpliced(-1, 1, newName).join('/')
 			);
@@ -147,23 +147,23 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 								return;
 							}
 
-							deleteNode(newPath, true);
+							deleteFile(newPath, true);
 						}
 
-						moveNode(source.path.join('/'), newPath);
+						moveFile(source.path.join('/'), newPath);
 					}}
 					onRename={handleRename}
 					onCreate={({ path, name, type }) => {
 						if (type === 'file' && !name.endsWith('.sh')) {
 							name = `${name}.sh`;
 						}
-						createNode([...path, name].filter(Boolean).join('/'));
+						createFile([...path, name].filter(Boolean).join('/'));
 					}}
 					onDelete={async (node) => {
 						const isConfirmed = await showDeleteConfirmDialog(node);
 
 						if (isConfirmed) {
-							deleteNode(node.path.join('/'));
+							deleteFile(node.path.join('/'));
 						}
 					}}
 				/>

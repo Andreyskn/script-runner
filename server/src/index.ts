@@ -12,6 +12,8 @@ import {
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
 
+// TODO: heartbeat for long-running scripts
+
 const getQueryParams = <T extends Record<string, unknown>>(
 	req: Bun.BunRequest
 ): Partial<T> => {
@@ -34,6 +36,7 @@ const cors: ResponseInit = {
 const server = Bun.serve({
 	development: true,
 	port: 3001,
+	idleTimeout: 255,
 	routes: {
 		'/api/file/list': async () => {
 			return Response.json({ files: await getFilesList() }, cors);

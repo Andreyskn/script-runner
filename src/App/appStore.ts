@@ -1,10 +1,10 @@
 import { ComponentStore } from '@/utils';
 
 type State = {
-	view: 'scripts' | 'history';
+	view: 'scripts' | 'history' | 'active';
 };
 
-export class AppStore extends ComponentStore<State> {
+class AppStore extends ComponentStore<State> {
 	state: State = {
 		view: 'scripts',
 	};
@@ -15,3 +15,5 @@ export class AppStore extends ComponentStore<State> {
 		});
 	};
 }
+
+export const appStore = AppStore.init();

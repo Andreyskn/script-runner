@@ -18,6 +18,7 @@ export const cls = bem(
 		'button--small': string;
 		'button--stretch': string;
 		'button--vertical': string;
+		button__badge: string;
 		button__icon: string;
 		button__loader: string;
 		button__text: string;

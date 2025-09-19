@@ -149,4 +149,4 @@ class ContextMenuStore extends ComponentStore<ContextMenuState> {
 	};
 }
 
-const store = new ContextMenuStore();
+const store = ContextMenuStore.init();

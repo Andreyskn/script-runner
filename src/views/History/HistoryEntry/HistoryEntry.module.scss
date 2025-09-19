@@ -2,18 +2,41 @@
 	border-width: 1px;
 	border-radius: var(--radius);
 
+	&--last-unseen {
+		position: relative;
+		margin-bottom: 16px;
+
+		&::after {
+			content: '';
+
+			position: absolute;
+			bottom: -16px;
+			left: 0;
+
+			width: 100%;
+			border-color: hsl(var(--muted-foreground));
+			border-bottom-width: 1px;
+		}
+	}
+
 	&__main {
 		display: grid;
 		grid-template:
-			'title . info actions' auto
-			'. . . .' 12px
-			'output-toggle . . status' auto
-			/ auto minmax(8px, 1fr) auto auto;
+			'title . info' auto
+			'. . .' 12px
+			'output-toggle . status' auto
+			/ auto minmax(8px, 1fr) auto;
 		align-items: center;
 
 		padding: 16px;
 
 		background-color: hsl(var(--muted) / 20%);
+
+		&--active {
+			grid-template:
+				'title . info' auto
+				/ auto minmax(8px, 1fr) auto;
+		}
 	}
 
 	&__output {
@@ -34,13 +57,20 @@
 	grid-template:
 		'indicator . name' auto
 		'indicator . path' auto
-		/ auto 12px auto;
+		/ min-content 12px auto;
 
 	&__name {
+		cursor: pointer;
+
 		grid-area: name;
+
 		font-size: 16px;
 		font-weight: 500;
 		line-height: 24px;
+
+		&:hover {
+			text-decoration: underline;
+		}
 	}
 
 	&__path {
@@ -74,8 +104,6 @@
 .info {
 	grid-area: info;
 
-	margin-right: 16px;
-
 	font-size: 14px;
 	line-height: 20px;
 	color: hsl(var(--muted-foreground));
@@ -92,12 +120,6 @@
 	}
 }
 
-.actions {
-	display: flex;
-	grid-area: actions;
-	gap: 8px;
-}
-
 .status {
 	grid-area: status;
 	place-self: center end;
@@ -109,15 +131,18 @@
 
 	font-size: 12px;
 	font-weight: 600;
+	color: hsl(var(--background));
 
 	background-color: hsl(var(--muted-foreground));
 
 	&--success {
+		color: inherit;
 		background-color: hsl(var(--primary));
 	}
 
 	&--fail {
-		color: hsl(var(--destructive));
+		color: inherit;
+		background-color: hsl(var(--destructive));
 	}
 }
 
