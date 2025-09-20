@@ -98,6 +98,27 @@
 		&--fail {
 			background-color: hsl(var(--destructive));
 		}
+
+		&--loader {
+			display: flex;
+
+			width: auto;
+			height: auto;
+
+			color: hsl(var(--primary));
+
+			background: none;
+
+			svg {
+				animation: spin 1s infinite linear;
+			}
+		}
+	}
+}
+
+@keyframes spin {
+	to {
+		rotate: 360deg;
 	}
 }
 

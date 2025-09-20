@@ -21,6 +21,7 @@ export const cls = bem(
 		title: string;
 		title__indicator: string;
 		'title__indicator--fail': string;
+		'title__indicator--loader': string;
 		'title__indicator--success': string;
 		title__name: string;
 		title__path: string;

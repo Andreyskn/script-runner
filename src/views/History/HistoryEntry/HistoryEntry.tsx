@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { ClockIcon } from 'lucide-react';
+import { ClockIcon, LoaderCircle } from 'lucide-react';
 import ms from 'ms';
 
 import { appStore } from '@/App/appStore';
@@ -53,8 +53,11 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 						className={cls.title.indicator({
 							success: !isActive && entry.result === 'success',
 							fail: !isActive && entry.result === 'fail',
+							loader: isActive,
 						})}
-					/>
+					>
+						{isActive && <LoaderCircle size={10} />}
+					</div>
 					<div className={cls.title.name()} onClick={goToScript}>
 						{entry.name}
 					</div>

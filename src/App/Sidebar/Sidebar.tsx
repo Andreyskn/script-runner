@@ -16,7 +16,12 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 		setView,
 	} = appStore;
 
-	const activeCount = archiveStore.useSelector(
+	const {
+		useSelector,
+		selectors: { unseenCount },
+	} = archiveStore;
+
+	const activeCount = useSelector(
 		(state) => state.active,
 		(set) => set.size
 	);
@@ -54,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					className={cls.sidebar.navButton()}
 					textClassName={cls.sidebar.navButtonText()}
 					onClick={() => setView('history')}
-					badge={archiveStore.selectors.unseenCount || undefined}
+					badge={unseenCount || undefined}
 				/>
 			</div>
 		</div>

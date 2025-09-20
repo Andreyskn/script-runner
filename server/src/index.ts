@@ -12,8 +12,6 @@ import {
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
 
-// TODO: heartbeat for long-running scripts
-
 const getQueryParams = <T extends Record<string, unknown>>(
 	req: Bun.BunRequest
 ): Partial<T> => {
