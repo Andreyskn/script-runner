@@ -78,16 +78,20 @@ export const runScript = (path: string, signal: AbortSignal) => {
 		try {
 			await write({ isDone: true, code: code ?? 'Aborted' });
 			await writer.close();
+		} catch (error) {
+		} finally {
 			clearInterval(heartbeat);
-		} catch (error) {}
+		}
 	});
 
 	proc.on('error', async (error) => {
 		try {
 			await write({ isDone: true, code: String(error) });
 			await writer.close();
+		} catch (error) {
+		} finally {
 			clearInterval(heartbeat);
-		} catch (error) {}
+		}
 	});
 
 	proc.stdout?.on('data', (chunk) => {
