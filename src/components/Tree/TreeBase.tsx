@@ -1,11 +1,12 @@
 import { File } from '@/components/Tree/File';
 import { Folder, type FolderProps } from '@/components/Tree/Folder';
-import { useTreeStore } from '@/components/Tree/treeStore';
+import { treeStore } from '@/components/Tree/treeStore';
 import type {
 	FolderNode,
 	TreeBaseProps,
 	TreeNode,
 } from '@/components/Tree/treeTypes';
+import { isMatchingPath } from '@/components/Tree/treeUtils';
 
 import { cls } from './Tree.styles';
 
@@ -41,7 +42,17 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 		onCreate,
 	} = props;
 
-	const { tmpNode } = useTreeStore(rootPath);
+	const tmpNode = treeStore.useSelector(
+		(state) => state.tmpNode,
+		(tmpNode) => {
+			if (
+				tmpNode &&
+				isMatchingPath(rootPath, tmpNode.parent.path, { exact: true })
+			) {
+				return tmpNode.node;
+			}
+		}
+	);
 
 	if (tmpNode) {
 		nodes = [...nodes, tmpNode];

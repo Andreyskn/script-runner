@@ -39,9 +39,9 @@
 	}
 
 	&__icon {
+		display: flex;
 		flex-shrink: 0;
 		width: 16px;
-		display: flex;
 		color: inherit;
 	}
 
@@ -55,7 +55,7 @@
 	}
 
 	&__loader {
-		animation: spin 1s infinite;
+		animation: spin 1s infinite linear;
 	}
 
 	&--vertical {
@@ -125,6 +125,26 @@
 
 	&--align-right {
 		justify-content: flex-end;
+	}
+
+	&__badge {
+		position: absolute;
+		top: 0;
+		right: 0;
+		translate: 4px -4px;
+
+		align-content: center;
+
+		min-width: 16px;
+		height: 16px;
+		padding: 0 3px;
+		border-radius: 999px;
+
+		font-size: 12px;
+		font-weight: bold;
+		color: hsl(var(--secondary-foreground));
+
+		background-color: hsl(var(--secondary));
 	}
 }
 

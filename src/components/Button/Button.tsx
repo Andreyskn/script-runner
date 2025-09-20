@@ -20,6 +20,7 @@ export type ButtonProps = NonRenderableOptions<{
 	align?: 'left' | 'right' | 'center';
 	layout?: 'horizontal' | 'vertical';
 	textClassName?: string;
+	badge?: string | number;
 }> &
 	ButtonAttributes;
 
@@ -41,6 +42,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
 		layout,
 		textClassName,
 		iconEnd,
+		badge,
 		...attrs
 	} = props;
 
@@ -66,6 +68,9 @@ export const Button: React.FC<ButtonProps> = (props) => {
 				className
 			)}
 		>
+			{badge !== undefined && (
+				<div className={cls.button.badge()}>{badge}</div>
+			)}
 			{children ??
 				(loading ? (
 					<LoaderCircle size={16} className={cls.button.loader()} />

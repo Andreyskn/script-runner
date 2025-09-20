@@ -1,5 +1,4 @@
 import type { TemporaryNode } from '@/components/Tree/treeTypes';
-import { isMatchingPath } from '@/components/Tree/treeUtils';
 import { ComponentStore } from '@/utils';
 
 type State = {
@@ -18,20 +17,4 @@ class TreeStore extends ComponentStore<State> {
 	};
 }
 
-export const treeStore = new TreeStore();
-
-export const useTreeStore = (path: string[]) => {
-	const tmpNode = treeStore.useSelector(
-		(state) => state.tmpNode,
-		(tmpNode) => {
-			if (
-				tmpNode &&
-				isMatchingPath(path, tmpNode.parent.path, { exact: true })
-			) {
-				return tmpNode.node;
-			}
-		}
-	);
-
-	return { tmpNode };
-};
+export const treeStore = TreeStore.init();

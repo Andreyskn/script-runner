@@ -19,19 +19,17 @@ export class FilesStore extends ComponentStore<State> {
 	constructor() {
 		super();
 
-		this.initNodes();
+		(async () => {
+			const result = await fetch('http://localhost:3001/api/file/list');
+			const { files } = (await result.json()) as { files: string[] };
+
+			this.setState((state) => {
+				files.forEach((f) => state.files.add(f));
+			});
+		})();
 	}
 
-	initNodes = async () => {
-		const result = await fetch('http://localhost:3001/api/file/list');
-		const { files } = (await result.json()) as { files: string[] };
-
-		this.setState((state) => {
-			files.forEach((f) => state.files.add(f));
-		});
-	};
-
-	moveNode = (oldPath: string, newPath: string) => {
+	moveFile = (oldPath: string, newPath: string) => {
 		const patches: ((state: State) => void)[] = [];
 
 		const enqueuePatch = (path: string) => {
@@ -73,7 +71,7 @@ export class FilesStore extends ComponentStore<State> {
 		});
 	};
 
-	createNode = async (path: string) => {
+	createFile = async (path: string) => {
 		this.setState((state) => {
 			state.files.add(path);
 		});
@@ -88,7 +86,7 @@ export class FilesStore extends ComponentStore<State> {
 		}
 	};
 
-	deleteNode = async (path: string, clientSideOnly?: boolean) => {
+	deleteFile = async (path: string, clientSideOnly?: boolean) => {
 		this.setState((state) => {
 			state.files.delete(path);
 			this.#scripts.delete(path);

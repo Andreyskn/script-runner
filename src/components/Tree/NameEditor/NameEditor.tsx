@@ -186,7 +186,7 @@ class RenamingSession extends ComponentStore<State> {
 	};
 }
 
-const session = new RenamingSession();
+const session = RenamingSession.init();
 
 const NameEditorAnchor: React.FC = () => {
 	return <div className={cls.anchor.block()} />;

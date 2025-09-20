@@ -1,4 +1,5 @@
 import { ComponentStore } from '@/utils';
+import { archiveStore } from '@/views/History/archiveStore';
 
 export type ExecutionResult = 'interrupt' | 'fail' | 'success';
 
@@ -25,6 +26,8 @@ type State = {
 	output: OutputLine[];
 	executionStatus: ExecutionStatus;
 	result: ExecutionResult | null;
+	startedAt: Date | null;
+	endedAt: Date | null;
 };
 
 export class ScriptStore extends ComponentStore<State> {
@@ -36,6 +39,8 @@ export class ScriptStore extends ComponentStore<State> {
 		output: [],
 		executionStatus: 'idle',
 		result: null,
+		startedAt: null,
+		endedAt: null,
 	};
 
 	#evSource: EventSource | undefined;
@@ -113,7 +118,10 @@ export class ScriptStore extends ComponentStore<State> {
 		this.setState((state) => {
 			state.executionStatus = 'ended';
 			state.result = result;
+			state.endedAt = new Date();
 		});
+
+		archiveStore.setEnded(this);
 	};
 
 	execute = () => {
@@ -122,7 +130,11 @@ export class ScriptStore extends ComponentStore<State> {
 			state.executionStatus = 'idle';
 			state.output = [];
 			state.result = null;
+			state.startedAt = new Date();
+			state.endedAt = null;
 		});
+
+		archiveStore.setActive(this);
 
 		this.#evSource = new EventSource(
 			`http://localhost:3001/api/script/run?path=${this.path}`

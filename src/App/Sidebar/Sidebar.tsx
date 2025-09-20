@@ -1,6 +1,7 @@
 import { Button } from '@/components/Button';
+import { archiveStore } from '@/views/History/archiveStore';
 
-import { AppStore } from 'src/App/appStore';
+import { appStore } from 'src/App/appStore';
 
 import { cls } from './Sidebar.styles';
 
@@ -13,7 +14,17 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 	const {
 		selectors: { view },
 		setView,
-	} = AppStore.use();
+	} = appStore;
+
+	const {
+		useSelector,
+		selectors: { unseenCount },
+	} = archiveStore;
+
+	const activeCount = useSelector(
+		(state) => state.active,
+		(set) => set.size
+	);
 
 	return (
 		<div className={cls.sidebar.block(null, className)}>
@@ -30,6 +41,17 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 				/>
 				<Button
 					layout='vertical'
+					icon='terminal'
+					text='Active'
+					fill={view === 'active' ? 'green' : 'none'}
+					borderless={view !== 'active'}
+					className={cls.sidebar.navButton()}
+					textClassName={cls.sidebar.navButtonText()}
+					onClick={() => setView('active')}
+					badge={activeCount || undefined}
+				/>
+				<Button
+					layout='vertical'
 					icon='history'
 					text='History'
 					fill={view === 'history' ? 'green' : 'none'}
@@ -37,6 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					className={cls.sidebar.navButton()}
 					textClassName={cls.sidebar.navButtonText()}
 					onClick={() => setView('history')}
+					badge={unseenCount || undefined}
 				/>
 			</div>
 		</div>

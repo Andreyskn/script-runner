@@ -34,6 +34,7 @@ const cors: ResponseInit = {
 const server = Bun.serve({
 	development: true,
 	port: 3001,
+	idleTimeout: 255,
 	routes: {
 		'/api/file/list': async () => {
 			return Response.json({ files: await getFilesList() }, cors);

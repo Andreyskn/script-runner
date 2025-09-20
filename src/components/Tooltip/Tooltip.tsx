@@ -22,6 +22,8 @@ export const Tooltip: React.FC<TooltipProps> = (props) => {
 		anchorName.current = tooltip.getAnchorName();
 	}
 
+	useEffect(() => tooltip.close, []);
+
 	const handleMouseEnter: React.MouseEventHandler = () => {
 		tooltip.open(anchorName.current, content);
 	};

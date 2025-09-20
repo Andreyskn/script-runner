@@ -60,6 +60,11 @@ export const runScript = (path: string, signal: AbortSignal) => {
 		return writer.write(`data: ${JSON.stringify(data)}\n\n`);
 	};
 
+	const heartbeat = setInterval(
+		() => writer.write('event: "heartbeat"\n\n'),
+		250000
+	);
+
 	const proc = spawn(abs(path), {
 		signal,
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -73,14 +78,20 @@ export const runScript = (path: string, signal: AbortSignal) => {
 		try {
 			await write({ isDone: true, code: code ?? 'Aborted' });
 			await writer.close();
-		} catch (error) {}
+		} catch (error) {
+		} finally {
+			clearInterval(heartbeat);
+		}
 	});
 
 	proc.on('error', async (error) => {
 		try {
 			await write({ isDone: true, code: String(error) });
 			await writer.close();
-		} catch (error) {}
+		} catch (error) {
+		} finally {
+			clearInterval(heartbeat);
+		}
 	});
 
 	proc.stdout?.on('data', (chunk) => {
