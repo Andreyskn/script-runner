@@ -113,7 +113,7 @@ const appendPath = (key: string, paths: string[], index = paths.length) => {
 	if (!paths[index]) {
 		paths[index] = '';
 	}
-	paths[index] += `${key}/`;
+	paths[index] += `/${key}`;
 	return index;
 };
 

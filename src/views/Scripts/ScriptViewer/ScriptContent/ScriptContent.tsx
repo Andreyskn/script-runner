@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { Section } from '@/components/Section';
@@ -22,6 +23,8 @@ export const ScriptContent: React.FC<Props> = ({ script }) => {
 		preventDefault: true,
 		enableOnFormTags: true,
 	});
+
+	useEffect(() => () => setEditing(false), []);
 
 	const onContentChange: React.ChangeEventHandler<HTMLTextAreaElement> = (
 		ev

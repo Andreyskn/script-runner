@@ -65,10 +65,24 @@ export const runScript = (path: string, signal: AbortSignal) => {
 		250000
 	);
 
-	const proc = spawn(abs(path), {
-		signal,
-		stdio: ['ignore', 'pipe', 'pipe'],
-	});
+	const proc = (() => {
+		try {
+			return spawn(abs(path), {
+				signal,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			});
+		} catch (error) {
+			(async () => {
+				await write({ isDone: true, code: String(error) });
+				await writer.close();
+				clearInterval(heartbeat);
+			})();
+		}
+	})();
+
+	if (!proc) {
+		return readable;
+	}
 
 	proc.on('spawn', () => {
 		writer.write('event: "start"\n\n');

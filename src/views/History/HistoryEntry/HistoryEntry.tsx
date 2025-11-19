@@ -121,6 +121,7 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 						status='ended'
 						lines={entry.output}
 						className={cls.historyEntry.output()}
+						autoScrollDisabled
 					/>
 				</div>
 			)}

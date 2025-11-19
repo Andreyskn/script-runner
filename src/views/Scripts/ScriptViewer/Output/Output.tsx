@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { TerminalIcon } from 'lucide-react';
 
@@ -78,15 +78,23 @@ export type OutputProps = {
 	status: ExecutionStatus;
 	result: ExecutionResult | null;
 	className?: string;
+	autoScrollDisabled?: boolean;
 };
 
 export const Output: React.FC<OutputProps> = (props) => {
-	const { lines, result, name, className, status } = props;
+	const { lines, result, name, className, status, autoScrollDisabled } =
+		props;
+
+	const lastLine = useRef<HTMLDivElement>(null);
 
 	const hasStartedExecution = useRef(false);
 	if (status === 'running') {
 		hasStartedExecution.current = true;
 	}
+
+	useEffect(() => {
+		!autoScrollDisabled && lastLine.current?.scrollIntoView();
+	});
 
 	return (
 		<div className={cls.output.block(null, className)}>
@@ -105,6 +113,7 @@ export const Output: React.FC<OutputProps> = (props) => {
 				<div
 					key={i}
 					className={cls.output.line({ error: line.isError })}
+					ref={lastLine}
 				>
 					{line.text}
 				</div>

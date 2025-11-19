@@ -144,9 +144,7 @@ export class ScriptStore extends ComponentStore<State> {
 			this.setExecutionStatus('running');
 		};
 
-		this.#evSource.onerror = (error) => {
-			console.log(error);
-
+		this.#evSource.onerror = () => {
 			this.setExecutionStatus('disconnected');
 			this.#evSource?.close();
 		};

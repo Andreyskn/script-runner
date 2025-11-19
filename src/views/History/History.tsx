@@ -64,7 +64,7 @@ const Header: React.FC<{ count: number; active?: boolean }> = ({
 	return (
 		<>
 			<div className={cls.header.title()}>
-				{active ? 'Active Scripts' : 'Execution History'}
+				{active ? 'Active Executions' : 'Execution History'}
 			</div>
 			<div className={cls.header.subtitle()}>
 				{active
