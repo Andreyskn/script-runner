@@ -1,11 +1,13 @@
 import { createRoot } from 'react-dom/client';
 
-// import { worker } from '@/mocks/worker';
-
 import { App } from 'src/App';
 import { MainProvider } from 'src/MainProvider';
 
-// await worker.start();
+if (import.meta.env.MODE === 'mock') {
+	const { worker } = await import('@/mocks/worker');
+
+	await worker.start();
+}
 
 createRoot(document.getElementById('root')!).render(
 	<MainProvider>

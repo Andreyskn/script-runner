@@ -24,6 +24,14 @@ const NO_RESULTS: SearchOption[] = [
 	},
 ];
 
+type SearchAPI = {
+	show: (onSelect: (script: string | null) => void) => void;
+};
+
+export const search: SearchAPI = {
+	show: () => null as any,
+};
+
 export type SearchProps = {};
 
 export const Search: React.FC<SearchProps> = (props) => {
@@ -68,21 +76,30 @@ export const Search: React.FC<SearchProps> = (props) => {
 
 	useEffect(() => setResults(options), [options]);
 
+	const showSearch = () => {
+		dialogRef.current?.showModal();
+		inputRef.current?.focus();
+	};
+
+	const onSelectRef = useRef<(path: string | null) => void>(null);
+
+	useEffect(() => {
+		Object.assign(search, {
+			show(onSelect) {
+				onSelectRef.current = onSelect;
+				showSearch();
+			},
+		} satisfies SearchAPI);
+	}, []);
+
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const selectRef = useRef<HTMLSelectElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	useHotkeys(
-		'ctrl+p',
-		() => {
-			dialogRef.current?.showModal();
-			inputRef.current?.focus();
-		},
-		{
-			preventDefault: true,
-			enableOnFormTags: true,
-		}
-	);
+	useHotkeys('ctrl+p', showSearch, {
+		preventDefault: true,
+		enableOnFormTags: true,
+	});
 
 	useHotkeys(
 		'esc',
@@ -123,11 +140,14 @@ export const Search: React.FC<SearchProps> = (props) => {
 			return;
 		}
 
+		onSelectRef.current?.(path);
 		setSelectedScript(path);
 		dialogRef.current?.close();
 	};
 
 	const handleClose = () => {
+		onSelectRef.current?.(null);
+
 		const input = inputRef.current;
 		if (input) {
 			input.value = '';
@@ -142,12 +162,13 @@ export const Search: React.FC<SearchProps> = (props) => {
 			ref={dialogRef}
 			className={cls.dialog.block()}
 			onClose={handleClose}
+			onCancel={handleClose}
 		>
 			<Combobox
 				selectRef={selectRef}
 				inputRef={inputRef}
 				selectClassName={cls.search.select()}
-				placeholder='Search scripts...'
+				placeholder='Search scripts... (Tab ↑↓ to navigate)'
 				options={results.length ? results : NO_RESULTS}
 				renderOption={(opt) => renderOption(opt as SearchOption)}
 				onInputChange={handleInputChange}

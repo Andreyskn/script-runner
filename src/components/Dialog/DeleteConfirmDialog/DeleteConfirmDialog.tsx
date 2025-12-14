@@ -28,13 +28,13 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = (props) => {
 				{isScript ? (
 					<>
 						Are you sure you want to delete the script{' '}
-						<strong>"{node.name}"</strong>? This action cannot be
+						<strong>{node.name}</strong>? This action cannot be
 						undone.
 					</>
 				) : (
 					<>
 						Are you sure you want to delete the folder{' '}
-						<strong>"{node.name}"</strong>? This will permanently
+						<strong>{node.name}</strong>? This will permanently
 						delete the folder and all scripts inside it. This action
 						cannot be undone.
 					</>

@@ -1,6 +1,11 @@
 /// <reference types="vite/client" />
+import type { ElectronAPI } from 'electron/src/preload';
 
 declare global {
+	interface Window {
+		electronAPI?: ElectronAPI;
+	}
+
 	type Maybe<T> = T | undefined;
 
 	type NonRenderable = false | '' | null | undefined;
@@ -30,5 +35,3 @@ declare global {
 		[P in keyof T]?: DeepPartial<T[P]>;
 	};
 }
-
-export {};

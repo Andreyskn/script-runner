@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = (props) => {
 	const {
 		name,
 		path,
-		selectors: { isEditing, executionStatus },
+		selectors: { isEditing, executionStatus, modifiedText },
 		setEditing,
 		saveScriptText,
 		execute,
@@ -58,6 +58,7 @@ const Header: React.FC<HeaderProps> = (props) => {
 						text='Save'
 						fill='green'
 						onClick={saveScriptText}
+						disabled={!modifiedText}
 					/>
 				) : (
 					<Button

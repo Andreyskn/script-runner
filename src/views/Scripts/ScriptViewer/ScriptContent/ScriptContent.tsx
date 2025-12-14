@@ -24,7 +24,14 @@ export const ScriptContent: React.FC<Props> = ({ script }) => {
 		enableOnFormTags: true,
 	});
 
-	useEffect(() => () => setEditing(false), []);
+	useEffect(
+		() => () => {
+			if (!script.state.modifiedText) {
+				setEditing(false);
+			}
+		},
+		[]
+	);
 
 	const onContentChange: React.ChangeEventHandler<HTMLTextAreaElement> = (
 		ev

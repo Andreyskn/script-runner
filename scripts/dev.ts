@@ -1,5 +1,23 @@
-// import { $ } from "bun"
 import type { SpawnOptions } from 'bun';
+import { parseArgs } from 'util';
+
+const {
+	values: { mode, port },
+} = parseArgs({
+	args: Bun.argv,
+	options: {
+		mode: {
+			type: 'string',
+			default: 'dev',
+		},
+		port: {
+			type: 'string',
+			default: '5177',
+		},
+	},
+	strict: true,
+	allowPositionals: true,
+});
 
 const spawnOptions: SpawnOptions.OptionsObject<
 	'inherit',
@@ -12,9 +30,12 @@ const spawnOptions: SpawnOptions.OptionsObject<
 };
 
 const dev = async () => {
-	Bun.spawn(['bun', '--watch', 'server/src/index.ts'], spawnOptions);
+	if (mode === 'dev') {
+		Bun.spawn(['bun', '--watch', 'server/src/index.ts'], spawnOptions);
+	}
+
 	Bun.spawn(
-		['bunx', '--bun', 'vite', '--mode', 'dev', '--open'],
+		['bunx', '--bun', 'vite', '--port', port, '--mode', mode],
 		spawnOptions
 	);
 
