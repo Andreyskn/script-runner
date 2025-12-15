@@ -3,6 +3,8 @@ import { fileURLToPath } from 'url';
 
 let win: BrowserWindow | null = null;
 
+// TODO: compare with recreating the window on show
+
 const createSearchWindow = () => {
 	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 

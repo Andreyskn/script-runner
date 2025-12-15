@@ -1,3 +1,5 @@
+import { CodeXml, HistoryIcon, TerminalIcon } from 'lucide-react';
+
 import { Button } from '@/components/Button';
 import { archiveStore } from '@/views/History/archiveStore';
 
@@ -31,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 			<div className={cls.sidebar.nav()}>
 				<Button
 					layout='vertical'
-					icon='code-xml'
+					icon={<CodeXml />}
 					text='Scripts'
 					fill={view === 'scripts' ? 'green' : 'none'}
 					borderless={view !== 'scripts'}
@@ -41,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 				/>
 				<Button
 					layout='vertical'
-					icon='terminal'
+					icon={<TerminalIcon />}
 					text='Active'
 					fill={view === 'active' ? 'green' : 'none'}
 					borderless={view !== 'active'}
@@ -52,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 				/>
 				<Button
 					layout='vertical'
-					icon='history'
+					icon={<HistoryIcon />}
 					text='History'
 					fill={view === 'history' ? 'green' : 'none'}
 					borderless={view !== 'history'}

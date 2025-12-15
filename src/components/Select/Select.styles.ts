@@ -8,7 +8,6 @@ export const cls = bem(
 		select__chevron: string;
 		select__option: string;
 		'select__option-content': string;
-		'select__option-icon': string;
 		'select__option-text': string;
 		select__picker: string;
 	}

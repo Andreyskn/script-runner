@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+import { SearchIcon } from 'lucide-react';
+
 import { Input, type InputProps } from '@/components/Input';
 import {
 	Select,
@@ -50,7 +52,7 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 		<div className={cls.combobox.block()}>
 			<Input
 				ref={inputRef}
-				icon='search'
+				icon={<SearchIcon />}
 				name={name}
 				placeholder={placeholder}
 				wrapperClassName={cls.combobox.input()}

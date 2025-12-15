@@ -9,7 +9,8 @@
 		"demo": "bun scripts/dev.ts --mode mock --port 5178",
 		"bundle": "bunx --bun vite build --mode prod",
 		"lint": "eslint .",
-		"preview": "bunx --bun vite preview"
+		"preview": "bunx --bun vite preview",
+		"check": "tsc --build"
 	},
 	"dependencies": {
 		"@andrey/bem": "^0.1.1",

@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-import { ClockIcon, LoaderCircle } from 'lucide-react';
+import {
+	ChevronRightIcon,
+	ClockIcon,
+	LoaderCircle,
+	TerminalIcon,
+} from 'lucide-react';
 import ms from 'ms';
 
 import { appStore } from '@/App/appStore';
@@ -102,8 +107,10 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 				{!isActive && (
 					<Button
 						text={entry.output.length ? 'Show Output' : 'No Output'}
-						icon='terminal'
-						iconEnd={entry.output.length > 0 && 'chevron-right'}
+						icon={<TerminalIcon />}
+						iconEnd={
+							entry.output.length > 0 && <ChevronRightIcon />
+						}
 						borderless
 						className={cls.outputToggle.block({
 							open: shouldShowOutput,

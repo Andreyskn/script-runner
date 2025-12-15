@@ -1,15 +1,18 @@
 .wrapper {
 	position: relative;
-}
 
-.icon {
-	pointer-events: none;
+	& > svg {
+		pointer-events: none;
 
-	position: absolute;
-	top: 12px;
-	left: 12px;
+		position: absolute;
+		top: 12px;
+		left: 12px;
 
-	color: hsl(var(--muted-foreground));
+		width: 16px;
+		height: 16px;
+
+		color: hsl(var(--muted-foreground));
+	}
 }
 
 .input {

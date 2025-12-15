@@ -155,7 +155,9 @@ export const Search: React.FC<SearchProps> = (props) => {
 			// @ts-expect-error
 			closedby='any'
 			ref={dialogRef}
-			className={cls.dialog.block()}
+			className={cls.dialog.block({
+				standalone: window.electronAPI?.searchOnly,
+			})}
 			onClose={handleClose}
 			onCancel={handleClose}
 		>

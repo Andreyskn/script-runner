@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from 'lucide-react';
+import { Trash2Icon, TriangleAlertIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import { dialog } from '@/components/Dialog/Dialog';
@@ -44,7 +44,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = (props) => {
 				<Button text='Cancel' size='large' onClick={dialog.close} />
 				<Button
 					text={isScript ? 'Delete Script' : 'Delete Folder'}
-					icon='trash-2'
+					icon={<Trash2Icon />}
 					fill='red'
 					size='large'
 					onClick={() => dialog.resolve(true)}

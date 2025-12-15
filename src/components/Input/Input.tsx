@@ -1,9 +1,7 @@
-import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
-
 import { cls } from './Input.styles';
 
 export type InputProps = {
-	icon?: IconName;
+	icon?: Icon;
 	className?: string;
 	wrapperClassName?: string;
 	ref?: React.RefObject<HTMLInputElement | null>;
@@ -14,13 +12,7 @@ export const Input: React.FC<InputProps> = (props) => {
 
 	return (
 		<div className={cls.wrapper.block(null, wrapperClassName)}>
-			{icon && (
-				<DynamicIcon
-					name={icon}
-					size={16}
-					className={cls.icon.block()}
-				/>
-			)}
+			{icon}
 			<input
 				ref={ref}
 				{...attrs}

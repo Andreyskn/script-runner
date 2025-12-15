@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { TerminalIcon } from 'lucide-react';
+import { BanIcon, TerminalIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
@@ -44,7 +44,7 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 							className={cls.header.interrupt()}
 						>
 							<Button
-								icon='ban'
+								icon={<BanIcon />}
 								color='red'
 								borderless
 								size='small'

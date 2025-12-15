@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-export type SearchElectronAPI = typeof electronApi;
+export type SearchElectronAPI = typeof api;
 
-const electronApi = {
+const api = {
 	onShowSearch: (callback: () => void) => {
 		ipcRenderer.on('show-search', callback);
 	},
@@ -12,4 +12,4 @@ const electronApi = {
 	searchOnly: true,
 };
 
-contextBridge.exposeInMainWorld('electronAPI', electronApi);
+contextBridge.exposeInMainWorld('electronAPI', api);
