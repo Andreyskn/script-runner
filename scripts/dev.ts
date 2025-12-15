@@ -88,7 +88,7 @@ const dev = async () => {
 		[
 			'bun',
 			'build',
-			'./electron/src/preload/searchPreload.ts',
+			'./electron/src/searchPreload.ts',
 			'--outdir',
 			'./electron/build',
 			'--target',
