@@ -26,7 +26,8 @@
 
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"]
+			"@/*": ["src/*"],
+			"@electron/*": ["electron/src/*"]
 		}
 	},
 	"include": ["src", "scripts", "electron"]

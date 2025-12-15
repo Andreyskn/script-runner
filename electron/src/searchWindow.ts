@@ -1,9 +1,5 @@
-import { BrowserWindow, screen } from 'electron';
-import isDev from 'electron-is-dev';
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
-
-import path from 'path';
+import { BrowserWindow, ipcMain, screen } from 'electron';
+import { fileURLToPath } from 'url';
 
 let win: BrowserWindow | null = null;
 
@@ -17,13 +13,19 @@ const createSearchWindow = () => {
 		transparent: true,
 		resizable: false,
 		show: false,
+
+		webPreferences: {
+			zoomFactor: 1.25,
+
+			contextIsolation: true,
+			nodeIntegration: false,
+			preload: fileURLToPath(
+				new URL('../build/searchPreload.js', import.meta.url)
+			),
+		},
 	});
 
-	win.loadURL(
-		isDev
-			? 'http://localhost:5177/search'
-			: `file://${path.join(__dirname, '../dist/index.html')}`
-	);
+	win.loadURL(new URL('../../dist/index.html', import.meta.url).href);
 
 	win.on('closed', createSearchWindow);
 	win.on('blur', searchWindow.hide);
@@ -32,9 +34,15 @@ const createSearchWindow = () => {
 export const searchWindow = {
 	init: createSearchWindow,
 	show: () => {
+		win?.webContents.send('show-search');
 		win?.show();
 	},
 	hide: () => {
 		win?.hide();
 	},
 };
+
+ipcMain.on('end-search', (_event, scriptPath: string | null) => {
+	console.log(scriptPath);
+	searchWindow.hide();
+});

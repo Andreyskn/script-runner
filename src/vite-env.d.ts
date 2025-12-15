@@ -1,9 +1,9 @@
 /// <reference types="vite/client" />
-import type { ElectronAPI } from 'electron/src/preload';
+import type { SearchElectronAPI } from '@electron/preload/searchPreload';
 
 declare global {
 	interface Window {
-		electronAPI?: ElectronAPI;
+		electronAPI?: SearchElectronAPI;
 	}
 
 	type Maybe<T> = T | undefined;

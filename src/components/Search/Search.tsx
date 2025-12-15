@@ -25,7 +25,7 @@ const NO_RESULTS: SearchOption[] = [
 ];
 
 type SearchAPI = {
-	show: (onSelect: (script: string | null) => void) => void;
+	show: () => void;
 };
 
 export const search: SearchAPI = {
@@ -81,14 +81,9 @@ export const Search: React.FC<SearchProps> = (props) => {
 		inputRef.current?.focus();
 	};
 
-	const onSelectRef = useRef<(path: string | null) => void>(null);
-
 	useEffect(() => {
 		Object.assign(search, {
-			show(onSelect) {
-				onSelectRef.current = onSelect;
-				showSearch();
-			},
+			show: showSearch,
 		} satisfies SearchAPI);
 	}, []);
 
@@ -140,13 +135,13 @@ export const Search: React.FC<SearchProps> = (props) => {
 			return;
 		}
 
-		onSelectRef.current?.(path);
+		window.electronAPI?.endSearch(path);
 		setSelectedScript(path);
 		dialogRef.current?.close();
 	};
 
 	const handleClose = () => {
-		onSelectRef.current?.(null);
+		window.electronAPI?.endSearch(null);
 
 		const input = inputRef.current;
 		if (input) {

@@ -38,14 +38,21 @@ const spawnOptions: SpawnOptions.OptionsObject<
 };
 
 const dev = async () => {
-	if (mode !== 'mock') {
-		Bun.spawn(['bun', '--watch', 'server/src/index.ts'], spawnOptions);
+	if (mode === 'mock') {
+		Bun.spawn(
+			['bunx', '--bun', 'vite', '--port', port, '--mode', mode],
+			spawnOptions
+		);
 	}
 
-	Bun.spawn(
-		['bunx', '--bun', 'vite', '--port', port, '--mode', mode],
-		spawnOptions
-	);
+	if (mode !== 'mock') {
+		Bun.spawn(['bun', '--watch', 'server/src/index.ts'], spawnOptions);
+
+		Bun.spawn(
+			['bunx', '--bun', 'vite', 'build', '--mode', 'prod', '--watch'],
+			spawnOptions
+		);
+	}
 
 	let electronProc: Subprocess | null = null;
 
@@ -69,6 +76,25 @@ const dev = async () => {
 			'./electron/build',
 			'--target',
 			'node',
+			'--packages',
+			'external',
+			'--watch',
+			'--no-clear-screen',
+		],
+		spawnOptions
+	);
+
+	Bun.spawn(
+		[
+			'bun',
+			'build',
+			'./electron/src/preload/searchPreload.ts',
+			'--outdir',
+			'./electron/build',
+			'--target',
+			'node',
+			'--format',
+			'cjs',
 			'--packages',
 			'external',
 			'--watch',

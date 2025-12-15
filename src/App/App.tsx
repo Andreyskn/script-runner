@@ -10,25 +10,11 @@ import { Sidebar } from 'src/App/Sidebar';
 import { cls } from './App.styles';
 
 export const App: React.FC = () => {
-	const path = window.location.pathname.split('/').filter(Boolean).pop();
-
 	useEffect(() => {
-		if (path === 'search') {
-			let called = false;
-
-			search.show((script) => {
-				window.electronAPI?.endSearch(script);
-
-				// if (called) {
-				// 	return;
-				// }
-
-				// console.log(path);
-			});
-		}
+		window.electronAPI?.onShowSearch(search.show);
 	}, []);
 
-	if (path === 'search') {
+	if (window.electronAPI?.searchOnly) {
 		return null;
 	}
 

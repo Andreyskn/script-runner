@@ -1,6 +1,6 @@
 import { app, Menu, nativeImage, Tray } from 'electron';
 
-import { searchWindow } from './searchWindow.js';
+import { searchWindow } from './searchWindow';
 
 app.whenReady().then(() => {
 	const icon = nativeImage.createFromDataURL(
@@ -14,3 +14,5 @@ app.whenReady().then(() => {
 
 	searchWindow.init();
 });
+
+// TODO: https://github.com/deiucanta/electron-typed-ipc/blob/master/src/index.ts
