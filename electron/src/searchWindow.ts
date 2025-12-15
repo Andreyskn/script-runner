@@ -26,6 +26,7 @@ const createSearchWindow = () => {
 	);
 
 	win.on('closed', createSearchWindow);
+	win.on('blur', searchWindow.hide);
 };
 
 export const searchWindow = {

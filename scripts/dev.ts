@@ -1,5 +1,13 @@
-import type { SpawnOptions } from 'bun';
+import { $, type SpawnOptions, type Subprocess } from 'bun';
+import { watch } from 'fs';
 import { parseArgs } from 'util';
+
+type Flags = {
+	values: {
+		mode: 'dev' | 'mock';
+		port: string;
+	};
+};
 
 const {
 	values: { mode, port },
@@ -17,7 +25,7 @@ const {
 	},
 	strict: true,
 	allowPositionals: true,
-});
+}) as Flags;
 
 const spawnOptions: SpawnOptions.OptionsObject<
 	'inherit',
@@ -30,7 +38,7 @@ const spawnOptions: SpawnOptions.OptionsObject<
 };
 
 const dev = async () => {
-	if (mode === 'dev') {
+	if (mode !== 'mock') {
 		Bun.spawn(['bun', '--watch', 'server/src/index.ts'], spawnOptions);
 	}
 
@@ -39,11 +47,41 @@ const dev = async () => {
 		spawnOptions
 	);
 
-	// process.on('SIGINT', async () => {
-	// console.log('Cleaning up...');
-	// Bun.spawn(["bun", "run", "db:down"])
-	// await $`bun run db:down` will also work
-	// });
+	let electronProc: Subprocess | null = null;
+
+	const watcher = watch('./electron/build', async () => {
+		if (electronProc) {
+			await $`ps -o pgid= -p ${electronProc.pid} | xargs -I {} pgrep -f "electron " -g {} | xargs kill -TERM`.nothrow();
+		}
+
+		electronProc = Bun.spawn(
+			['electron', '--trace-warnings', '.'],
+			spawnOptions
+		);
+	});
+
+	Bun.spawn(
+		[
+			'bun',
+			'build',
+			'./electron/src/main.ts',
+			'--outdir',
+			'./electron/build',
+			'--target',
+			'node',
+			'--packages',
+			'external',
+			'--watch',
+			'--no-clear-screen',
+		],
+		spawnOptions
+	);
+
+	process.on('SIGINT', async () => {
+		console.log('\nCleaning up...');
+		watcher.close();
+		await new Promise((r) => setTimeout(r, 100));
+	});
 };
 
 dev();

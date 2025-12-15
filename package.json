@@ -8,11 +8,8 @@
 		"dev": "bun scripts/dev.ts",
 		"demo": "bun scripts/dev.ts --mode mock --port 5178",
 		"bundle": "tsc -b && bunx --bun vite build --mode prod",
-		"build:electron": "rm -rf ./electron/build && tsc -p tsconfig.electron.json",
 		"lint": "eslint .",
-		"preview": "bunx --bun vite preview",
-		"ele": "bun build:electron && electron --trace-warnings .",
-		"e": "electron --trace-warnings ."
+		"preview": "bunx --bun vite preview"
 	},
 	"dependencies": {
 		"@andrey/bem": "^0.1.1",
