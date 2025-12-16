@@ -1,6 +1,24 @@
-import { app, Menu, nativeImage, Tray } from 'electron';
+import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
+import net from 'net';
 
 import { searchWindow } from './searchWindow';
+
+net.createConnection('/tmp/script-runner-dev.sock').on('data', (data) => {
+	switch (data.toString()) {
+		case 'web-rebuild': {
+			BrowserWindow.getAllWindows().forEach((win) => win.reload());
+			console.log('Windows refreshed');
+			break;
+		}
+		case 'electron-rebuild': {
+			BrowserWindow.getAllWindows().forEach((w) =>
+				w.removeAllListeners()
+			);
+			app.exit();
+			break;
+		}
+	}
+});
 
 app.whenReady().then(() => {
 	const icon = nativeImage.createFromDataURL(

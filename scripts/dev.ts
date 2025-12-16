@@ -1,5 +1,7 @@
-import { $, type SpawnOptions, type Subprocess } from 'bun';
-import { watch } from 'fs';
+import { type SpawnOptions, type Subprocess } from 'bun';
+import chokidar from 'chokidar';
+import { debounce } from 'lodash';
+import net from 'net';
 import { parseArgs } from 'util';
 
 type Flags = {
@@ -37,10 +39,18 @@ const spawnOptions: SpawnOptions.OptionsObject<
 	stderr: 'inherit',
 };
 
+let electronSocket: net.Socket | null = null;
+
+if (mode === 'dev') {
+	net.createServer((socket) => {
+		electronSocket = socket;
+	}).listen('/tmp/script-runner-dev.sock');
+}
+
 const dev = async () => {
 	if (mode === 'mock') {
 		Bun.spawn(
-			['bunx', '--bun', 'vite', '--port', port, '--mode', mode],
+			['bunx', '--bun', 'vite', '--port', port, '--mode', mode, '--open'],
 			spawnOptions
 		);
 	}
@@ -48,24 +58,52 @@ const dev = async () => {
 	if (mode !== 'mock') {
 		Bun.spawn(['bun', '--watch', 'server/src/index.ts'], spawnOptions);
 
-		Bun.spawn(
-			['bunx', '--bun', 'vite', 'build', '--mode', 'prod', '--watch'],
-			spawnOptions
-		);
+		let buildingProc: Subprocess | null = null;
+
+		chokidar
+			.watch('src')
+			.add('index.html')
+			.on(
+				'all',
+				debounce(async () => {
+					if (buildingProc) {
+						buildingProc.kill(9);
+					}
+					buildingProc = Bun.spawn(
+						['bunx', '--bun', 'vite', 'build'],
+						{
+							...spawnOptions,
+							onExit: (_, code) => {
+								if (code === 0) {
+									buildingProc = null;
+									electronSocket?.write('web-rebuild');
+								}
+							},
+						}
+					);
+				}, 50)
+			);
 	}
 
-	let electronProc: Subprocess | null = null;
+	let electronExit: ReturnType<(typeof Promise)['withResolvers']> | undefined;
 
-	const watcher = watch('./electron/build', async () => {
-		if (electronProc) {
-			await $`ps -o pgid= -p ${electronProc.pid} | xargs -I {} pgrep -f "electron " -g {} | xargs kill -TERM`.nothrow();
-		}
+	chokidar.watch('electron/build').on(
+		'all',
+		debounce(async () => {
+			electronSocket?.write('electron-rebuild');
 
-		electronProc = Bun.spawn(
-			['electron', '--trace-warnings', '.'],
-			spawnOptions
-		);
-	});
+			if (electronExit) {
+				await electronExit.promise;
+			}
+
+			electronExit = Promise.withResolvers();
+
+			Bun.spawn(['electron', '--trace-warnings', '.'], {
+				...spawnOptions,
+				onExit: electronExit!.resolve,
+			});
+		}, 100)
+	);
 
 	Bun.spawn(
 		[
@@ -95,19 +133,13 @@ const dev = async () => {
 			'node',
 			'--format',
 			'cjs',
-			'--packages',
-			'external',
+			'--external',
+			'electron',
 			'--watch',
 			'--no-clear-screen',
 		],
 		spawnOptions
 	);
-
-	process.on('SIGINT', async () => {
-		console.log('\nCleaning up...');
-		watcher.close();
-		await new Promise((r) => setTimeout(r, 100));
-	});
 };
 
 dev();

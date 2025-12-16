@@ -2,6 +2,7 @@ import { BrowserWindow, ipcMain, screen } from 'electron';
 import { fileURLToPath } from 'url';
 
 let win: BrowserWindow | null = null;
+let start = 0;
 
 // TODO: compare with recreating the window on show
 
@@ -29,6 +30,14 @@ const createSearchWindow = () => {
 
 	win.loadURL(new URL('../../dist/index.html', import.meta.url).href);
 
+	win.on('show', () => {
+		const visibleTime = performance.now();
+		const paintDelay = visibleTime - start;
+		console.log(`Window visible after ${paintDelay.toFixed(2)}ms`);
+	});
+
+	// win.webContents.openDevTools();
+
 	win.on('closed', createSearchWindow);
 	win.on('blur', searchWindow.hide);
 };
@@ -36,6 +45,7 @@ const createSearchWindow = () => {
 export const searchWindow = {
 	init: createSearchWindow,
 	show: () => {
+		start = performance.now();
 		win?.webContents.send('show-search');
 		win?.show();
 	},
