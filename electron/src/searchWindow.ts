@@ -2,9 +2,6 @@ import { BrowserWindow, ipcMain, screen } from 'electron';
 import { fileURLToPath } from 'url';
 
 let win: BrowserWindow | null = null;
-let start = 0;
-
-// TODO: compare with recreating the window on show
 
 const createSearchWindow = () => {
 	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
@@ -15,7 +12,6 @@ const createSearchWindow = () => {
 		frame: false,
 		transparent: true,
 		resizable: false,
-		show: false,
 
 		webPreferences: {
 			zoomFactor: 1.25,
@@ -30,31 +26,23 @@ const createSearchWindow = () => {
 
 	win.loadURL(new URL('../../dist/index.html', import.meta.url).href);
 
-	win.on('show', () => {
-		const visibleTime = performance.now();
-		const paintDelay = visibleTime - start;
-		console.log(`Window visible after ${paintDelay.toFixed(2)}ms`);
+	win.on('blur', searchWindow.close);
+
+	win.on('closed', () => {
+		win = null;
 	});
-
-	// win.webContents.openDevTools();
-
-	win.on('closed', createSearchWindow);
-	win.on('blur', searchWindow.hide);
 };
 
 export const searchWindow = {
-	init: createSearchWindow,
-	show: () => {
-		start = performance.now();
-		win?.webContents.send('show-search');
-		win?.show();
+	open: () => {
+		createSearchWindow();
 	},
-	hide: () => {
-		win?.hide();
+	close: () => {
+		win?.close();
 	},
 };
 
 ipcMain.on('end-search', (_event, scriptPath: string | null) => {
 	console.log(scriptPath);
-	searchWindow.hide();
+	searchWindow.close();
 });

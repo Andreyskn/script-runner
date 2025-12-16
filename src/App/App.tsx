@@ -11,7 +11,9 @@ import { cls } from './App.styles';
 
 export const App: React.FC = () => {
 	useEffect(() => {
-		window.electronAPI?.onShowSearch(search.show);
+		if (window.electronAPI?.searchOnly) {
+			search.show();
+		}
 	}, []);
 
 	if (window.electronAPI?.searchOnly) {
