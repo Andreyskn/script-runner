@@ -1,11 +1,12 @@
 import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
 import net from 'net';
+import type { ElectronSocketMessage } from 'scripts/dev/ipc';
 
 import { mainWindow } from './mainWindow';
 import { searchWindow } from './searchWindow';
 
 net.createConnection('/tmp/script-runner-dev.sock').on('data', (data) => {
-	switch (data.toString()) {
+	switch (data.toString() as ElectronSocketMessage) {
 		case 'refresh': {
 			BrowserWindow.getAllWindows().forEach((win) => win.reload());
 			console.log('Windows refreshed');
@@ -13,6 +14,14 @@ net.createConnection('/tmp/script-runner-dev.sock').on('data', (data) => {
 		}
 		case 'quit': {
 			app.quit();
+			break;
+		}
+		case 'show-main': {
+			mainWindow.open();
+			break;
+		}
+		case 'show-search': {
+			searchWindow.open();
 			break;
 		}
 	}
