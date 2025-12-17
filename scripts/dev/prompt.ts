@@ -3,7 +3,7 @@ import { debounce } from 'lodash';
 import open from 'open';
 
 import { cmd } from './commands';
-import { mode } from './flags';
+import { DEFAULT_PORT, flags, MODES, setFlag } from './flags';
 import { ipc } from './ipc';
 import { signals, when } from './signals';
 
@@ -20,6 +20,22 @@ const enum Choices {
 let controller: AbortController | undefined;
 
 export const prompt = {
+	init: async () => {
+		try {
+			const selected = await select({
+				message: 'Select mode',
+				choices: MODES,
+			});
+
+			setFlag('mode', selected);
+
+			if (selected === 'mock' && flags.port === DEFAULT_PORT) {
+				setFlag('port', '5178');
+			}
+		} catch (error) {
+			process.exit();
+		}
+	},
 	hide: () => {
 		controller?.abort();
 		console.log('');
@@ -32,13 +48,14 @@ export const prompt = {
 				{
 					message: '',
 					choices: [
-						mode === 'electron' && Choices.Restart,
-						mode === 'electron' && signals.autoRestartEnabled.value
-							? Choices.DisableAutoRestart
-							: Choices.EnableAutoRestart,
-						mode !== 'electron' && Choices.OpenInBrowser,
-						mode === 'electron' && Choices.OpenMainWindow,
-						mode === 'electron' && Choices.OpenSearchWindow,
+						flags.mode === 'electron' && Choices.Restart,
+						flags.mode === 'electron' &&
+							(signals.autoRestartEnabled.value
+								? Choices.DisableAutoRestart
+								: Choices.EnableAutoRestart),
+						flags.mode !== 'electron' && Choices.OpenInBrowser,
+						flags.mode === 'electron' && Choices.OpenMainWindow,
+						flags.mode === 'electron' && Choices.OpenSearchWindow,
 						Choices.Exit,
 					].filter(Boolean),
 				},
@@ -59,7 +76,7 @@ export const prompt = {
 					break;
 				}
 				case Choices.OpenInBrowser: {
-					open('https://google.com');
+					open(`http://localhost:${flags.port}/`);
 					break;
 				}
 				case Choices.OpenMainWindow: {

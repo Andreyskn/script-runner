@@ -1,6 +1,5 @@
 import net from 'net';
 
-import { mode } from './flags';
 import { signals } from './signals';
 import { log } from './terminal';
 
@@ -14,20 +13,6 @@ type ElectronSocket = {
 	write: (msg: ElectronSocketMessage) => void;
 };
 
-if (mode === 'electron') {
-	net.createServer((socket) => {
-		ipc.electron = socket;
-		signals.electronRunning.value = true;
-		log('electron', 'Started...');
-
-		socket.on('close', () => {
-			ipc.electron = noopProxy;
-			signals.electronRunning.value = false;
-			log('electron', 'Stopped');
-		});
-	}).listen('/tmp/script-runner-dev.sock');
-}
-
 const noopProxy = new Proxy(
 	{},
 	{
@@ -39,6 +24,19 @@ const noopProxy = new Proxy(
 	}
 ) as any;
 
-export const ipc: { electron: ElectronSocket } = {
-	electron: noopProxy,
+export const ipc = {
+	electron: noopProxy as ElectronSocket,
+	init: () => {
+		net.createServer((socket) => {
+			ipc.electron = socket;
+			signals.electronRunning.value = true;
+			log('electron', 'Started...');
+
+			socket.on('close', () => {
+				ipc.electron = noopProxy;
+				signals.electronRunning.value = false;
+				log('electron', 'Stopped');
+			});
+		}).listen('/tmp/script-runner-dev.sock');
+	},
 };

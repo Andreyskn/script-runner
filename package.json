@@ -5,8 +5,7 @@
 	"type": "module",
 	"main": "electron/build/main.js",
 	"scripts": {
-		"dev": "bun scripts/dev --mode electron",
-		"demo": "bun scripts/dev --mode mock --port 5178",
+		"dev": "bun scripts/dev",
 		"bundle": "bunx --bun vite build --mode prod",
 		"lint": "eslint .",
 		"preview": "bunx --bun vite preview",

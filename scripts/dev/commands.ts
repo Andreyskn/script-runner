@@ -2,14 +2,17 @@ import type { Subprocess } from 'bun';
 import chokidar from 'chokidar';
 import { debounce } from 'lodash';
 
-import { mode, port } from './flags';
+import { flags } from './flags';
 import { ipc } from './ipc';
 import { signals, when } from './signals';
 import { spawn } from './terminal';
 
 export const cmd = {
 	viteDev: () => {
-		spawn('vite', `bunx --bun vite --port ${port} --mode ${mode} --open`);
+		spawn(
+			'vite',
+			`bunx --bun vite --port ${flags.port} --mode ${flags.mode} --open`
+		);
 	},
 	viteBuildWatch: () => {
 		let buildingProc: Subprocess | null = null;

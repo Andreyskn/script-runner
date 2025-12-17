@@ -2,12 +2,16 @@ import chokidar from 'chokidar';
 import { debounce } from 'lodash';
 
 import { cmd } from './commands';
-import { mode } from './flags';
+import { flags, MODES } from './flags';
+import { ipc } from './ipc';
+import { prompt } from './prompt';
 import { signals } from './signals';
 
-// TODO: start by prompting for a mode
+if (flags.mode === 'prompt' || !MODES.includes(flags.mode)) {
+	await prompt.init();
+}
 
-switch (mode) {
+switch (flags.mode) {
 	case 'mock': {
 		cmd.viteDev();
 		break;
@@ -18,6 +22,7 @@ switch (mode) {
 		break;
 	}
 	case 'electron': {
+		ipc.init();
 		cmd.backendStartWatch();
 		cmd.viteBuildWatch();
 		cmd.electronBuildWatch();
@@ -31,8 +36,5 @@ switch (mode) {
 			}, 50)
 		);
 		break;
-	}
-	default: {
-		console.log(`Mode ${mode} is not implemented`);
 	}
 }
