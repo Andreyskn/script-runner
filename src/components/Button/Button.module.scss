@@ -43,6 +43,11 @@
 		flex-shrink: 0;
 		width: 16px;
 		color: inherit;
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
 	}
 
 	&__text {

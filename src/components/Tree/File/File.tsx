@@ -1,4 +1,4 @@
-import { FileTextIcon } from 'lucide-react';
+import { FileTextIcon, PenSquareIcon, Trash2Icon } from 'lucide-react';
 
 import { useContextMenu } from '@/components/ContextMenu';
 import { useNameEditor } from '@/components/Tree/NameEditor';
@@ -38,9 +38,13 @@ export const File: React.FC<FileProps> = (props) => {
 	);
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
-		{ icon: 'square-pen', text: 'Rename Script', onClick: showNameEditor },
 		{
-			icon: 'trash-2',
+			icon: <PenSquareIcon />,
+			text: 'Rename Script',
+			onClick: showNameEditor,
+		},
+		{
+			icon: <Trash2Icon />,
 			text: 'Delete Script',
 			color: 'red',
 			onClick: () => onDelete?.(node),

@@ -1,3 +1,5 @@
+import { FileTextIcon, FolderIcon } from 'lucide-react';
+
 import { useContextMenu } from '@/components/ContextMenu';
 import { NameEditor, type NameEditorProps } from '@/components/Tree/NameEditor';
 import { TreeBase } from '@/components/Tree/TreeBase';
@@ -97,12 +99,12 @@ const TreeMiddle: React.FC<TreeMiddleProps> = (props) => {
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
 		{
-			icon: 'file-text',
+			icon: <FileTextIcon />,
 			text: 'New Script',
 			onClick: () => onCreate('file', root),
 		},
 		{
-			icon: 'folder',
+			icon: <FolderIcon />,
 			text: 'New Folder',
 			onClick: () => onCreate('folder', root),
 		},

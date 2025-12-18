@@ -5,6 +5,26 @@
 		<link rel="icon" type="image/svg+xml" href="/icon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Script Runner</title>
+
+		<script>
+			// TODO: move to .ts file
+			(function () {
+				const originalError = console.error;
+				console.error = function (...args) {
+					if (
+						typeof args[0] === 'string' &&
+						args[0].startsWith(
+							'In HTML, %s cannot be a child of <%s>'
+						) &&
+						args[1] === '<div>' &&
+						args[2] === 'option'
+					) {
+						return;
+					}
+					originalError.apply(console, args);
+				};
+			})();
+		</script>
 	</head>
 	<body>
 		<div id="root"></div>

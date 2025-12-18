@@ -1,5 +1,4 @@
 import { ChevronDownIcon } from 'lucide-react';
-import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 
 import { Button } from '@/components/Button';
 
@@ -9,7 +8,7 @@ export type SelectOption<
 	T extends Record<string, unknown> = Record<string, any>,
 > = T & {
 	text?: string;
-	icon?: IconName;
+	icon?: Icon;
 	value?: string | number;
 	selected?: boolean;
 } & Record<string, unknown>;
@@ -73,13 +72,7 @@ export const Select: React.FC<SelectProps> = (props) => {
 						renderOption(opt)
 					) : (
 						<div className={cls.select.optionContent()}>
-							{opt.icon && (
-								<DynamicIcon
-									name={opt.icon}
-									size={16}
-									className={cls.select.optionIcon()}
-								/>
-							)}
+							{opt.icon}
 							<div className={cls.select.optionText()}>
 								{opt.text}
 							</div>

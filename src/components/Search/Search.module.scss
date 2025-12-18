@@ -16,6 +16,10 @@
 	&::backdrop {
 		display: none;
 	}
+
+	&--standalone {
+		top: 24px;
+	}
 }
 
 .search {

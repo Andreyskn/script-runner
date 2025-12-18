@@ -1,6 +1,13 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 
-import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from 'lucide-react';
+import {
+	ChevronRightIcon,
+	FileTextIcon,
+	FolderIcon,
+	FolderOpenIcon,
+	PenSquareIcon,
+	Trash2Icon,
+} from 'lucide-react';
 
 import { useContextMenu } from '@/components/ContextMenu';
 import { useNameEditor } from '@/components/Tree/NameEditor';
@@ -56,7 +63,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
 		{
-			icon: 'file-text',
+			icon: <FileTextIcon />,
 			text: 'New Script',
 			onClick: () => {
 				setIsOpen(true);
@@ -64,7 +71,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			},
 		},
 		{
-			icon: 'folder',
+			icon: <FolderIcon />,
 			text: 'New Folder',
 			onClick: () => {
 				setIsOpen(true);
@@ -72,12 +79,12 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			},
 		},
 		{
-			icon: 'square-pen',
+			icon: <PenSquareIcon />,
 			text: 'Rename Folder',
 			onClick: showNameEditor,
 		},
 		{
-			icon: 'trash-2',
+			icon: <Trash2Icon />,
 			text: 'Delete Folder',
 			color: 'red',
 			onClick: () => onDelete?.(node),

@@ -27,7 +27,7 @@ const ReplaceConfirmDialog: React.FC<ReplaceConfirmDialogProps> = (props) => {
 			</div>
 			<div className={cls.replaceConfirmDialog.body()}>
 				A {isScript ? 'script' : 'folder'} with the name{' '}
-				<strong>"{name}"</strong> already exists in the destination
+				<strong>{name}</strong> already exists in the destination
 				folder. Do you want to replace it? This action cannot be undone.
 			</div>
 			<div className={cls.replaceConfirmDialog.actions()}>

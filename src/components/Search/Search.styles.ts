@@ -5,6 +5,7 @@ import styles from './Search.module.scss';
 export const cls = bem(
 	styles as {
 		dialog: string;
+		'dialog--standalone': string;
 		option: string;
 		'option--compact': string;
 		option__dir: string;

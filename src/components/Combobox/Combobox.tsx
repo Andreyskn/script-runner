@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+import { SearchIcon } from 'lucide-react';
+
 import { Input, type InputProps } from '@/components/Input';
 import {
 	Select,
@@ -50,7 +52,7 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 		<div className={cls.combobox.block()}>
 			<Input
 				ref={inputRef}
-				icon='search'
+				icon={<SearchIcon />}
 				name={name}
 				placeholder={placeholder}
 				wrapperClassName={cls.combobox.input()}
@@ -75,11 +77,13 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 					} catch (error) {}
 				}}
 				onKeyDown={(ev) => {
-					if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+					// TODO: https://www.npmjs.com/package/ts-key-enum
+					const navKeys: string[] = ['ArrowDown', 'ArrowUp', 'Tab'];
+
+					if (navKeys.includes(ev.key)) {
+						ev.preventDefault();
 						key.current++;
 						update();
-					} else if (ev.key === 'Tab') {
-						ev.preventDefault();
 					}
 				}}
 			/>

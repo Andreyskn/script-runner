@@ -7,7 +7,7 @@ const url = (route: string) => `http://localhost:3001/api/${route}`;
 export const handlers = [
 	http.get(url('file/list'), () => {
 		return HttpResponse.json({
-			files: ['folder/long-running.sh', 'demo.sh'],
+			files: ['folder/endless.sh', 'demo.sh', 'endless.sh'],
 		});
 	}),
 	http.get(url('script'), () => HttpResponse.text('123')),
@@ -31,19 +31,19 @@ export const handlers = [
 						write(JSON.stringify({ isDone: false, isError, line }));
 					};
 
-					const exit = (code = 0) => {
+					const exit = (code: number) => {
 						write(JSON.stringify({ isDone: true, code }));
 						controller.close();
 					};
 
-					if (path?.endsWith('long-running.sh')) {
+					if (path?.endsWith('endless.sh')) {
 						while (true) {
 							echo(new Date().toString());
-							await sleep(1000);
+							await sleep(2000);
 						}
 					} else {
 						echo('123');
-						exit(1);
+						exit(0);
 					}
 				},
 			}),

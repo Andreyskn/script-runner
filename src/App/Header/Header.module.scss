@@ -3,6 +3,8 @@
 	align-items: center;
 	justify-content: space-between;
 
+	app-region: drag;
+
 	&__title {
 		display: flex;
 		gap: 8px;

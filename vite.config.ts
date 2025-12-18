@@ -2,10 +2,11 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-// https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+	base: './',
+	clearScreen: false,
 	plugins: [react(), tsconfigPaths()],
-	server: {
-		port: 5177,
+	build: {
+		minify: mode === 'prod',
 	},
-});
+}));

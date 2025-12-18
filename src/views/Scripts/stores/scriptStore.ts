@@ -87,17 +87,25 @@ export class ScriptStore extends ComponentStore<State> {
 		this.setState((state) => {
 			state.isEditing = false;
 
-			if (state.modifiedText !== null) {
-				state.text = state.modifiedText;
-				state.modifiedText = null;
+			switch (state.modifiedText) {
+				case null:
+					break;
+				case state.text: {
+					state.modifiedText = null;
+					break;
+				}
+				default: {
+					state.text = state.modifiedText;
+					state.modifiedText = null;
 
-				fetch(`http://localhost:3001/api/script`, {
-					method: 'POST',
-					body: JSON.stringify({
-						path: this.path,
-						text: state.text,
-					}),
-				});
+					fetch(`http://localhost:3001/api/script`, {
+						method: 'POST',
+						body: JSON.stringify({
+							path: this.path,
+							text: state.text,
+						}),
+					});
+				}
 			}
 		});
 	};
