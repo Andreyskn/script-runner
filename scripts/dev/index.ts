@@ -27,7 +27,7 @@ switch (flags.mode) {
 		cmd.viteBuildWatch();
 		cmd.electronBuildWatch();
 		cmd.electronStart();
-		chokidar.watch('electron/build').on(
+		chokidar.watch('electron/build', { ignoreInitial: true }).on(
 			'all',
 			debounce(() => {
 				if (signals.autoRestartEnabled.value) {

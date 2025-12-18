@@ -1,4 +1,4 @@
-import type { SpawnOptions } from 'bun';
+import type { SpawnOptions, Subprocess } from 'bun';
 import { parse } from 'shell-quote';
 
 import { prompt } from './prompt';
@@ -7,6 +7,12 @@ export const log = (id: string, text: string) => {
 	prompt.hide();
 	console.log(`[${id}]:\n${text}`);
 	prompt.show();
+};
+
+const procs: Set<Subprocess> = new Set();
+
+export const cleanup = () => {
+	procs.forEach((p) => p.kill());
 };
 
 export const spawn = (
@@ -34,6 +40,8 @@ export const spawn = (
 		...options,
 	});
 
+	procs.add(proc);
+
 	const reader = proc.stdout.getReader();
 
 	(async () => {
@@ -45,6 +53,7 @@ export const spawn = (
 			}
 		} finally {
 			reader.releaseLock();
+			procs.delete(proc);
 		}
 	})();
 

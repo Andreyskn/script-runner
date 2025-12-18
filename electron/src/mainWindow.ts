@@ -1,11 +1,14 @@
 import { BrowserWindow, screen } from 'electron';
 
+import { paths } from './paths';
+
 let win: BrowserWindow | null = null;
 
 const createMainWindow = () => {
 	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
 	win = new BrowserWindow({
+		icon: paths.icon,
 		width,
 		height,
 		titleBarStyle: 'hidden',
@@ -19,7 +22,7 @@ const createMainWindow = () => {
 		},
 	});
 
-	win.loadURL(new URL('../../dist/index.html', import.meta.url).href);
+	win.loadURL(paths.index);
 
 	win.on('closed', () => {
 		win = null;

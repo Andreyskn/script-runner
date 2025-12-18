@@ -26,14 +26,18 @@ export const cmd = {
 					if (buildingProc) {
 						buildingProc.kill(9);
 					}
-					buildingProc = spawn('vite', 'bunx --bun vite build', {
-						onExit: (_, code) => {
-							if (code === 0) {
-								buildingProc = null;
-								ipc.electron.write('refresh');
-							}
-						},
-					});
+					buildingProc = spawn(
+						'vite',
+						'bunx --bun vite build --mode dev',
+						{
+							onExit: (_, code) => {
+								if (code === 0) {
+									buildingProc = null;
+									ipc.electron.write('refresh');
+								}
+							},
+						}
+					);
 				}, 50)
 			);
 	},

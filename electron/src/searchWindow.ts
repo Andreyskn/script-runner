@@ -1,12 +1,15 @@
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { fileURLToPath } from 'url';
 
+import { paths } from './paths';
+
 let win: BrowserWindow | null = null;
 
 const createSearchWindow = () => {
 	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
 	win = new BrowserWindow({
+		icon: paths.icon,
 		width,
 		height,
 		frame: false,
@@ -24,7 +27,7 @@ const createSearchWindow = () => {
 		},
 	});
 
-	win.loadURL(new URL('../../dist/index.html', import.meta.url).href);
+	win.loadURL(paths.index);
 
 	win.on('blur', searchWindow.close);
 

@@ -37,6 +37,6 @@ export const ipc = {
 				signals.electronRunning.value = false;
 				log('electron', 'Stopped');
 			});
-		}).listen('/tmp/script-runner-dev.sock');
+		}).listen('\0script-runner-dev.sock');
 	},
 };
