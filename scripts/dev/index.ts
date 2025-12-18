@@ -17,13 +17,13 @@ switch (flags.mode) {
 		break;
 	}
 	case 'web': {
-		cmd.backendStartWatch();
+		cmd.backendDev();
 		cmd.viteDev();
 		break;
 	}
 	case 'electron': {
 		ipc.init();
-		cmd.backendStartWatch();
+		cmd.backendDev();
 		cmd.viteBuildWatch();
 		cmd.electronBuildWatch();
 		cmd.electronStart();

@@ -14,11 +14,13 @@ export const cmd = {
 			`bunx --bun vite --port ${flags.port} --mode ${flags.mode} --open`
 		);
 	},
-	viteBuildWatch: () => {
+	viteBuildWatch: async () => {
 		let buildingProc: Subprocess | null = null;
 
 		chokidar
-			.watch('src')
+			.watch('src', {
+				ignoreInitial: await Bun.file('dist/index.html').exists(),
+			})
 			.add('index.html')
 			.on(
 				'all',
@@ -41,7 +43,7 @@ export const cmd = {
 				}, 50)
 			);
 	},
-	backendStartWatch: () => {
+	backendDev: () => {
 		spawn('server', 'bun --watch server/src/index.ts');
 	},
 	electronStart: () => {
