@@ -10,9 +10,6 @@ import { sleep } from '@/utils';
 
 import { files, newScriptText } from './mocks';
 
-// TODO: way to quickly do `npm demo` without installing heavy deps
-// TODO: bundle demo and put it on github pages
-
 const url = (route: string) => `http://localhost:3001/api/${route}`;
 
 const getScriptPath = (request: StrictRequest<DefaultBodyType>) => {
@@ -20,11 +17,7 @@ const getScriptPath = (request: StrictRequest<DefaultBodyType>) => {
 };
 
 const getScriptName = (request: StrictRequest<DefaultBodyType>) => {
-	try {
-		return getScriptPath(request).split('/').pop() || '';
-	} catch (error) {
-		return '';
-	}
+	return getScriptPath(request).split('/').pop() || '';
 };
 
 const timestamp = () =>
@@ -116,13 +109,7 @@ export const handlers = [
 					for (const line of lines) {
 						const [cmd, ...args] = parse(line);
 
-						console.log(cmd, request.signal.aborted);
-
-						if (
-							typeof cmd !== 'string' ||
-							!cmd ||
-							!(cmd in commands)
-						) {
+						if (typeof cmd !== 'string' || !(cmd in commands)) {
 							continue;
 						}
 

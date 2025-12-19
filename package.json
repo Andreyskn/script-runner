@@ -8,8 +8,8 @@
 	"main": "electron/build/main.js",
 	"scripts": {
 		"dev": "bun scripts/dev",
-		"demo": "echo TODO",
 		"bundle": "bun scripts/bundle",
+		"bundle:demo": "bunx --bun vite build --mode mock --outDir ../Andreyskn.github.io --emptyOutDir",
 		"lint": "eslint .",
 		"preview": "bunx --bun vite preview",
 		"check": "tsc --build",
