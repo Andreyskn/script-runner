@@ -21,8 +21,13 @@
 		'Liberation Mono', 'Courier New', monospace;
 
 	&__line {
+		min-height: 1lh;
+
 		font-size: 14px;
 		line-height: 1.625;
+		text-wrap: balance;
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
 
 		& + & {
 			margin-top: 4px;

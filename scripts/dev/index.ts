@@ -6,6 +6,7 @@ import { flags, MODES } from './flags';
 import { ipc } from './ipc';
 import { prompt } from './prompt';
 import { signals } from './signals';
+import { cleanup } from './terminal';
 
 if (flags.mode === 'prompt' || !MODES.includes(flags.mode)) {
 	await prompt.init();
@@ -38,3 +39,8 @@ switch (flags.mode) {
 		break;
 	}
 }
+
+process.on('exit', () => {
+	ipc.electron.write('quit');
+	cleanup();
+});
