@@ -150,9 +150,27 @@ export class ScriptStore extends ComponentStore<State> {
 
 		this.#evSource.onopen = () => {
 			this.setExecutionStatus('running');
+
+			if (import.meta.env.MODE === 'mock') {
+				const scriptChannel = new BroadcastChannel(
+					'script-runner-mock'
+				);
+				scriptChannel.postMessage({
+					type: 'SCRIPT_TEXT',
+					text: this.state.text,
+					path: this.path,
+				});
+				scriptChannel.close();
+			}
 		};
 
 		this.#evSource.onerror = () => {
+			if (import.meta.env.MODE === 'mock') {
+				this.appendOutputLine(
+					'No connection to Mock Service Worker',
+					true
+				);
+			}
 			this.setExecutionStatus('disconnected');
 			this.#evSource?.close();
 		};
@@ -163,19 +181,33 @@ export class ScriptStore extends ComponentStore<State> {
 			if (data.isDone) {
 				this.#evSource?.close();
 
-				switch (true) {
-					case data.code === 0: {
-						this.setExecutionResult('success');
-						break;
-					}
-					case typeof data.code === 'string': {
-						this.appendOutputLine(data.code, true);
-						this.setExecutionResult('fail');
-						break;
-					}
-					default:
-						this.setExecutionResult('fail');
+				// TODO: numeric codes only, add exit code to state.result
+
+				const { code, isNumeric } = (() => {
+					const num =
+						typeof data.code === 'number' ? data.code : +data.code;
+					const isNumeric =
+						typeof data.code === 'number' ||
+						(!isNaN(num) && num.toString() === data.code);
+
+					return { isNumeric, code: isNumeric ? num : data.code };
+				})() as
+					| { isNumeric: true; code: number }
+					| { isNumeric: false; code: string };
+
+				if (!isNumeric) {
+					this.appendOutputLine(code, true);
+					this.setExecutionResult('fail');
+					return;
 				}
+
+				if (code !== 0) {
+					this.appendOutputLine(`Exit code: ${data.code}`, true);
+					this.setExecutionResult('fail');
+					return;
+				}
+
+				this.setExecutionResult('success');
 			} else {
 				this.appendOutputLine(data.line, data.isError);
 			}

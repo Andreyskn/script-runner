@@ -7,6 +7,8 @@ import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
 
+app.disableHardwareAcceleration();
+
 if (isDev) {
 	net.createConnection('\0script-runner-dev.sock').on('data', (data) => {
 		switch (data.toString() as ElectronSocketMessage) {

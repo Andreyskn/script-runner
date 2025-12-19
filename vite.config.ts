@@ -7,6 +7,6 @@ export default defineConfig(({ mode }) => ({
 	clearScreen: false,
 	plugins: [react(), tsconfigPaths()],
 	build: {
-		minify: mode === 'prod',
+		minify: mode !== 'dev',
 	},
 }));

@@ -15,6 +15,8 @@ export const cleanup = () => {
 	procs.forEach((p) => p.kill());
 };
 
+const decoder = new TextDecoder();
+
 export const spawn = (
 	id: string,
 	cmd: string,
@@ -49,7 +51,7 @@ export const spawn = (
 			while (true) {
 				const { value, done } = await reader.read();
 				if (done) break;
-				log(id, new TextDecoder().decode(value));
+				log(id, decoder.decode(value));
 			}
 		} finally {
 			reader.releaseLock();

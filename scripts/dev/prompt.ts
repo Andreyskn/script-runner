@@ -101,13 +101,11 @@ export const prompt = {
 				case Choices.Exit: {
 					ipc.electron.write('quit');
 					cleanup();
-					new Promise((r) => setTimeout(r, 100));
 					process.exit();
-					break;
 				}
 			}
 
 			prompt.show();
 		} catch (error) {}
-	}, 1000),
+	}, 500),
 };
