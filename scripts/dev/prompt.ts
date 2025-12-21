@@ -6,7 +6,6 @@ import { cmd } from './commands';
 import { DEFAULT_PORT, flags, MODES, setFlag } from './flags';
 import { ipc } from './ipc';
 import { signals, when } from './signals';
-import { cleanup } from './terminal';
 
 const enum Choices {
 	Restart = 'Restart electron',
@@ -99,8 +98,6 @@ export const prompt = {
 					break;
 				}
 				case Choices.Exit: {
-					ipc.electron.write('quit');
-					cleanup();
 					process.exit();
 				}
 			}

@@ -13,16 +13,15 @@ export default {
 	},
 	packagerConfig: {
 		asar: true,
-		extraResource: ['./electron/assets/icon.png'],
-		executableName: 'script-runner',
+		extraResource: ['./public/icon.png'],
 	},
 	rebuildConfig: {},
 	makers: [
 		new MakerDeb({
 			options: {
 				maintainer: 'Andrey <andskipin329@gmail.com>',
-				icon: './electron/assets/icon.png',
-				name: 'Script Runner',
+				icon: './public/icon.png',
+				productName: 'Script Runner',
 				categories: ['Utility'],
 			},
 		}),

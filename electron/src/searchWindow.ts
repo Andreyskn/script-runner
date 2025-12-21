@@ -1,6 +1,7 @@
-import { BrowserWindow, ipcMain, screen } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import { fileURLToPath } from 'url';
 
+import { ipc } from './ipc';
 import { paths } from './paths';
 
 let win: BrowserWindow | null = null;
@@ -45,7 +46,7 @@ export const searchWindow = {
 	},
 };
 
-ipcMain.on('end-search', (_event, scriptPath: string | null) => {
+ipc.subscribe.endSearch((scriptPath) => {
 	console.log(scriptPath);
 	searchWindow.close();
 });

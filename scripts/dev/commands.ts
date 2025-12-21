@@ -18,10 +18,9 @@ export const cmd = {
 		let buildingProc: Subprocess | null = null;
 
 		chokidar
-			.watch('src', {
-				ignoreInitial: await Bun.file('dist/index.html').exists(),
-			})
+			.watch('src')
 			.add('index.html')
+			.add('electron/src/ipc.ts')
 			.on(
 				'all',
 				debounce(async () => {
@@ -71,7 +70,7 @@ export const cmd = {
 
 		spawn(
 			'electron-src',
-			'bun build ./electron/src/searchPreload.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
+			'bun build ./electron/src/preload/searchPreload.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
 		);
 	},
 };

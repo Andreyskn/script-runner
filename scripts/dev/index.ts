@@ -43,4 +43,5 @@ switch (flags.mode) {
 process.on('exit', () => {
 	ipc.electron.write('quit');
 	cleanup();
+	Bun.spawnSync(['reset']);
 });

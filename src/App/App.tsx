@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { ipc } from '@/api';
 import { search } from '@/components/Search';
 import { Section } from '@/components/Section';
 
@@ -11,12 +12,12 @@ import { cls } from './App.styles';
 
 export const App: React.FC = () => {
 	useEffect(() => {
-		if (window.electronAPI?.searchOnly) {
+		if (ipc.config?.searchOnly) {
 			search.show();
 		}
 	}, []);
 
-	if (window.electronAPI?.searchOnly) {
+	if (ipc.config?.searchOnly) {
 		return null;
 	}
 

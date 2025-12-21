@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 export const paths = {
 	icon: isDev
-		? fileURLToPath(new URL('../assets/icon_dev.png', import.meta.url))
+		? fileURLToPath(new URL('../../public/icon_dev.png', import.meta.url))
 		: path.join(process.resourcesPath, 'icon.png'),
 	index: new URL('../../dist/index.html', import.meta.url).href,
 };
