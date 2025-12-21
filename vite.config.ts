@@ -9,5 +9,8 @@ export default defineConfig(({ mode }) => ({
 	build: {
 		minify: mode !== 'dev',
 		sourcemap: mode === 'dev',
+		rollupOptions: {
+			external: ['electron'],
+		},
 	},
 }));
