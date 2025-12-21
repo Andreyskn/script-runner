@@ -1,12 +1,7 @@
 /// <reference types="vite/client" />
-import type { SearchElectronAPI } from '@electron/searchPreload';
 import type { LucideProps } from 'lucide-react';
 
 declare global {
-	interface Window {
-		electronAPI?: SearchElectronAPI;
-	}
-
 	type Icon = React.ReactElement<LucideProps>;
 
 	type Maybe<T> = T | undefined;

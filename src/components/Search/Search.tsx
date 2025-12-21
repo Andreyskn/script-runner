@@ -4,6 +4,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import Fuse from 'fuse.js';
 import { FileTextIcon, PlayIcon } from 'lucide-react';
 
+import { ipc } from '@/api';
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
 import { FilesStore } from '@/views/Scripts/stores/filesStore';
 
@@ -135,13 +136,14 @@ export const Search: React.FC<SearchProps> = (props) => {
 			return;
 		}
 
-		window.electronAPI?.endSearch(path);
+		ipc.send.endSearch(path);
+
 		setSelectedScript(path);
 		dialogRef.current?.close();
 	};
 
 	const handleClose = () => {
-		window.electronAPI?.endSearch(null);
+		ipc.send.endSearch();
 
 		const input = inputRef.current;
 		if (input) {
@@ -156,7 +158,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 			closedby='any'
 			ref={dialogRef}
 			className={cls.dialog.block({
-				standalone: window.electronAPI?.searchOnly,
+				standalone: ipc.config?.searchOnly,
 			})}
 			onClose={handleClose}
 			onCancel={handleClose}

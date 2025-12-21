@@ -1,13 +1,13 @@
 import { app, BrowserWindow, Menu, Tray } from 'electron';
 import isDev from 'electron-is-dev';
 import net from 'net';
-import type { ElectronSocketMessage } from 'scripts/dev/ipc';
 
+import type { ElectronSocketMessage } from '../../scripts/dev/ipc';
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
 
-app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('log-level', '3');
 
 if (isDev) {
 	net.createConnection('\0script-runner-dev.sock').on('data', (data) => {

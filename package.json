@@ -1,6 +1,5 @@
 {
 	"name": "script-runner",
-	"productName": "Script Runner",
 	"description": "An application for managing and executing shell scripts",
 	"private": true,
 	"version": "0.0.0",
