@@ -3,7 +3,6 @@ import isDev from 'electron-is-dev';
 import net from 'net';
 
 import type { ElectronSocketMessage } from '../../scripts/dev/ipc';
-import { ipc } from './ipc';
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
@@ -43,8 +42,6 @@ app.whenReady().then(() => {
 		{ label: 'Quit', click: app.quit },
 	]);
 	tray.setContextMenu(contextMenu);
-
-	ipc.init();
 });
 
 app.on('window-all-closed', () => {});

@@ -20,7 +20,6 @@ export type IPC<
 	Out extends Record<string, unknown[]> = any,
 	In extends Record<string, unknown[]> = any,
 > = {
-	init: () => Promise<boolean>;
 	config?: WindowConfig;
 	send: {
 		[K in keyof Out]: (...args: Out[K]) => void;
@@ -66,8 +65,6 @@ const port = {
 	},
 };
 
-const connection = Promise.withResolvers<void>();
-
 export const createWindowAPI = (
 	ipcRenderer: IpcRenderer,
 	config?: WindowConfig
@@ -81,8 +78,7 @@ export const createWindowAPI = (
 
 	return {
 		config,
-		connect: (cb: () => void) => {
-			ipcRenderer.on('port', cb);
+		connect: () => {
 			ipcRenderer.invoke('connect');
 		},
 		postMessage: (data: unknown[]) => {
@@ -103,41 +99,6 @@ export const ipcBase = new Proxy(
 		get(_target, p: keyof IPC, _receiver) {
 			if (p === 'config') {
 				return windowAPI?.config;
-			}
-
-			if (p === 'init') {
-				return async () => {
-					if (isBrowser) {
-						if (!windowAPI) {
-							connection.reject();
-							return connection.promise;
-						}
-
-						windowAPI.connect(connection.resolve);
-						return connection.promise;
-					} else {
-						const { ipcMain, MessageChannelMain } = await import(
-							'electron'
-						);
-						ipcMain.handle('connect', (e) => {
-							const { port1, port2 } = new MessageChannelMain();
-
-							activePorts.add(port1);
-							port1.start();
-
-							handlers.forEach((handler) => {
-								port.addListener(handler);
-							});
-
-							port1.addListener('close', () => {
-								activePorts.delete(port1);
-								port1.close();
-							});
-
-							e.sender.postMessage('port', null, [port2]);
-						});
-					}
-				};
 			}
 
 			if (p === 'send') {
@@ -184,3 +145,30 @@ export const ipcBase = new Proxy(
 ) as IPC;
 
 export const ipc = ipcBase as IPC<MainIpcMessages, RendererIpcMessages>;
+
+if (isBrowser) {
+	windowAPI?.connect();
+} else {
+	(async () => {
+		const electron = await import('electron');
+		const { ipcMain, MessageChannelMain } = electron;
+
+		ipcMain.handle('connect', (e) => {
+			const { port1, port2 } = new MessageChannelMain();
+
+			activePorts.add(port1);
+			port1.start();
+
+			handlers.forEach((handler) => {
+				port1.addListener('message', handler);
+			});
+
+			port1.addListener('close', () => {
+				activePorts.delete(port1);
+				port1.close();
+			});
+
+			e.sender.postMessage('port', null, [port2]);
+		});
+	})();
+}

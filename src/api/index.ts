@@ -6,5 +6,3 @@ import {
 } from '@electron/ipc';
 
 export const ipc = ipcBase as IPC<RendererIpcMessages, MainIpcMessages>;
-
-ipc.init();
