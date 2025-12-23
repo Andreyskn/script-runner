@@ -1,7 +1,7 @@
-import { $ } from 'bun';
-import { move } from 'fs-extra';
+import { ensureDir, move, writeFile } from 'fs-extra';
 import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { homedir } from 'os';
 
 const SCRIPTS_DIR = '/home/andrey/Projects/scripts';
 
@@ -20,7 +20,25 @@ export const service = {
 		return null;
 	},
 	deleteFile: async (path: string) => {
-		await $`gio trash ${abs(path)} && nautilus -q`;
+		const absPath = abs(path);
+		const filename = path.split('/').pop()!;
+		const timestamp = Date.now();
+
+		const trashFiles = `${homedir()}/.local/share/Trash/files`;
+		const trashInfo = `${homedir()}/.local/share/Trash/info`;
+
+		await ensureDir(trashFiles);
+		await ensureDir(trashInfo);
+
+		const trashFilePath = `${trashFiles}/${timestamp}-${filename}`;
+		const trashInfoPath = `${trashInfo}/${timestamp}-${filename}.trashinfo`;
+
+		await move(absPath, trashFilePath, { overwrite: true });
+		await writeFile(
+			trashInfoPath,
+			`[Trash Info]\nPath=${absPath}\nDeletionDate=${new Date().toISOString()}\n`
+		);
+
 		return null;
 	},
 	createFolder: async (path: string) => {

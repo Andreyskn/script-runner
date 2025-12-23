@@ -1,3 +1,4 @@
+import { api } from '@/api';
 import { ComponentStore } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
 
@@ -53,10 +54,8 @@ export class ScriptStore extends ComponentStore<State> {
 		this.setPath(path);
 
 		(async () => {
-			const result = await fetch(
-				`http://localhost:3001/api/script?path=${path}`
-			);
-			this.setText(await result.text());
+			const text = await api.readScript(path);
+			this.setText(text);
 		})();
 	}
 
@@ -98,13 +97,7 @@ export class ScriptStore extends ComponentStore<State> {
 					state.text = state.modifiedText;
 					state.modifiedText = null;
 
-					fetch(`http://localhost:3001/api/script`, {
-						method: 'POST',
-						body: JSON.stringify({
-							path: this.path,
-							text: state.text,
-						}),
-					});
+					api.updateScript(this.path, state.text);
 				}
 			}
 		});

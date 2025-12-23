@@ -1,3 +1,4 @@
+import { api } from '@/api';
 import { ComponentStore } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
@@ -20,8 +21,7 @@ export class FilesStore extends ComponentStore<State> {
 		super();
 
 		(async () => {
-			const result = await fetch('http://localhost:3001/api/file/list');
-			const { files } = (await result.json()) as { files: string[] };
+			const files = await api.getFilesList();
 
 			this.setState((state) => {
 				files.forEach((f) => state.files.add(f));
@@ -29,7 +29,7 @@ export class FilesStore extends ComponentStore<State> {
 		})();
 	}
 
-	moveFile = (oldPath: string, newPath: string) => {
+	moveFile = async (oldPath: string, newPath: string) => {
 		const patches: ((state: State) => void)[] = [];
 
 		const enqueuePatch = (path: string) => {
@@ -65,10 +65,7 @@ export class FilesStore extends ComponentStore<State> {
 			patches.forEach((patch) => patch(state));
 		});
 
-		fetch(`http://localhost:3001/api/file/move`, {
-			method: 'POST',
-			body: JSON.stringify({ oldPath, newPath }),
-		});
+		await api.moveFile(oldPath, newPath);
 	};
 
 	createFile = async (path: string) => {
@@ -76,13 +73,11 @@ export class FilesStore extends ComponentStore<State> {
 			state.files.add(path);
 		});
 
-		await fetch(`http://localhost:3001/api/file`, {
-			method: 'POST',
-			body: JSON.stringify({ path }),
-		});
-
 		if (path.endsWith('.sh')) {
+			await api.createScript(path);
 			await this.setSelectedScript(path);
+		} else {
+			await api.createFolder(path);
 		}
 	};
 
@@ -110,10 +105,7 @@ export class FilesStore extends ComponentStore<State> {
 		});
 
 		if (!clientSideOnly) {
-			await fetch(`http://localhost:3001/api/file`, {
-				method: 'DELETE',
-				body: JSON.stringify({ path }),
-			});
+			await api.deleteFile(path);
 		}
 	};
 
