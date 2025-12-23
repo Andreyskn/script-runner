@@ -4,7 +4,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import Fuse from 'fuse.js';
 import { FileTextIcon, PlayIcon } from 'lucide-react';
 
-import { ipc } from '@/api';
+import { api, ipc } from '@/api';
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
 import { FilesStore } from '@/views/Scripts/stores/filesStore';
 
@@ -131,19 +131,19 @@ export const Search: React.FC<SearchProps> = (props) => {
 		}
 	};
 
-	const handleSelect = (path: string) => {
+	const handleSelect = async (path: string) => {
 		if (!path) {
 			return;
 		}
 
-		ipc.send.endSearch(path);
+		await api.endSearch(path);
 
 		setSelectedScript(path);
 		dialogRef.current?.close();
 	};
 
-	const handleClose = () => {
-		ipc.send.endSearch();
+	const handleClose = async () => {
+		await api.endSearch();
 
 		const input = inputRef.current;
 		if (input) {

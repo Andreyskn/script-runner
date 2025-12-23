@@ -9,8 +9,6 @@ import { signals, when } from './signals';
 
 const enum Choices {
 	Restart = 'Restart electron',
-	EnableAutoRestart = 'Enable auto-restart',
-	DisableAutoRestart = 'Disable auto-restart',
 	OpenInBrowser = 'Open in browser',
 	Exit = 'Exit',
 	OpenMainWindow = 'Open main window',
@@ -49,10 +47,6 @@ export const prompt = {
 					message: '',
 					choices: [
 						flags.mode === 'electron' && Choices.Restart,
-						flags.mode === 'electron' &&
-							(signals.autoRestartEnabled.value
-								? Choices.DisableAutoRestart
-								: Choices.EnableAutoRestart),
 						flags.mode !== 'electron' && Choices.OpenInBrowser,
 						flags.mode === 'electron' && Choices.OpenMainWindow,
 						flags.mode === 'electron' && Choices.OpenSearchWindow,
@@ -65,14 +59,6 @@ export const prompt = {
 			switch (selected) {
 				case Choices.Restart: {
 					cmd.electronStart();
-					break;
-				}
-				case Choices.EnableAutoRestart: {
-					signals.autoRestartEnabled.value = true;
-					break;
-				}
-				case Choices.DisableAutoRestart: {
-					signals.autoRestartEnabled.value = false;
 					break;
 				}
 				case Choices.OpenInBrowser: {

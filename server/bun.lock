@@ -5,6 +5,7 @@
       "name": "server",
       "dependencies": {
         "fs-extra": "^11.3.1",
+        "typed-rpc": "^6.1.2",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -35,6 +36,8 @@
     "graceful-fs": ["graceful-fs@4.2.11", "http://asrv:4873/graceful-fs/-/graceful-fs-4.2.11.tgz", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
     "jsonfile": ["jsonfile@6.2.0", "http://asrv:4873/jsonfile/-/jsonfile-6.2.0.tgz", { "dependencies": { "universalify": "^2.0.0" }, "optionalDependencies": { "graceful-fs": "^4.1.6" } }, "sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg=="],
+
+    "typed-rpc": ["typed-rpc@6.1.2", "http://asrv:4873/typed-rpc/-/typed-rpc-6.1.2.tgz", {}, "sha512-w8qRwZ56eIDb6sSgTPz2YrnvaXWa7dF9gyRX1A1P8aKA8gxWe2fCTcGlppcgjec9R+pcYD3OCdzDu/ssYrkNHg=="],
 
     "typescript": ["typescript@5.9.2", "http://asrv:4873/typescript/-/typescript-5.9.2.tgz", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A=="],
 

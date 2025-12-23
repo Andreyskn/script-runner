@@ -11,21 +11,28 @@ export const ELECTRON_API_NAME = 'electronAPI';
 export type MainIpcMessages = {};
 
 export type RendererIpcMessages = {
-	endSearch: [scriptPath?: string];
+	endSearch: (scriptPath?: string) => void;
 };
 
-export type WindowConfig = Partial<SearchWindowConfig>;
+type WindowConfig = Partial<SearchWindowConfig>;
+
+type RemoveHandler = () => void;
 
 export type IPC<
-	Out extends Record<string, unknown[]> = any,
-	In extends Record<string, unknown[]> = any,
+	Out extends Record<string, (...args: any[]) => any> = any,
+	In extends Record<string, (...args: any[]) => any> = any,
 > = {
+	available: boolean;
 	config?: WindowConfig;
-	send: {
-		[K in keyof Out]: (...args: Out[K]) => void;
+	call: {
+		[K in keyof Out]: (
+			...args: Parameters<Out[K]>
+		) => Promise<Awaited<ReturnType<Out[K]>>>;
 	};
-	subscribe: {
-		[K in keyof In]: (handler: (...args: In[K]) => void) => () => void;
+	handle: {
+		[K in keyof In]: (
+			handler: (...args: Parameters<In[K]>) => ReturnType<In[K]>
+		) => RemoveHandler;
 	};
 };
 
@@ -93,38 +100,69 @@ export const createWindowAPI = (
 	};
 };
 
-export const ipcBase = new Proxy(
+let opId = 0;
+
+const getOpId = () => {
+	if (opId === Number.MAX_SAFE_INTEGER) {
+		opId = 0;
+	}
+
+	return opId++;
+};
+
+export const ipcBase: IPC = new Proxy(
 	{},
 	{
 		get(_target, p: keyof IPC, _receiver) {
+			if (p === 'available') {
+				return !isBrowser || !!windowAPI;
+			}
+
 			if (p === 'config') {
 				return windowAPI?.config;
 			}
 
-			if (p === 'send') {
+			if (p === 'call') {
 				return new Proxy(
 					{},
 					{
 						get(_target, p, _receiver) {
 							return (...args: any[]) => {
-								port.postMessage([p, ...args]);
+								const opId = getOpId();
+								const result = Promise.withResolvers();
+								const resultHandler: PortHandler = (e) => {
+									const [id, data] = e.data;
+
+									if (id === opId) {
+										result.resolve(data);
+										port.removeListener(resultHandler);
+									}
+								};
+
+								port.postMessage([p, opId, ...args]);
+								port.addListener(resultHandler);
+								return result.promise;
 							};
 						},
 					}
 				);
 			}
 
-			if (p === 'subscribe') {
+			if (p === 'handle') {
 				return new Proxy(
 					{},
 					{
 						get(_target, p, _receiver) {
 							return (handle: (...args: any[]) => void) => {
 								const handler: PortHandler = (e) => {
-									const [name, ...args] = e.data;
+									const [name, id, ...args] = e.data;
 
 									if (name === p) {
-										handle(...args);
+										Promise.resolve(handle(...args)).then(
+											(result) => {
+												port.postMessage([id, result]);
+											}
+										);
 									}
 								};
 

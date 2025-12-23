@@ -1,7 +1,6 @@
 import { effect, signal, type Signal } from '@preact/signals';
 
 export const signals = {
-	autoRestartEnabled: signal(true),
 	electronStarting: signal(false),
 	electronRunning: signal(false),
 };

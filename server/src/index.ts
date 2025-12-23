@@ -1,3 +1,5 @@
+import { handleRpc } from 'typed-rpc/server';
+
 import {
 	createFolder,
 	createScript,
@@ -8,6 +10,7 @@ import {
 	runScript,
 	updateScript,
 } from './handlers';
+import { service } from './service';
 
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
@@ -28,6 +31,8 @@ const cors: ResponseInit = {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Methods':
 			'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+		'Access-Control-Allow-Headers':
+			'Content-Type, Authorization, X-Requested-With, Accept, Origin',
 	},
 };
 
@@ -36,6 +41,20 @@ const server = Bun.serve({
 	port: 3001,
 	idleTimeout: 255,
 	routes: {
+		'/api': {
+			OPTIONS: () => new Response(null, cors),
+
+			POST: async (req) => {
+				const rpcData = await handleRpc(await req.json(), service);
+
+				if ('error' in rpcData) {
+					throw rpcData.error;
+				}
+
+				return Response.json(rpcData, cors);
+			},
+		},
+
 		'/api/file/list': async () => {
 			return Response.json({ files: await getFilesList() }, cors);
 		},
@@ -165,4 +184,4 @@ const server = Bun.serve({
 	},
 });
 
-console.log(server.port);
+console.log('Server is active on port:', server.port);

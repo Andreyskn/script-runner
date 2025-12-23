@@ -19,7 +19,7 @@ export const moveFile = async (oldPath: string, newPath: string) => {
 };
 
 export const deleteFile = async (path: string) => {
-	await $`gio trash ${abs(path)}`;
+	await $`gio trash ${abs(path)} && nautilus -q`;
 };
 
 export const createFolder = async (path: string) => {

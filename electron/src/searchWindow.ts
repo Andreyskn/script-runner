@@ -17,10 +17,13 @@ const createSearchWindow = () => {
 		transparent: true,
 		resizable: false,
 
+		// titleBarStyle: 'hidden',
+		// titleBarOverlay: true,
+
 		webPreferences: {
 			zoomFactor: 1.25,
 
-			contextIsolation: true,
+			contextIsolation: false,
 			nodeIntegration: false,
 			preload: fileURLToPath(
 				new URL('../build/searchPreload.js', import.meta.url)
@@ -46,7 +49,7 @@ export const searchWindow = {
 	},
 };
 
-ipc.subscribe.endSearch((scriptPath) => {
+ipc.handle.endSearch((scriptPath) => {
 	console.log(scriptPath);
 	searchWindow.close();
 });
