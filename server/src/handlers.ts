@@ -1,6 +1,5 @@
 import { $ } from 'bun';
 import { move } from 'fs-extra';
-import { spawn } from 'node:child_process';
 import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -52,75 +51,71 @@ type RunScriptData =
 	  };
 
 export const runScript = (path: string, signal: AbortSignal) => {
-	const { readable, writable } = new TransformStream<string, string>();
-	const writer = writable.getWriter();
-	const decoder = new TextDecoder();
+	let controller: Bun.ReadableStreamController<string>;
 
-	const write = async (data: RunScriptData) => {
-		return writer.write(`data: ${JSON.stringify(data)}\n\n`);
-	};
+	const stream = new ReadableStream<string>({
+		start(c) {
+			controller = c;
+			c.enqueue('event: "start"\n\n');
+		},
+	});
 
 	const heartbeat = setInterval(
-		() => writer.write('event: "heartbeat"\n\n'),
+		() => controller.enqueue('event: "heartbeat"\n\n'),
 		250000
 	);
 
-	const proc = (() => {
-		try {
-			return spawn(abs(path), {
-				signal,
-				stdio: ['ignore', 'pipe', 'pipe'],
-			});
-		} catch (error) {
-			(async () => {
-				await write({ isDone: true, code: String(error) });
-				await writer.close();
-				clearInterval(heartbeat);
-			})();
-		}
-	})();
+	const write = (data: RunScriptData) => {
+		controller.enqueue(`data: ${JSON.stringify(data)}\n\n`);
+	};
 
-	if (!proc) {
-		return readable;
+	const cleanup = (code: number, error?: any) => {
+		if (!signal.aborted) {
+			if (error) {
+				write({ isDone: false, isError: true, line: String(error) });
+			}
+
+			write({ isDone: true, code });
+			controller.close();
+		}
+		clearInterval(heartbeat);
+	};
+
+	let proc: Bun.Subprocess<'ignore', 'pipe', 'pipe'>;
+
+	try {
+		proc = Bun.spawn([abs(path)], {
+			signal,
+			stdio: ['ignore', 'pipe', 'pipe'],
+			onExit(_subprocess, exitCode, _signalCode, error) {
+				cleanup(exitCode || 0, error);
+			},
+		});
+	} catch (error) {
+		cleanup(-1, error);
+		return stream;
 	}
 
-	proc.on('spawn', () => {
-		writer.write('event: "start"\n\n');
-	});
+	const decoder = new TextDecoder();
 
-	proc.on('close', async (code) => {
-		try {
-			await write({ isDone: true, code: code ?? 'Aborted' });
-			await writer.close();
-		} catch (error) {
-		} finally {
-			clearInterval(heartbeat);
-		}
-	});
+	Promise.all([
+		(async () => {
+			for await (const chunk of proc.stdout) {
+				const text = decoder.decode(chunk);
+				for (const line of text.split('\n').filter(Boolean)) {
+					write({ isDone: false, isError: false, line });
+				}
+			}
+		})(),
+		(async () => {
+			for await (const chunk of proc.stderr) {
+				const text = decoder.decode(chunk);
+				for (const line of text.split('\n').filter(Boolean)) {
+					write({ isDone: false, isError: true, line });
+				}
+			}
+		})(),
+	]);
 
-	proc.on('error', async (error) => {
-		try {
-			await write({ isDone: true, code: String(error) });
-			await writer.close();
-		} catch (error) {
-		} finally {
-			clearInterval(heartbeat);
-		}
-	});
-
-	proc.stdout?.on('data', (chunk) => {
-		const text = decoder.decode(chunk);
-		for (const line of text.split('\n').filter(Boolean)) {
-			write({ isDone: false, isError: false, line });
-		}
-	});
-
-	proc.stderr?.on('data', (chunk) => {
-		const text = decoder.decode(chunk);
-		for (const line of text.split('\n').filter(Boolean)) {
-			write({ isDone: false, isError: true, line });
-		}
-	});
-
-	return readable;
+	return stream;
 };
