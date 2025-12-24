@@ -3,7 +3,7 @@ import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'os';
 
-const SCRIPTS_DIR = '/home/andrey/Projects/scripts';
+const SCRIPTS_DIR = `${homedir()}/Projects/scripts`;
 
 const abs = (path: string) => join(SCRIPTS_DIR, path);
 

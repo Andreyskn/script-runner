@@ -1,15 +1,6 @@
 import { handleRpc } from 'typed-rpc/server';
 
-import {
-	createFolder,
-	createScript,
-	deleteFile,
-	getFilesList,
-	moveFile,
-	readScript,
-	runScript,
-	updateScript,
-} from './handlers';
+import { runScript } from './handlers';
 import { service } from './service';
 
 // https://github.com/microsoft/node-pty
@@ -52,88 +43,6 @@ const server = Bun.serve({
 				}
 
 				return Response.json(rpcData, cors);
-			},
-		},
-
-		'/api/file/list': async () => {
-			return Response.json({ files: await getFilesList() }, cors);
-		},
-
-		'/api/file/move': {
-			POST: async (req) => {
-				if (!req.body) {
-					throw new Error('Missing request body');
-				}
-
-				const data = (await req.body.json()) as {
-					oldPath: string;
-					newPath: string;
-				};
-
-				await moveFile(data.oldPath, data.newPath);
-
-				return new Response(null, { ...cors, status: 200 });
-			},
-		},
-
-		'/api/file': {
-			POST: async (req) => {
-				if (!req.body) {
-					throw new Error('Missing request body');
-				}
-
-				const data = (await req.body.json()) as {
-					path: string;
-				};
-
-				if (data.path.endsWith('.sh')) {
-					await createScript(data.path);
-				} else {
-					await createFolder(data.path);
-				}
-
-				return new Response(null, { ...cors, status: 200 });
-			},
-
-			DELETE: async (req) => {
-				if (!req.body) {
-					throw new Error('Missing request body');
-				}
-
-				const data = (await req.body.json()) as {
-					path: string;
-				};
-
-				await deleteFile(data.path);
-
-				return new Response(null, { ...cors, status: 200 });
-			},
-		},
-
-		'/api/script': {
-			GET: async (req) => {
-				const { path } = getQueryParams<ScriptQueryParams>(req);
-
-				if (!path) {
-					throw new Error('Script path was not provided');
-				}
-
-				return new Response(await readScript(path), cors);
-			},
-
-			POST: async (req) => {
-				if (!req.body) {
-					throw new Error('Missing request body');
-				}
-
-				const data = (await req.body.json()) as {
-					path: string;
-					text: string;
-				};
-
-				await updateScript(data.path, data.text);
-
-				return new Response(null, { ...cors, status: 200 });
 			},
 		},
 

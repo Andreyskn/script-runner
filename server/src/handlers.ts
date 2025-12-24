@@ -1,43 +1,9 @@
-import { $ } from 'bun';
-import { move } from 'fs-extra';
-import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { homedir } from 'os';
 
-const SCRIPTS_DIR = '/home/andrey/Projects/scripts';
+const SCRIPTS_DIR = `${homedir()}/Projects/scripts`;
 
 const abs = (path: string) => join(SCRIPTS_DIR, path);
-
-export const getFilesList = async () => {
-	return readdir(SCRIPTS_DIR, {
-		recursive: true,
-	}).then((files) => files.filter((f) => !f.startsWith('.')));
-};
-
-export const moveFile = async (oldPath: string, newPath: string) => {
-	await move(abs(oldPath), abs(newPath), { overwrite: true });
-};
-
-export const deleteFile = async (path: string) => {
-	await $`gio trash ${abs(path)} && nautilus -q`;
-};
-
-export const createFolder = async (path: string) => {
-	await mkdir(abs(path));
-};
-
-export const createScript = async (path: string) => {
-	await Bun.write(abs(path), '#!/bin/sh\n\n');
-	await chmod(abs(path), 0o755);
-};
-
-export const updateScript = async (path: string, data: string) => {
-	await Bun.write(abs(path), data);
-	await chmod(abs(path), 0o755);
-};
-
-export const readScript = async (path: string) => {
-	return await Bun.file(abs(path)).text();
-};
 
 type RunScriptData =
 	| {
