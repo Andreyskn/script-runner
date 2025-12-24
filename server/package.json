@@ -7,7 +7,7 @@
 		"dev": "bun run --watch src/index.ts"
 	},
 	"dependencies": {
-		"fs-extra": "^11.3.1",
+		"fs-extra": "^11.3.3",
 		"typed-rpc": "^6.1.2"
 	},
 	"devDependencies": {
@@ -15,6 +15,6 @@
 		"@types/fs-extra": "^11.0.4"
 	},
 	"peerDependencies": {
-		"typescript": "^5"
+		"typescript": "^5.9.2"
 	}
 }

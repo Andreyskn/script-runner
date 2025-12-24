@@ -1,4 +1,4 @@
-import { api } from '@/api';
+import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
 
@@ -8,16 +8,11 @@ export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
 
 export type OutputLine = { text: string; isError: boolean };
 
-type RunScriptData =
-	| {
-			isDone: false;
-			isError: boolean;
-			line: string;
-	  }
-	| {
-			isDone: true;
-			code: number | string;
-	  };
+// TODO: import from server
+const enum SpecialExitCodes {
+	FailedToStart = 1000,
+	Aborted = 1001,
+}
 
 type State = {
 	execCount: number;
@@ -43,8 +38,6 @@ export class ScriptStore extends ComponentStore<State> {
 		startedAt: null,
 		endedAt: null,
 	};
-
-	#evSource: EventSource | undefined;
 
 	path: string = '';
 	name: string = '';
@@ -125,7 +118,7 @@ export class ScriptStore extends ComponentStore<State> {
 		archiveStore.setEnded(this);
 	};
 
-	execute = () => {
+	execute = async () => {
 		this.setState((state) => {
 			state.execCount++;
 			state.executionStatus = 'idle';
@@ -135,80 +128,71 @@ export class ScriptStore extends ComponentStore<State> {
 			state.endedAt = null;
 		});
 
-		archiveStore.setActive(this);
+		const unsubscribe = ws.subscribe(`output:${this.path}`, (output) => {
+			switch (output.type) {
+				case 'stdout': {
+					this.appendOutputLine(output.line, false);
+					break;
+				}
+				case 'stderr': {
+					this.appendOutputLine(output.line, true);
+					break;
+				}
+				case 'exit': {
+					switch (output.code) {
+						case 0: {
+							this.setExecutionResult('success');
+							break;
+						}
+						case SpecialExitCodes.Aborted: {
+							this.setExecutionResult('interrupt');
+							break;
+						}
+						default: {
+							this.setExecutionResult('fail'); // TODO: show exit code
+						}
+					}
 
-		this.#evSource = new EventSource(
-			`http://localhost:3001/api/script/run?path=${this.path}`
-		);
-
-		this.#evSource.onopen = () => {
-			this.setExecutionStatus('running');
-
-			if (import.meta.env.MODE === 'mock') {
-				const scriptChannel = new BroadcastChannel(
-					'script-runner-mock'
-				);
-				scriptChannel.postMessage({
-					type: 'SCRIPT_TEXT',
-					text: this.state.text,
-					path: this.path,
-				});
-				scriptChannel.close();
+					unsubscribe();
+					break;
+				}
 			}
-		};
+		});
 
-		this.#evSource.onerror = () => {
+		const hasStarted = await api
+			.runScript(this.path)
+			.catch((err: Error) => {
+				this.appendOutputLine(err.message, true);
+				this.setExecutionStatus('disconnected');
+				return false;
+			});
+
+		if (!hasStarted) {
 			if (import.meta.env.MODE === 'mock') {
 				this.appendOutputLine(
 					'No connection to Mock Service Worker',
 					true
 				);
 			}
-			this.setExecutionStatus('disconnected');
-			this.#evSource?.close();
-		};
+			unsubscribe();
+			return;
+		}
 
-		this.#evSource.onmessage = (event) => {
-			const data = JSON.parse(event.data) as RunScriptData;
+		archiveStore.setActive(this);
+		this.setExecutionStatus('running');
 
-			if (data.isDone) {
-				this.#evSource?.close();
-
-				// TODO: numeric codes only, add exit code to state.result
-
-				const { code, isNumeric } = (() => {
-					const num =
-						typeof data.code === 'number' ? data.code : +data.code;
-					const isNumeric =
-						typeof data.code === 'number' ||
-						(!isNaN(num) && num.toString() === data.code);
-
-					return { isNumeric, code: isNumeric ? num : data.code };
-				})() as
-					| { isNumeric: true; code: number }
-					| { isNumeric: false; code: string };
-
-				if (!isNumeric) {
-					this.appendOutputLine(code, true);
-					this.setExecutionResult('fail');
-					return;
-				}
-
-				if (code !== 0) {
-					this.appendOutputLine(`Exit code: ${data.code}`, true);
-					this.setExecutionResult('fail');
-					return;
-				}
-
-				this.setExecutionResult('success');
-			} else {
-				this.appendOutputLine(data.line, data.isError);
-			}
-		};
+		if (import.meta.env.MODE === 'mock') {
+			const scriptChannel = new BroadcastChannel('script-runner-mock');
+			scriptChannel.postMessage({
+				type: 'SCRIPT_TEXT',
+				text: this.state.text,
+				path: this.path,
+			});
+			scriptChannel.close();
+		}
 	};
 
 	interruptExecution = () => {
-		this.#evSource?.close();
-		this.setExecutionResult('interrupt');
+		api.abortScript(this.path);
 	};
 }

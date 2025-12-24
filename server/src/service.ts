@@ -1,11 +1,9 @@
 import { ensureDir, move, writeFile } from 'fs-extra';
 import { chmod, mkdir, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import { homedir } from 'os';
 
-const SCRIPTS_DIR = `${homedir()}/Projects/scripts`;
-
-const abs = (path: string) => join(SCRIPTS_DIR, path);
+import { abs, SCRIPTS_DIR } from './common';
+import { abortScript, runScript } from './runner';
 
 export type Service = typeof service;
 
@@ -57,5 +55,11 @@ export const service = {
 	},
 	readScript: async (path: string) => {
 		return await Bun.file(abs(path)).text();
+	},
+	runScript: async (path: string) => {
+		return runScript(path);
+	},
+	abortScript: async (path: string) => {
+		return abortScript(path);
 	},
 };

@@ -1,21 +1,11 @@
 import { handleRpc } from 'typed-rpc/server';
 
-import { runScript } from './handlers';
+import { pubsub } from './pubsub';
 import { service } from './service';
+import { websocket } from './websocket';
 
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
-
-const getQueryParams = <T extends Record<string, unknown>>(
-	req: Bun.BunRequest
-): Partial<T> => {
-	const { searchParams } = URL.parse(req.url)!;
-	return Object.fromEntries(searchParams.entries()) as Partial<T>;
-};
-
-type ScriptQueryParams = {
-	path: string;
-};
 
 const cors: ResponseInit = {
 	headers: {
@@ -32,7 +22,7 @@ const server = Bun.serve({
 	port: 3001,
 	idleTimeout: 255,
 	routes: {
-		'/api': {
+		'/api/*': {
 			OPTIONS: () => new Response(null, cors),
 
 			POST: async (req) => {
@@ -45,45 +35,19 @@ const server = Bun.serve({
 				return Response.json(rpcData, cors);
 			},
 		},
-
-		'/api/script/run': async (req) => {
-			const { path } = getQueryParams<ScriptQueryParams>(req);
-
-			const init: ResponseInit = {
-				status: 200,
-				headers: {
-					'Content-Type': 'text/event-stream',
-					'Cache-Control': 'no-cache',
-					Connection: 'keep-alive',
-					...cors.headers,
-				},
-			};
-
-			if (!path) {
-				return new Response(
-					new ReadableStream({
-						start(controller) {
-							controller.enqueue(
-								`data: ${JSON.stringify({ isDone: true, code: 'Script path was not provided' })}\n\n`
-							);
-							controller.close();
-						},
-					}),
-					init
-				);
-			}
-
-			return new Response(runScript(path, req.signal), init);
-		},
-
-		'/*': {
-			OPTIONS: () => new Response(null, cors),
-		},
 	},
+
+	fetch(req, server) {
+		if (!server.upgrade(req)) {
+			throw Error('WebSocket upgrade failed');
+		}
+	},
+
+	websocket,
 
 	error(error) {
 		console.error(error);
-		return new Response(`Internal Error: ${error.message}`, {
+		return new Response(error.message, {
 			status: 500,
 			headers: {
 				'Content-Type': 'text/plain',
@@ -92,5 +56,7 @@ const server = Bun.serve({
 		});
 	},
 });
+
+pubsub.init(server);
 
 console.log('Server is active on port:', server.port);
