@@ -1,4 +1,4 @@
-import { abs } from './common';
+import { files, type FileId } from './files';
 import { pubsub } from './pubsub';
 import {
 	SpecialExitCodes,
@@ -6,7 +6,7 @@ import {
 	type ScriptOutput,
 } from './types';
 
-export const activeScripts = new Map<string, ScriptRunner>();
+export const runningScripts = new Set<FileId>();
 
 export type ScriptStatus = 'idle' | 'running' | 'ended';
 
@@ -14,11 +14,17 @@ export class ScriptRunner {
 	controller = new AbortController();
 	output: ScriptOutput[] = [];
 	status: ScriptStatus = 'idle';
-	fullPath: string;
+	startTime: string | undefined;
+	endTime: string | undefined;
 
-	constructor(public shortPath: string) {
-		activeScripts.set(shortPath, this);
-		this.fullPath = abs(shortPath);
+	constructor(public id: FileId) {
+		files.registry.get(id)!.activeRunner = this;
+		const { fullPath } = files.registry.get(this.id)!;
+		this.run(fullPath);
+	}
+
+	toJSON() {
+		return undefined;
 	}
 
 	appendOutput = (rawOutput: RawScriptOutput) => {
@@ -28,15 +34,28 @@ export class ScriptRunner {
 			timestamp: new Date().toISOString(),
 		};
 		this.output.push(output);
-		pubsub.publish(`output:${this.shortPath}`, { output });
+		pubsub.publish(`output:${this.id}`, { output });
 	};
 
 	setStatus = (status: Exclude<ScriptStatus, 'idle'>) => {
 		this.status = status;
+		const timestamp = new Date().toISOString();
+
+		switch (status) {
+			case 'running': {
+				this.startTime = timestamp;
+				break;
+			}
+			case 'ended': {
+				this.endTime = timestamp;
+				break;
+			}
+		}
+
 		pubsub.publish('script-status', {
-			path: this.shortPath,
+			id: this.id,
 			status,
-			timestamp: new Date().toISOString(),
+			timestamp,
 		});
 	};
 
@@ -45,11 +64,14 @@ export class ScriptRunner {
 			this.appendOutput({ type: 'stderr', line: String(error) });
 		}
 		this.appendOutput({ type: 'exit', code: exitCode });
+
 		this.setStatus('ended');
+		runningScripts.delete(this.id);
+		files.registry.get(this.id)!.activeRunner = undefined;
 	};
 
-	run = () => {
-		const proc = Bun.spawn([this.fullPath], {
+	private run = (path: string) => {
+		const proc = Bun.spawn([path], {
 			signal: this.controller.signal,
 			stdio: ['ignore', 'pipe', 'pipe'],
 			onExit: (_subprocess, exitCode, _signalCode, error) => {

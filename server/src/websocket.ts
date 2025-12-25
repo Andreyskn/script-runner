@@ -1,22 +1,24 @@
+import type { FileData, FileId } from './files';
 import type { ScriptStatus } from './runner';
+import type { ClientFileData } from './service';
 import type { ScriptOutput, WsMsg } from './types';
 
 export type WsServerMessage =
-	| WsMsg<`output:${string}`, { output: ScriptOutput }>
+	| WsMsg<`output:${FileId}`, { output: ScriptOutput }>
 	| WsMsg<
 			'script-status',
 			{
-				path: string;
+				id: FileId;
 				status: Exclude<ScriptStatus, 'idle'>;
 				timestamp: string;
 			}
 	  >
 	| WsMsg<
 			'files-change',
-			| { type: 'script-content'; path: string }
-			| { type: 'create'; path: string }
-			| { type: 'delete'; path: string }
-			| { type: 'move'; oldPath: string; newPath: string }
+			| { type: 'script-content'; id: FileId }
+			| { type: 'create'; file: FileData }
+			| { type: 'delete'; ids: FileId[] }
+			| { type: 'move'; files: Omit<ClientFileData, 'isRunningSince'>[] }
 	  >;
 
 export type WsServerMessageRecord = {

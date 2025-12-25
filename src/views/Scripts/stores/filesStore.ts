@@ -50,10 +50,6 @@ export class FilesStore extends ComponentStore<State> {
 					}
 				}
 			});
-
-			this.state.activeScripts.forEach((path) => {
-				this.#scripts.get(path)?.connectToActiveExecution();
-			});
 		});
 	}
 
@@ -142,7 +138,8 @@ export class FilesStore extends ComponentStore<State> {
 			return this.#scripts.get(path)!;
 		}
 
-		const script = ScriptStore.init(path);
+		const isRunning = this.state.activeScripts.has(path);
+		const script = ScriptStore.init(path, isRunning);
 
 		this.#scripts.set(path, script);
 		return script;

@@ -5,7 +5,8 @@ import { ComponentStore } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
 
 export type ExecutionResult = 'interrupt' | 'fail' | 'success';
-
+// TODO: move 'disconnected' status to appStore
+// use websocket events to determine server availability
 export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
 
 export type OutputLine = { text: string; isError: boolean };
@@ -37,36 +38,51 @@ export class ScriptStore extends ComponentStore<State> {
 
 	path: string = '';
 	name: string = '';
-	unwatch: (() => void) | null = null;
+	unwatchOutput: (() => void) | null = null;
 
-	get isWatching() {
-		return !!this.unwatch;
-	}
-
-	constructor(path: string) {
+	constructor(path: string, isRunning: boolean) {
 		super();
 		this.setPath(path);
 
+		// TODO: read on first render and after ws content-change event
 		api.readScript(path).then(this.setText);
-	}
 
-	watchOutput = () => {
-		// TODO: detect and restore missing output lines
-		this.unwatch = ws.subscribe(`output:${this.path}`, ({ output }) => {
-			this.handleOutput(output);
-
-			if (output.type === 'exit') {
-				this.unwatchOutput();
+		ws.subscribe('script-status', ({ path, status, timestamp }) => {
+			if (path === this.path) {
+				this.setExecutionStatus(status, timestamp);
 			}
 		});
+
+		if (isRunning) {
+			this.state.executionStatus = 'running';
+			this.state.startedAt = new Date(); //TODO: actual date
+
+			api.getScriptOutput(this.path, this.state.output.length).then(
+				(output) => {
+					output.forEach(this.handleOutput);
+					archiveStore.setActive(this);
+				}
+			);
+		}
+	}
+
+	// TODO: call it when the script is deleted
+	cleanup = () => {
+		this.unwatchOutput?.();
 	};
 
-	unwatchOutput = () => {
-		// TODO: should be always watching
-		// unwatch only when deleted or when path changes
-		// should watch using script id instead of path?
-		this.unwatch?.();
-		this.unwatch = null;
+	// TODO: call it again when this.path changes
+	// or subscribe using script id instead of path
+	watchOutput = () => {
+		this.unwatchOutput?.();
+
+		// TODO: detect and restore missing output lines
+		this.unwatchOutput = ws.subscribe(
+			`output:${this.path}`,
+			({ output }) => {
+				this.handleOutput(output);
+			}
+		);
 	};
 
 	handleOutput = (output: ScriptOutput) => {
@@ -100,32 +116,7 @@ export class ScriptStore extends ComponentStore<State> {
 	setPath = (path: string) => {
 		this.path = path;
 		this.name = path.slice(path.lastIndexOf('/') + 1);
-	};
-
-	connectToActiveExecution = () => {
-		if (this.isWatching) {
-			return;
-		}
-
-		this.setState((state) => {
-			state.execCount++;
-			state.executionStatus = 'idle';
-			state.output = [];
-			state.result = null;
-			state.startedAt = new Date();
-			state.endedAt = null;
-		});
-
-		api.getScriptOutput(this.path, this.state.output.length)
-			.then((output) => {
-				output.forEach(this.handleOutput);
-				archiveStore.setActive(this);
-				this.setExecutionStatus('running');
-				this.watchOutput();
-			})
-			.catch(() => {
-				// execution already ended
-			});
+		this.watchOutput();
 	};
 
 	setEditing = (isEditing: boolean) => {
@@ -173,34 +164,36 @@ export class ScriptStore extends ComponentStore<State> {
 		});
 	};
 
-	setExecutionStatus = (status: ExecutionStatus) => {
+	setExecutionStatus = (status: ExecutionStatus, timestamp: string) => {
 		this.setState((state) => {
 			state.executionStatus = status;
+
+			switch (status) {
+				case 'running': {
+					state.execCount++;
+					state.output = [];
+					state.result = null;
+					state.startedAt = new Date(timestamp);
+					state.endedAt = null;
+					break;
+				}
+				case 'ended': {
+					state.endedAt = new Date(timestamp);
+					break;
+				}
+			}
 		});
 	};
 
 	setExecutionResult = (result: ExecutionResult) => {
 		this.setState((state) => {
-			state.executionStatus = 'ended';
 			state.result = result;
-			state.endedAt = new Date();
 		});
 
 		archiveStore.setEnded(this);
 	};
 
 	execute = async () => {
-		this.setState((state) => {
-			state.execCount++;
-			state.executionStatus = 'idle';
-			state.output = [];
-			state.result = null;
-			state.startedAt = new Date();
-			state.endedAt = null;
-		});
-
-		this.watchOutput();
-
 		const hasStarted = await api
 			.runScript(this.path)
 			.catch((err: Error) => {
@@ -215,13 +208,10 @@ export class ScriptStore extends ComponentStore<State> {
 					true
 				);
 			}
-			this.setExecutionStatus('disconnected');
-			this.unwatchOutput();
 			return;
 		}
 
 		archiveStore.setActive(this);
-		this.setExecutionStatus('running');
 
 		if (import.meta.env.MODE === 'mock') {
 			const scriptChannel = new BroadcastChannel('script-runner-mock');

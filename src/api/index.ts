@@ -66,6 +66,8 @@ const wsConnection = Promise.withResolvers();
 
 websocket.onopen = wsConnection.resolve;
 
+const subscriptions = new Map<keyof WsServerMessageRecord, { count: number }>();
+
 export const ws = {
 	send: <T extends keyof WsClientMessageRecord>(
 		type: T,
@@ -88,11 +90,22 @@ export const ws = {
 		};
 
 		websocket.addEventListener('message', handler);
-		ws.send('subscribe', { topic });
+
+		if (subscriptions.has(topic)) {
+			subscriptions.get(topic)!.count++;
+		} else {
+			subscriptions.set(topic, { count: 1 });
+			ws.send('subscribe', { topic });
+		}
 
 		return () => {
 			websocket.removeEventListener('message', handler);
-			ws.send('unsubscribe', { topic });
+
+			const count = --subscriptions.get(topic)!.count;
+			if (count === 0) {
+				subscriptions.delete(topic);
+				ws.send('unsubscribe', { topic });
+			}
 		};
 	},
 };
