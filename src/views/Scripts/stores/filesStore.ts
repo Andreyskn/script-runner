@@ -1,4 +1,4 @@
-import { api } from '@/api';
+import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
@@ -7,12 +7,16 @@ type ScriptPath = string;
 type State = {
 	files: Set<ScriptPath>;
 	selectedScript: ScriptStore | null;
+	activeScripts: Set<ScriptPath>;
 };
+
+// TODO: minimize client-side logic, rely on updates from server
 
 export class FilesStore extends ComponentStore<State> {
 	state: State = {
 		selectedScript: null,
 		files: new Set(),
+		activeScripts: new Set(),
 	};
 
 	#scripts = new Map<ScriptPath, ScriptStore>();
@@ -20,13 +24,37 @@ export class FilesStore extends ComponentStore<State> {
 	constructor() {
 		super();
 
-		(async () => {
-			const files = await api.getFilesList();
+		Promise.all([
+			api.getFilesList().then((paths) => {
+				this.setState((state) => {
+					paths.forEach((p) => state.files.add(p));
+				});
+			}),
+			api.getActiveScripts().then((paths) => {
+				this.setState((state) => {
+					paths.forEach((p) => state.activeScripts.add(p));
+				});
+			}),
+		]);
 
+		ws.subscribe('script-status', ({ path, status }) => {
 			this.setState((state) => {
-				files.forEach((f) => state.files.add(f));
+				switch (status) {
+					case 'running': {
+						state.activeScripts.add(path);
+						break;
+					}
+					case 'ended': {
+						state.activeScripts.delete(path);
+						break;
+					}
+				}
 			});
-		})();
+
+			this.state.activeScripts.forEach((path) => {
+				this.#scripts.get(path)?.connectToActiveExecution();
+			});
+		});
 	}
 
 	moveFile = async (oldPath: string, newPath: string) => {

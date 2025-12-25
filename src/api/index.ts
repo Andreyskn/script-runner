@@ -62,13 +62,18 @@ export const api: API = new Proxy(
 ) as API;
 
 const websocket = new WebSocket('ws://localhost:3001/');
+const wsConnection = Promise.withResolvers();
+
+websocket.onopen = wsConnection.resolve;
 
 export const ws = {
 	send: <T extends keyof WsClientMessageRecord>(
 		type: T,
 		payload: WsClientMessageRecord[T]
 	) => {
-		websocket.send(JSON.stringify({ type, payload }));
+		wsConnection.promise.then(() => {
+			websocket.send(JSON.stringify({ type, payload }));
+		});
 	},
 	subscribe: <T extends keyof WsServerMessageRecord>(
 		topic: T,

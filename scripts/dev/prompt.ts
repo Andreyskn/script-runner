@@ -13,6 +13,8 @@ const enum Choices {
 	Exit = 'Exit',
 	OpenMainWindow = 'Open main window',
 	OpenSearchWindow = 'Open search window',
+	StopServer = 'Stop server',
+	StartServer = 'Start server',
 }
 
 let controller: AbortController | undefined;
@@ -46,6 +48,12 @@ export const prompt = {
 				{
 					message: '',
 					choices: [
+						flags.mode === 'web' &&
+							signals.shouldServerRun.value &&
+							Choices.StopServer,
+						flags.mode === 'web' &&
+							!signals.shouldServerRun.value &&
+							Choices.StartServer,
 						flags.mode === 'electron' && Choices.Restart,
 						flags.mode !== 'electron' && Choices.OpenInBrowser,
 						flags.mode === 'electron' && Choices.OpenMainWindow,
@@ -81,6 +89,16 @@ export const prompt = {
 					when(signals.electronRunning, true, () => {
 						ipc.electron.write('show-search');
 					});
+					break;
+				}
+				case Choices.StopServer: {
+					signals.shouldServerRun.value = false;
+					cmd.backendStop();
+					break;
+				}
+				case Choices.StartServer: {
+					signals.shouldServerRun.value = true;
+					cmd.backendDev();
 					break;
 				}
 				case Choices.Exit: {

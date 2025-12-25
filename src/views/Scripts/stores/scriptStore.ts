@@ -39,25 +39,19 @@ export class ScriptStore extends ComponentStore<State> {
 	name: string = '';
 	unwatch: (() => void) | null = null;
 
+	get isWatching() {
+		return !!this.unwatch;
+	}
+
 	constructor(path: string) {
 		super();
 		this.setPath(path);
 
-		Promise.all([
-			api.readScript(path).then(this.setText),
-			api
-				.getScriptOutput(path)
-				.then((output) => {
-					output.forEach(this.handleOutput);
-					archiveStore.setActive(this);
-					this.setExecutionStatus('running');
-					this.watchOutput();
-				})
-				.catch(() => {}),
-		]);
+		api.readScript(path).then(this.setText);
 	}
 
 	watchOutput = () => {
+		// TODO: detect and restore missing output lines
 		this.unwatch = ws.subscribe(`output:${this.path}`, ({ output }) => {
 			this.handleOutput(output);
 
@@ -68,6 +62,9 @@ export class ScriptStore extends ComponentStore<State> {
 	};
 
 	unwatchOutput = () => {
+		// TODO: should be always watching
+		// unwatch only when deleted or when path changes
+		// should watch using script id instead of path?
 		this.unwatch?.();
 		this.unwatch = null;
 	};
@@ -96,7 +93,6 @@ export class ScriptStore extends ComponentStore<State> {
 						this.setExecutionResult('fail'); // TODO: show exit code
 					}
 				}
-				break;
 			}
 		}
 	};
@@ -104,6 +100,32 @@ export class ScriptStore extends ComponentStore<State> {
 	setPath = (path: string) => {
 		this.path = path;
 		this.name = path.slice(path.lastIndexOf('/') + 1);
+	};
+
+	connectToActiveExecution = () => {
+		if (this.isWatching) {
+			return;
+		}
+
+		this.setState((state) => {
+			state.execCount++;
+			state.executionStatus = 'idle';
+			state.output = [];
+			state.result = null;
+			state.startedAt = new Date();
+			state.endedAt = null;
+		});
+
+		api.getScriptOutput(this.path, this.state.output.length)
+			.then((output) => {
+				output.forEach(this.handleOutput);
+				archiveStore.setActive(this);
+				this.setExecutionStatus('running');
+				this.watchOutput();
+			})
+			.catch(() => {
+				// execution already ended
+			});
 	};
 
 	setEditing = (isEditing: boolean) => {

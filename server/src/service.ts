@@ -3,6 +3,7 @@ import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { homedir } from 'os';
 
 import { abs, SCRIPTS_DIR } from './common';
+import { pubsub } from './pubsub';
 import { activeScripts, ScriptRunner } from './runner';
 
 export type Service = typeof service;
@@ -15,6 +16,8 @@ export const service = {
 	},
 	moveFile: async (oldPath: string, newPath: string) => {
 		await move(abs(oldPath), abs(newPath), { overwrite: true });
+
+		pubsub.publish('files-change', { type: 'move', oldPath, newPath });
 		return null;
 	},
 	deleteFile: async (path: string) => {
@@ -37,20 +40,26 @@ export const service = {
 			`[Trash Info]\nPath=${absPath}\nDeletionDate=${new Date().toISOString()}\n`
 		);
 
+		pubsub.publish('files-change', { type: 'delete', path });
 		return null;
 	},
 	createFolder: async (path: string) => {
 		await mkdir(abs(path));
+		pubsub.publish('files-change', { type: 'create', path });
 		return null;
 	},
 	createScript: async (path: string) => {
 		await Bun.write(abs(path), '#!/bin/sh\n\n');
 		await chmod(abs(path), 0o755);
+
+		pubsub.publish('files-change', { type: 'create', path });
 		return null;
 	},
 	updateScript: async (path: string, data: string) => {
 		await Bun.write(abs(path), data);
 		await chmod(abs(path), 0o755);
+
+		pubsub.publish('files-change', { type: 'script-content', path });
 		return null;
 	},
 	readScript: async (path: string) => {
@@ -59,7 +68,7 @@ export const service = {
 	runScript: async (path: string) => {
 		const runner = new ScriptRunner(path);
 		runner.run();
-		return runner.status === 'started';
+		return runner.status === 'running';
 	},
 	abortScript: async (path: string) => {
 		const runner = activeScripts.get(path);
@@ -71,20 +80,20 @@ export const service = {
 		runner.controller.abort();
 		return runner.controller.signal.aborted;
 	},
-	getScriptOutput: async (path: string) => {
+	getScriptOutput: async (path: string, skip = 0) => {
 		const runner = activeScripts.get(path);
 
 		if (!runner) {
-			throw Error(`No active script with path: ${path}`);
+			throw Error('Execution data is not available');
 		}
 
-		return runner.output;
+		return runner.output.slice(skip);
 	},
 	getActiveScripts: async () => {
 		const active: string[] = [];
 
 		activeScripts.forEach((runner) => {
-			if (runner.status === 'started') {
+			if (runner.status === 'running') {
 				active.push(runner.shortPath);
 			}
 		});

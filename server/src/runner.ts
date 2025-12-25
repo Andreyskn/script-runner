@@ -2,19 +2,18 @@ import { abs } from './common';
 import { pubsub } from './pubsub';
 import {
 	SpecialExitCodes,
-	TopicNames,
 	type RawScriptOutput,
 	type ScriptOutput,
 } from './types';
 
 export const activeScripts = new Map<string, ScriptRunner>();
 
-export type Status = 'idle' | 'started' | 'exited';
+export type ScriptStatus = 'idle' | 'running' | 'ended';
 
 export class ScriptRunner {
 	controller = new AbortController();
 	output: ScriptOutput[] = [];
-	status: Status = 'idle';
+	status: ScriptStatus = 'idle';
 	fullPath: string;
 
 	constructor(public shortPath: string) {
@@ -32,9 +31,9 @@ export class ScriptRunner {
 		pubsub.publish(`output:${this.shortPath}`, { output });
 	};
 
-	setStatus = (status: Exclude<Status, 'idle'>) => {
+	setStatus = (status: Exclude<ScriptStatus, 'idle'>) => {
 		this.status = status;
-		pubsub.publish(TopicNames.ScriptStatus, {
+		pubsub.publish('script-status', {
 			path: this.shortPath,
 			status,
 			timestamp: new Date().toISOString(),
@@ -46,8 +45,7 @@ export class ScriptRunner {
 			this.appendOutput({ type: 'stderr', line: String(error) });
 		}
 		this.appendOutput({ type: 'exit', code: exitCode });
-		this.setStatus('exited');
-		activeScripts.delete(this.shortPath);
+		this.setStatus('ended');
 	};
 
 	run = () => {
@@ -62,7 +60,7 @@ export class ScriptRunner {
 			},
 		});
 
-		this.setStatus('started');
+		this.setStatus('running');
 
 		const decoder = new TextDecoder();
 

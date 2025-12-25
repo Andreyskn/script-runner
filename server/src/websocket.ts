@@ -1,10 +1,22 @@
-import type { ScriptOutput, TopicNames, WsMsg } from './types';
+import type { ScriptStatus } from './runner';
+import type { ScriptOutput, WsMsg } from './types';
 
 export type WsServerMessage =
 	| WsMsg<`output:${string}`, { output: ScriptOutput }>
 	| WsMsg<
-			TopicNames.ScriptStatus,
-			{ path: string; status: 'started' | 'exited'; timestamp: string }
+			'script-status',
+			{
+				path: string;
+				status: Exclude<ScriptStatus, 'idle'>;
+				timestamp: string;
+			}
+	  >
+	| WsMsg<
+			'files-change',
+			| { type: 'script-content'; path: string }
+			| { type: 'create'; path: string }
+			| { type: 'delete'; path: string }
+			| { type: 'move'; oldPath: string; newPath: string }
 	  >;
 
 export type WsServerMessageRecord = {

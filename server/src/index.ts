@@ -35,6 +35,11 @@ const server = Bun.serve({
 				return Response.json(rpcData, cors);
 			},
 		},
+
+		'/stop': async () => {
+			console.log('Server is shutting down');
+			process.exit(0);
+		},
 	},
 
 	fetch(req, server) {
