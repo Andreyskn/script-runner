@@ -1,3 +1,5 @@
+import { SpecialExitCodes, type ScriptOutput } from '@server/types';
+
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
@@ -7,12 +9,6 @@ export type ExecutionResult = 'interrupt' | 'fail' | 'success';
 export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
 
 export type OutputLine = { text: string; isError: boolean };
-
-// TODO: import from server
-const enum SpecialExitCodes {
-	FailedToStart = 1000,
-	Aborted = 1001,
-}
 
 type State = {
 	execCount: number;
@@ -41,16 +37,69 @@ export class ScriptStore extends ComponentStore<State> {
 
 	path: string = '';
 	name: string = '';
+	unwatch: (() => void) | null = null;
 
 	constructor(path: string) {
 		super();
 		this.setPath(path);
 
-		(async () => {
-			const text = await api.readScript(path);
-			this.setText(text);
-		})();
+		Promise.all([
+			api.readScript(path).then(this.setText),
+			api
+				.getScriptOutput(path)
+				.then((output) => {
+					output.forEach(this.handleOutput);
+					archiveStore.setActive(this);
+					this.setExecutionStatus('running');
+					this.watchOutput();
+				})
+				.catch(() => {}),
+		]);
 	}
+
+	watchOutput = () => {
+		this.unwatch = ws.subscribe(`output:${this.path}`, ({ output }) => {
+			this.handleOutput(output);
+
+			if (output.type === 'exit') {
+				this.unwatchOutput();
+			}
+		});
+	};
+
+	unwatchOutput = () => {
+		this.unwatch?.();
+		this.unwatch = null;
+	};
+
+	handleOutput = (output: ScriptOutput) => {
+		switch (output.type) {
+			case 'stdout': {
+				this.appendOutputLine(output.line, false);
+				break;
+			}
+			case 'stderr': {
+				this.appendOutputLine(output.line, true);
+				break;
+			}
+			case 'exit': {
+				switch (output.code) {
+					case 0: {
+						this.setExecutionResult('success');
+						break;
+					}
+					case SpecialExitCodes.Aborted: {
+						this.setExecutionResult('interrupt');
+						break;
+					}
+					default: {
+						this.setExecutionResult('fail'); // TODO: show exit code
+					}
+				}
+				break;
+			}
+		}
+	};
 
 	setPath = (path: string) => {
 		this.path = path;
@@ -128,42 +177,12 @@ export class ScriptStore extends ComponentStore<State> {
 			state.endedAt = null;
 		});
 
-		const unsubscribe = ws.subscribe(`output:${this.path}`, (output) => {
-			switch (output.type) {
-				case 'stdout': {
-					this.appendOutputLine(output.line, false);
-					break;
-				}
-				case 'stderr': {
-					this.appendOutputLine(output.line, true);
-					break;
-				}
-				case 'exit': {
-					switch (output.code) {
-						case 0: {
-							this.setExecutionResult('success');
-							break;
-						}
-						case SpecialExitCodes.Aborted: {
-							this.setExecutionResult('interrupt');
-							break;
-						}
-						default: {
-							this.setExecutionResult('fail'); // TODO: show exit code
-						}
-					}
-
-					unsubscribe();
-					break;
-				}
-			}
-		});
+		this.watchOutput();
 
 		const hasStarted = await api
 			.runScript(this.path)
 			.catch((err: Error) => {
 				this.appendOutputLine(err.message, true);
-				this.setExecutionStatus('disconnected');
 				return false;
 			});
 
@@ -174,7 +193,8 @@ export class ScriptStore extends ComponentStore<State> {
 					true
 				);
 			}
-			unsubscribe();
+			this.setExecutionStatus('disconnected');
+			this.unwatchOutput();
 			return;
 		}
 

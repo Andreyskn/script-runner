@@ -5,19 +5,17 @@ import {
 	type RendererIpcMessages,
 } from '@electron/ipc';
 import type { Service } from '@server/service';
-import { type Topics, type WebSocketMessage } from '@server/websocket';
+import {
+	type WsClientMessageRecord,
+	type WsServerMessage,
+	type WsServerMessageRecord,
+} from '@server/websocket';
 import { rpcClient } from 'typed-rpc';
 
 export const ipc = ipcBase as IPC<RendererIpcMessages, MainIpcMessages>;
 
-const rpc = rpcClient<Service>('http://localhost:3001/api/');
-
-const originalFetch = window.fetch.bind(window);
-
-type API = (typeof ipc)['call'] & Service;
-
-//#region codegen scripts/rpcHandles.ts
 const RPC_HANDLES = [
+	//#region codegen scripts/rpcHandles.ts
 	'getFilesList',
 	'moveFile',
 	'deleteFile',
@@ -27,8 +25,16 @@ const RPC_HANDLES = [
 	'readScript',
 	'runScript',
 	'abortScript',
+	'getScriptOutput',
+	'getActiveScripts',
+	//#endregion
 ] as const;
-//#endregion
+
+const rpc = rpcClient<Service>('http://localhost:3001/api/');
+
+const originalFetch = window.fetch.bind(window);
+
+type API = (typeof ipc)['call'] & Service;
 
 export const api: API = new Proxy(
 	{},
@@ -57,37 +63,22 @@ export const api: API = new Proxy(
 
 const websocket = new WebSocket('ws://localhost:3001/');
 
-websocket.addEventListener('error', (e) => {
-	console.error('WebSocket error:', e);
-});
-
-websocket.addEventListener('close', () => {
-	console.log('WebSocket DISCONNECTED');
-});
-
-websocket.addEventListener('message', (e) => {
-	const msg = JSON.parse(e.data) as Topics;
-	console.log(msg);
-});
-
-type WebSocketMessages = { [T in WebSocketMessage as T['type']]: T['payload'] };
-
 export const ws = {
-	send: <T extends keyof WebSocketMessages>(
+	send: <T extends keyof WsClientMessageRecord>(
 		type: T,
-		payload: WebSocketMessages[T]
+		payload: WsClientMessageRecord[T]
 	) => {
 		websocket.send(JSON.stringify({ type, payload }));
 	},
-	subscribe: <T extends keyof Topics>(
+	subscribe: <T extends keyof WsServerMessageRecord>(
 		topic: T,
-		handle: (data: Topics[T]) => void
+		handle: (data: WsServerMessageRecord[T]) => void
 	) => {
 		const handler = (e: MessageEvent<string>) => {
-			const msg = JSON.parse(e.data) as { topic: any; data: any }; // TODO: fix type
+			const msg = JSON.parse(e.data) as WsServerMessage;
 
-			if (msg.topic === topic) {
-				handle(msg.data);
+			if (msg.type === topic) {
+				handle(msg.payload as WsServerMessageRecord[T]);
 			}
 		};
 

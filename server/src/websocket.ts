@@ -1,24 +1,27 @@
-import type { ScriptOutput, WsMsg } from './types';
+import type { ScriptOutput, TopicNames, WsMsg } from './types';
 
-export const enum TopicNames {
-	ScriptStatus = 'script-status',
-}
+export type WsServerMessage =
+	| WsMsg<`output:${string}`, { output: ScriptOutput }>
+	| WsMsg<
+			TopicNames.ScriptStatus,
+			{ path: string; status: 'started' | 'exited'; timestamp: string }
+	  >;
 
-export type Topics = Record<`output:${string}`, ScriptOutput> & {
-	[TopicNames.ScriptStatus]: { path: string; status: 'started' | 'exited' };
+export type WsServerMessageRecord = {
+	[T in WsServerMessage as T['type']]: T['payload'];
 };
 
-export type WebSocketMessage =
-	| WsMsg<'subscribe', { topic: keyof Topics }>
-	| WsMsg<'unsubscribe', { topic: keyof Topics }>;
+export type WsClientMessage =
+	| WsMsg<'subscribe', { topic: WsServerMessage['type'] }>
+	| WsMsg<'unsubscribe', { topic: WsServerMessage['type'] }>;
+
+export type WsClientMessageRecord = {
+	[T in WsClientMessage as T['type']]: T['payload'];
+};
 
 export const websocket: Bun.WebSocketHandler<undefined> = {
-	open(ws) {
-		ws.subscribe(TopicNames.ScriptStatus);
-	},
-	close(ws, code, reason) {
-		console.log('WebSocket closed', { code, reason });
-
+	open(ws) {},
+	close(ws) {
 		ws.subscriptions.forEach((topic) => {
 			ws.unsubscribe(topic);
 		});
@@ -26,7 +29,7 @@ export const websocket: Bun.WebSocketHandler<undefined> = {
 	message(ws, message) {
 		const { type, payload } = JSON.parse(
 			message as string
-		) as WebSocketMessage;
+		) as WsClientMessage;
 
 		switch (type) {
 			case 'subscribe': {

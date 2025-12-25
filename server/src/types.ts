@@ -28,3 +28,11 @@ export type WsMsg<
 			type: T;
 			payload: P;
 		};
+
+export const enum TopicNames {
+	ScriptStatus = 'script-status',
+}
+
+export const enum SpecialExitCodes {
+	Aborted = 1000,
+}

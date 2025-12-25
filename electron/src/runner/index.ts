@@ -1,16 +1,14 @@
 /**
 
 step 1:
-- [] script output is simultaneously buffered on the server and sent to clients
-- [] clients can attach to live output streams of any scripts and detach from it
-
-- [] list of active and finished scripts sent only on request as well as scripts output
-- [] changes in scripts activity status should be pushed to clients
+- [x] script output is simultaneously buffered on the server and sent to clients
+- [x] clients can attach to live output streams of any scripts and detach from it
+- [x] clients can request active script's full output
+- [x] changes in scripts activity status should be pushed to clients
 
 step 2:
 - [] database with execution history
 - [] all client static files should be accessible over http
-- [] each output line should be timestamped so that clients can ask for lines older than the last one they have
 
 step 3:
 - [] configurable script path

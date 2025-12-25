@@ -1,21 +1,23 @@
 import { abs } from './common';
 import { pubsub } from './pubsub';
-import type { RawScriptOutput, ScriptOutput } from './types';
-import { TopicNames } from './websocket';
+import {
+	SpecialExitCodes,
+	TopicNames,
+	type RawScriptOutput,
+	type ScriptOutput,
+} from './types';
 
-const enum SpecialExitCodes {
-	Aborted = 1001,
-}
+export const activeScripts = new Map<string, ScriptRunner>();
 
 export type Status = 'idle' | 'started' | 'exited';
 
-class ScriptRunner {
+export class ScriptRunner {
 	controller = new AbortController();
 	output: ScriptOutput[] = [];
 	status: Status = 'idle';
 	fullPath: string;
 
-	constructor(private shortPath: string) {
+	constructor(public shortPath: string) {
 		activeScripts.set(shortPath, this);
 		this.fullPath = abs(shortPath);
 	}
@@ -27,7 +29,7 @@ class ScriptRunner {
 			timestamp: new Date().toISOString(),
 		};
 		this.output.push(output);
-		pubsub.publish(`output:${this.shortPath}`, output);
+		pubsub.publish(`output:${this.shortPath}`, { output });
 	};
 
 	setStatus = (status: Exclude<Status, 'idle'>) => {
@@ -35,6 +37,7 @@ class ScriptRunner {
 		pubsub.publish(TopicNames.ScriptStatus, {
 			path: this.shortPath,
 			status,
+			timestamp: new Date().toISOString(),
 		});
 	};
 
@@ -83,22 +86,3 @@ class ScriptRunner {
 		]);
 	};
 }
-
-const activeScripts = new Map<string, ScriptRunner>();
-
-export const abortScript = (path: string) => {
-	const runner = activeScripts.get(path);
-
-	if (!runner) {
-		throw Error(`No active script with path: ${path}`);
-	}
-
-	runner.controller.abort();
-	return runner.controller.signal.aborted;
-};
-
-export const runScript = (path: string) => {
-	const runner = new ScriptRunner(path);
-	runner.run();
-	return runner.status === 'started';
-};

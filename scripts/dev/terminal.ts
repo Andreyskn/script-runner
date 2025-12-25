@@ -3,7 +3,7 @@ import { parse } from 'shell-quote';
 
 import { prompt } from './prompt';
 
-export const log = (id: string, text: string) => {
+export const print = (id: string, text: string) => {
 	prompt.hide();
 	console.log(`[${id}]:\n${text}`);
 	prompt.show();
@@ -51,7 +51,7 @@ export const spawn = (
 			while (true) {
 				const { value, done } = await reader.read();
 				if (done) break;
-				log(id, decoder.decode(value));
+				print(id, decoder.decode(value));
 			}
 		} finally {
 			reader.releaseLock();
