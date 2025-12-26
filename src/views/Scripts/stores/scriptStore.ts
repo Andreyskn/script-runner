@@ -1,10 +1,9 @@
-import { SpecialExitCodes, type ScriptOutput } from '@server/types';
+import { type ScriptOutput } from '@server/common';
+import type { FileId } from '@server/files';
 
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
-import { archiveStore } from '@/views/History/archiveStore';
 
-export type ExecutionResult = 'interrupt' | 'fail' | 'success';
 // TODO: move 'disconnected' status to appStore
 // use websocket events to determine server availability
 export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
@@ -16,9 +15,11 @@ type State = {
 	isEditing: boolean;
 	modifiedText: string | null;
 	text: string;
+	textVersion: number;
+	serverTextVersion: number;
 	output: OutputLine[];
 	executionStatus: ExecutionStatus;
-	result: ExecutionResult | null;
+	exitCode: number | null;
 	startedAt: Date | null;
 	endedAt: Date | null;
 };
@@ -29,60 +30,75 @@ export class ScriptStore extends ComponentStore<State> {
 		isEditing: false,
 		modifiedText: null,
 		text: '',
+		textVersion: -1,
+		serverTextVersion: 0,
 		output: [],
 		executionStatus: 'idle',
-		result: null,
+		exitCode: null,
 		startedAt: null,
 		endedAt: null,
 	};
 
-	path: string = '';
-	name: string = '';
-	unwatchOutput: (() => void) | null = null;
+	disposables: (() => void)[] = [];
 
-	constructor(path: string, isRunning: boolean) {
+	constructor(
+		public id: FileId,
+		runningSince?: string
+	) {
 		super();
-		this.setPath(path);
 
-		// TODO: read on first render and after ws content-change event
-		api.readScript(path).then(this.setText);
-
-		ws.subscribe('script-status', ({ path, status, timestamp }) => {
-			if (path === this.path) {
-				this.setExecutionStatus(status, timestamp);
-			}
-		});
-
-		if (isRunning) {
+		if (runningSince) {
 			this.state.executionStatus = 'running';
-			this.state.startedAt = new Date(); //TODO: actual date
+			this.state.startedAt = new Date(runningSince);
 
-			api.getScriptOutput(this.path, this.state.output.length).then(
-				(output) => {
-					output.forEach(this.handleOutput);
-					archiveStore.setActive(this);
+			api.getScriptOutput(this.id).then((result) => {
+				if (!result.ok) {
+					return;
 				}
-			);
+
+				result.value.forEach(this.handleOutput);
+			});
 		}
+
+		this.disposables.push(
+			ws.subscribe('script-status', ({ id, status, timestamp }) => {
+				if (id === this.id) {
+					this.setExecutionStatus(status, timestamp);
+				}
+			}),
+			ws.subscribe(`output:${this.id}`, ({ output }) => {
+				this.handleOutput(output);
+			}),
+			ws.subscribe('files-change', (data) => {
+				if (data.type === 'script-content' && data.id === this.id) {
+					this.setState((s) => {
+						s.serverTextVersion = data.version;
+					});
+				}
+			})
+		);
 	}
 
-	// TODO: call it when the script is deleted
-	cleanup = () => {
-		this.unwatchOutput?.();
+	fetchText = async () => {
+		if (this.state.textVersion >= this.state.serverTextVersion) {
+			return;
+		}
+
+		const result = await api.readScript(this.id);
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((state) => {
+			state.text = result.value.text;
+			state.textVersion = result.value.version;
+			state.serverTextVersion = result.value.version;
+		});
 	};
 
-	// TODO: call it again when this.path changes
-	// or subscribe using script id instead of path
-	watchOutput = () => {
-		this.unwatchOutput?.();
-
-		// TODO: detect and restore missing output lines
-		this.unwatchOutput = ws.subscribe(
-			`output:${this.path}`,
-			({ output }) => {
-				this.handleOutput(output);
-			}
-		);
+	cleanup = () => {
+		this.disposables.forEach((dispose) => dispose());
 	};
 
 	handleOutput = (output: ScriptOutput) => {
@@ -96,38 +112,16 @@ export class ScriptStore extends ComponentStore<State> {
 				break;
 			}
 			case 'exit': {
-				switch (output.code) {
-					case 0: {
-						this.setExecutionResult('success');
-						break;
-					}
-					case SpecialExitCodes.Aborted: {
-						this.setExecutionResult('interrupt');
-						break;
-					}
-					default: {
-						this.setExecutionResult('fail'); // TODO: show exit code
-					}
-				}
+				this.setState((state) => {
+					state.exitCode = output.code;
+				});
 			}
 		}
-	};
-
-	setPath = (path: string) => {
-		this.path = path;
-		this.name = path.slice(path.lastIndexOf('/') + 1);
-		this.watchOutput();
 	};
 
 	setEditing = (isEditing: boolean) => {
 		this.setState((state) => {
 			state.isEditing = isEditing;
-		});
-	};
-
-	setText = (text: string) => {
-		this.setState((state) => {
-			state.text = text;
 		});
 	};
 
@@ -151,8 +145,20 @@ export class ScriptStore extends ComponentStore<State> {
 				default: {
 					state.text = state.modifiedText;
 					state.modifiedText = null;
+					state.textVersion++;
 
-					api.updateScript(this.path, state.text);
+					api.updateScript(
+						this.id,
+						state.text,
+						state.textVersion
+					).then((result) => {
+						if (
+							!result.ok &&
+							result.error.kind === 'versionTooLow'
+						) {
+							// TODO: handle error
+						}
+					});
 				}
 			}
 		});
@@ -172,7 +178,7 @@ export class ScriptStore extends ComponentStore<State> {
 				case 'running': {
 					state.execCount++;
 					state.output = [];
-					state.result = null;
+					state.exitCode = null;
 					state.startedAt = new Date(timestamp);
 					state.endedAt = null;
 					break;
@@ -185,21 +191,11 @@ export class ScriptStore extends ComponentStore<State> {
 		});
 	};
 
-	setExecutionResult = (result: ExecutionResult) => {
-		this.setState((state) => {
-			state.result = result;
-		});
-
-		archiveStore.setEnded(this);
-	};
-
 	execute = async () => {
-		const hasStarted = await api
-			.runScript(this.path)
-			.catch((err: Error) => {
-				this.appendOutputLine(err.message, true);
-				return false;
-			});
+		const hasStarted = await api.runScript(this.id).catch((err: Error) => {
+			this.appendOutputLine(err.message, true);
+			return false;
+		});
 
 		if (!hasStarted) {
 			if (import.meta.env.MODE === 'mock') {
@@ -211,20 +207,18 @@ export class ScriptStore extends ComponentStore<State> {
 			return;
 		}
 
-		archiveStore.setActive(this);
-
 		if (import.meta.env.MODE === 'mock') {
 			const scriptChannel = new BroadcastChannel('script-runner-mock');
 			scriptChannel.postMessage({
 				type: 'SCRIPT_TEXT',
 				text: this.state.text,
-				path: this.path,
+				path: '', // this.path
 			});
 			scriptChannel.close();
 		}
 	};
 
 	interruptExecution = () => {
-		api.abortScript(this.path);
+		api.abortScript(this.id);
 	};
 }

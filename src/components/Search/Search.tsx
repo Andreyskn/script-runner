@@ -21,7 +21,7 @@ const NO_RESULTS: SearchOption[] = [
 	{
 		dir: '',
 		name: '',
-		value: '',
+		value: 'NO_RESULT',
 	},
 ];
 
@@ -45,23 +45,22 @@ export const Search: React.FC<SearchProps> = (props) => {
 		(files) => {
 			// TODO: sort options
 
-			const options: SearchOption[] = [...files]
-				.filter((path) => path.endsWith('.sh'))
-				.map((path) => {
+			const options: SearchOption[] = [...files.values()]
+				.filter(({ type }) => type === 'script')
+				.map(({ path, id, name }) => {
 					const segments = path.split('/');
-					const name = segments.at(-1)!;
 					const dir =
 						segments.length > 1
 							? segments.slice(0, -1).join('/')
 							: '';
 
-					return { name, dir, value: path };
+					return { name, dir, value: id };
 				});
 
 			const fuse = new Fuse(options, {
 				keys: [
 					{ name: 'name', weight: 0.9 },
-					{ name: 'value', weight: 0.1 },
+					{ name: 'dir', weight: 0.1 },
 				],
 				includeScore: true,
 				findAllMatches: true,
@@ -108,7 +107,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 	);
 
 	const renderOption = (option: SearchOption) => {
-		if (!option.value) {
+		if (option.value === 'NO_RESULT') {
 			return <div>No matching results</div>;
 		}
 
@@ -131,14 +130,16 @@ export const Search: React.FC<SearchProps> = (props) => {
 		}
 	};
 
-	const handleSelect = async (path: string) => {
-		if (!path) {
+	const handleSelect = async (stringId: string) => {
+		const id = +stringId;
+
+		if (Number.isNaN(id)) {
 			return;
 		}
 
-		await api.endSearch(path);
+		await api.endSearch('id');
 
-		setSelectedScript(path);
+		setSelectedScript(id);
 		dialogRef.current?.close();
 	};
 

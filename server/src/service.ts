@@ -1,63 +1,48 @@
-import { files, type FileData, type FileId } from './files';
-import { runningScripts, ScriptRunner } from './runner';
+import { type CallReturn } from '@andrey/func';
+import type { JsonValue } from 'typed-rpc/server';
+
+import { files, type Errors, type FileId } from './files';
+import { runner } from './runner';
 
 export type Service = typeof service;
 
-export type ClientFileData = {
-	id: FileId;
-	path: string;
-	type: FileData['type'];
-	isRunningSince?: string;
-};
-
 export const service = {
 	getFilesList: async () => {
-		return [...files.registry.values()].map((data) => {
-			return {
-				id: data.id,
-				path: data.clientPath,
-				type: data.type,
-				isRunningSince: data.activeRunner?.startTime,
-			} satisfies ClientFileData;
-		});
+		return files.getClientFileList().result();
 	},
 	moveFile: async (id: FileId, newPath: string) => {
-		await files.move(id, newPath);
-		return null;
+		return files.moveFile(id, newPath).result();
 	},
 	deleteFile: async (id: FileId) => {
-		await files.delete(id);
-		return null;
+		return files.deleteFile(id).result();
 	},
 	createFolder: async (path: string) => {
-		await files.createFolder(path);
-		return null;
+		return files.createFolder(path).result();
 	},
 	createScript: async (path: string) => {
-		await files.createScript(path);
-		return null;
+		return files.createScript(path).result();
 	},
-	updateScript: async (id: FileId, data: string) => {
-		await files.updateScript(id, data);
-		return null;
+	updateScript: async (id: FileId, text: string, version: number) => {
+		return files.updateScript(id, text, version).result();
 	},
 	readScript: async (id: FileId) => {
-		return files.readScript(id);
+		return files.readScript(id).result();
 	},
 	runScript: async (id: FileId) => {
-		const runner = new ScriptRunner(id);
-		return runner.status === 'running';
+		return runner.runScript(id).result();
 	},
 	abortScript: async (id: FileId) => {
-		const runner = files.registry.get(id)?.activeRunner;
-		runner?.controller.abort();
-		return runner?.controller.signal.aborted ?? true;
+		return runner.abortScript(id).result();
 	},
 	getScriptOutput: async (id: FileId, skip = 0) => {
-		const runner = files.registry.get(id)?.activeRunner;
-		return runner?.output.slice(skip) ?? [];
+		return runner.getScriptOutput(id, skip).result();
 	},
 	getActiveScripts: async () => {
-		return [...runningScripts];
+		return runner.getActiveScripts().result();
 	},
-};
+} satisfies Record<
+	string,
+	(
+		...args: any[]
+	) => Promise<CallReturn<(...args: any[]) => JsonValue, Errors>>
+>;

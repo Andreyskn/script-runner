@@ -2,20 +2,24 @@ import { useEffect } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { Section } from '@/components/Section';
-import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
+import type { File } from '../../stores/filesStore';
 import { cls } from './ScriptContent.styles';
 
 type Props = {
-	script: ScriptStore;
+	script: File;
 };
 
 export const ScriptContent: React.FC<Props> = ({ script }) => {
 	const {
-		selectors: { isEditing, text, modifiedText },
-		setModifiedText,
-		setEditing,
-		saveScriptText,
+		scriptStore: {
+			state,
+			selectors: { isEditing, text, modifiedText, serverTextVersion },
+			setModifiedText,
+			setEditing,
+			saveScriptText,
+			fetchText,
+		},
 	} = script;
 
 	useHotkeys('ctrl+s', saveScriptText, {
@@ -24,9 +28,13 @@ export const ScriptContent: React.FC<Props> = ({ script }) => {
 		enableOnFormTags: true,
 	});
 
+	useEffect(() => {
+		fetchText();
+	}, [serverTextVersion]);
+
 	useEffect(
 		() => () => {
-			if (!script.state.modifiedText) {
+			if (!state.modifiedText) {
 				setEditing(false);
 			}
 		},

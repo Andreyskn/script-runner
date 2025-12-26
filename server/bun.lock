@@ -5,7 +5,8 @@
     "": {
       "name": "server",
       "dependencies": {
-        "fs-extra": "^11.3.1",
+        "@andrey/func": "^0.2.0",
+        "fs-extra": "^11.3.3",
         "typed-rpc": "^6.1.2",
       },
       "devDependencies": {
@@ -13,11 +14,13 @@
         "@types/fs-extra": "^11.0.4",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.9.2",
       },
     },
   },
   "packages": {
+    "@andrey/func": ["@andrey/func@0.2.0", "http://asrv:4873/@andrey/func/-/func-0.2.0.tgz", { "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-j6URpBeg65GH7IbTiEZIhkI2GOy6ayw7yxnr2gxnc1Nwc+GqFWGrqzaBqyiBt/l0Ltxe/W4m8ObuTPyum7I7DQ=="],
+
     "@types/bun": ["@types/bun@1.3.5", "http://asrv:4873/@types/bun/-/bun-1.3.5.tgz", { "dependencies": { "bun-types": "1.3.5" } }, "sha512-RnygCqNrd3srIPEWBd5LFeUYG7plCoH2Yw9WaZGyNmdTEei+gWaHqydbaIRkIkcbXwhBT94q78QljxN0Sk838w=="],
 
     "@types/fs-extra": ["@types/fs-extra@11.0.4", "http://asrv:4873/@types/fs-extra/-/fs-extra-11.0.4.tgz", { "dependencies": { "@types/jsonfile": "*", "@types/node": "*" } }, "sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ=="],

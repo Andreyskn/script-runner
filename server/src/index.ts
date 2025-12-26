@@ -1,6 +1,6 @@
 import { handleRpc } from 'typed-rpc/server';
 
-import { pubsub } from './pubsub';
+import { server } from './common';
 import { service } from './service';
 import { websocket } from './websocket';
 
@@ -17,7 +17,7 @@ const cors: ResponseInit = {
 	},
 };
 
-const server = Bun.serve({
+server.current = Bun.serve({
 	development: true,
 	port: 3001,
 	idleTimeout: 255,
@@ -26,7 +26,10 @@ const server = Bun.serve({
 			OPTIONS: () => new Response(null, cors),
 
 			POST: async (req) => {
-				const rpcData = await handleRpc(await req.json(), service);
+				const rpcData = await handleRpc(
+					await req.json(),
+					service as any
+				);
 
 				if ('error' in rpcData) {
 					throw rpcData.error;
@@ -62,6 +65,4 @@ const server = Bun.serve({
 	},
 });
 
-pubsub.init(server);
-
-console.log('Server is active on port:', server.port);
+console.log('Server is active on port:', server.current.port);

@@ -51,11 +51,21 @@ export const api: API = new Proxy(
 						return res;
 					};
 					// @ts-ignore
-					return rpc[p](...args);
+					const result = (await rpc[p](...args)) as Awaited<
+						ReturnType<Service[keyof Service]>
+					>;
+
+					if (!result.ok) {
+						console.log(`[${p}] RPC error:`, result.error);
+					}
+
+					return result;
 				}
 
-				// @ts-ignore
-				return ipc.call[p](...args);
+				if (ipc.available) {
+					// @ts-ignore
+					return ipc.call[p](...args);
+				}
 			};
 		},
 	}

@@ -1,12 +1,14 @@
-import { files, type FileId } from './files';
-import { pubsub } from './pubsub';
+import { func, type FuncGen } from '@andrey/func';
+
 import {
 	SpecialExitCodes,
 	type RawScriptOutput,
 	type ScriptOutput,
-} from './types';
+} from './common';
+import { files, type FileId, type ScriptData } from './files';
+import { ws } from './websocket';
 
-export const runningScripts = new Set<FileId>();
+const runningScripts = new Set<FileId>();
 
 export type ScriptStatus = 'idle' | 'running' | 'ended';
 
@@ -18,13 +20,9 @@ export class ScriptRunner {
 	endTime: string | undefined;
 
 	constructor(public id: FileId) {
-		files.registry.get(id)!.activeRunner = this;
-		const { fullPath } = files.registry.get(this.id)!;
-		this.run(fullPath);
-	}
-
-	toJSON() {
-		return undefined;
+		const data = files.registry.get(id) as ScriptData;
+		data.activeRunner = this;
+		this.run(data.fullPath);
 	}
 
 	appendOutput = (rawOutput: RawScriptOutput) => {
@@ -34,7 +32,7 @@ export class ScriptRunner {
 			timestamp: new Date().toISOString(),
 		};
 		this.output.push(output);
-		pubsub.publish(`output:${this.id}`, { output });
+		ws.publish(`output:${this.id}`, { output });
 	};
 
 	setStatus = (status: Exclude<ScriptStatus, 'idle'>) => {
@@ -52,7 +50,7 @@ export class ScriptRunner {
 			}
 		}
 
-		pubsub.publish('script-status', {
+		ws.publish('script-status', {
 			id: this.id,
 			status,
 			timestamp,
@@ -67,7 +65,7 @@ export class ScriptRunner {
 
 		this.setStatus('ended');
 		runningScripts.delete(this.id);
-		files.registry.get(this.id)!.activeRunner = undefined;
+		(files.registry.get(this.id) as ScriptData).activeRunner = undefined;
 	};
 
 	private run = (path: string) => {
@@ -106,3 +104,33 @@ export class ScriptRunner {
 		]);
 	};
 }
+
+const runScript = func(function* (id: FileId): FuncGen<boolean, {}> {
+	const runner = new ScriptRunner(id);
+	return runner.status === 'running';
+});
+
+const abortScript = func(function* (id: FileId): FuncGen<boolean, {}> {
+	const runner = files.registry.get(id)?.activeRunner;
+	runner?.controller.abort();
+	return runner?.controller.signal.aborted ?? true;
+});
+
+const getScriptOutput = func(function* (
+	id: FileId,
+	skip = 0
+): FuncGen<ScriptOutput[], {}> {
+	const runner = files.registry.get(id)?.activeRunner;
+	return runner?.output.slice(skip) ?? [];
+});
+
+const getActiveScripts = func(function* (): FuncGen<FileId[], {}> {
+	return [...runningScripts];
+});
+
+export const runner = {
+	runScript,
+	abortScript,
+	getScriptOutput,
+	getActiveScripts,
+};

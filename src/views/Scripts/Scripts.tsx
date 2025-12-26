@@ -1,7 +1,5 @@
-import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog';
-import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog';
 import { Section } from '@/components/Section';
-import { Tree, type FolderNode, type TreeProps } from '@/components/Tree';
+import { type FolderNode } from '@/components/Tree';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
 import { FilesStore } from '@/views/Scripts/stores/filesStore';
@@ -18,7 +16,7 @@ const getNodes = (files: FilesStore['state']['files']) => {
 
 	const folders = new Map<string, FolderNode>([['', root]]);
 
-	files.forEach((path) => {
+	files.forEach(({ path }) => {
 		const pathSegments = path.split('/');
 
 		pathSegments.forEach((segment, i) => {
@@ -68,7 +66,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 	const {} = props;
 
 	const {
-		selectors: { files, selectedScript },
+		selectors: { files },
 		setSelectedScript,
 		moveFile,
 		createFile,
@@ -77,50 +75,59 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 	} = FilesStore.use();
 
 	const { nodes } = useSelector((state) => state.files, getNodes);
+	const { selectedScript } = useSelector(
+		(state) => state.selectedScriptId,
+		(id) => {
+			return {
+				selectedScript:
+					typeof id === 'number' ? files.get(id) : undefined,
+			};
+		}
+	);
 
-	const handleRename: TreeProps['onRename'] = {
-		before(node) {
-			if (node.type === 'file') {
-				return {
-					text: node.name.slice(0, node.name.lastIndexOf('.sh')),
-				};
-			}
-		},
-		change(node, newName) {
-			if (!newName) {
-				return {
-					error: <>A {node.type} name must be provided.</>,
-				};
-			}
+	// const handleRename: TreeProps['onRename'] = {
+	// 	before(node) {
+	// 		if (node.type === 'file') {
+	// 			return {
+	// 				text: node.name.slice(0, node.name.lastIndexOf('.sh')),
+	// 			};
+	// 		}
+	// 	},
+	// 	change(node, newName) {
+	// 		if (!newName) {
+	// 			return {
+	// 				error: <>A {node.type} name must be provided.</>,
+	// 			};
+	// 		}
 
-			if (node.type === 'file' && !newName.endsWith('.sh')) {
-				newName = `${newName}.sh`;
-			}
+	// 		if (node.type === 'file' && !newName.endsWith('.sh')) {
+	// 			newName = `${newName}.sh`;
+	// 		}
 
-			const path = node.path.toSpliced(-1, 1, newName).join('/');
+	// 		const path = node.path.toSpliced(-1, 1, newName).join('/');
 
-			if (files.has(path)) {
-				return {
-					error: (
-						<>
-							A {node.type} <b>"{newName}"</b> already exists in
-							this location. Please choose a different name.
-						</>
-					),
-				};
-			}
-		},
-		confirm(node, newName) {
-			if (node.type === 'file' && !newName.endsWith('.sh')) {
-				newName = `${newName}.sh`;
-			}
+	// 		if (files.has(path)) {
+	// 			return {
+	// 				error: (
+	// 					<>
+	// 						A {node.type} <b>"{newName}"</b> already exists in
+	// 						this location. Please choose a different name.
+	// 					</>
+	// 				),
+	// 			};
+	// 		}
+	// 	},
+	// 	confirm(node, newName) {
+	// 		if (node.type === 'file' && !newName.endsWith('.sh')) {
+	// 			newName = `${newName}.sh`;
+	// 		}
 
-			moveFile(
-				node.path.join('/'),
-				node.path.toSpliced(-1, 1, newName).join('/')
-			);
-		},
-	};
+	// 		moveFile(
+	// 			node.path.join('/'),
+	// 			node.path.toSpliced(-1, 1, newName).join('/')
+	// 		);
+	// 	},
+	// };
 
 	return (
 		<div className={cls.scripts.block()}>
@@ -130,7 +137,8 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				headerClassName={cls.scripts.treeSectionTitle()}
 				contentClassName={cls.scripts.treeSectionContent()}
 			>
-				<Tree
+				<div />
+				{/* <Tree
 					activePath={selectedScript?.path.split('/') ?? undefined}
 					onFileSelect={setSelectedScript}
 					nodes={nodes}
@@ -166,7 +174,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 							deleteFile(node.path.join('/'));
 						}
 					}}
-				/>
+				/> */}
 			</Section>
 			{selectedScript ? (
 				<ScriptViewer script={selectedScript} />

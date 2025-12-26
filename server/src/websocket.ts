@@ -1,7 +1,9 @@
-import type { FileData, FileId } from './files';
+import { server, type ScriptOutput, type WsMsg } from './common';
+import type { FileId } from './files';
 import type { ScriptStatus } from './runner';
-import type { ClientFileData } from './service';
-import type { ScriptOutput, WsMsg } from './types';
+import type { BaseClientFileData } from './service';
+
+export type FileMoveData = { id: FileId; path: string };
 
 export type WsServerMessage =
 	| WsMsg<`output:${FileId}`, { output: ScriptOutput }>
@@ -15,10 +17,10 @@ export type WsServerMessage =
 	  >
 	| WsMsg<
 			'files-change',
-			| { type: 'script-content'; id: FileId }
-			| { type: 'create'; file: FileData }
+			| { type: 'script-content'; id: FileId; version: number }
+			| { type: 'create'; file: BaseClientFileData }
 			| { type: 'delete'; ids: FileId[] }
-			| { type: 'move'; files: Omit<ClientFileData, 'isRunningSince'>[] }
+			| { type: 'move'; files: FileMoveData[] }
 	  >;
 
 export type WsServerMessageRecord = {
@@ -55,5 +57,15 @@ export const websocket: Bun.WebSocketHandler<undefined> = {
 				break;
 			}
 		}
+	},
+};
+
+export const ws = {
+	publish: <T extends keyof WsServerMessageRecord>(
+		type: T,
+		payload: WsServerMessageRecord[T]
+	) => {
+		const data: WsMsg<any, any> = { type, payload };
+		server.current.publish(type, JSON.stringify(data));
 	},
 };

@@ -1,12 +1,11 @@
 import { ComponentStore } from '@/utils';
 import type {
-	ExecutionResult,
 	OutputLine,
 	ScriptStore,
 } from '@/views/Scripts/stores/scriptStore';
 
 export type ArchivedEntry = {
-	result: ExecutionResult;
+	result: any;
 	output: OutputLine[];
 	startedAt: Date;
 	endedAt: Date;
@@ -47,10 +46,10 @@ class ArchiveStore extends ComponentStore<State> {
 			state.active.delete(script);
 
 			state.ended.add({
-				name: script.name,
-				path: script.path,
+				name: '', //script.name,
+				path: '', //script.path,
 				output: script.state.output,
-				result: script.state.result!,
+				result: '', //script.state.result!,
 				startedAt: script.state.startedAt!,
 				endedAt: script.state.endedAt!,
 			});
