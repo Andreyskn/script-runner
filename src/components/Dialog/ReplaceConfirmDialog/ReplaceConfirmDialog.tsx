@@ -17,7 +17,7 @@ type ReplaceConfirmDialogProps = {
 
 const ReplaceConfirmDialog: React.FC<ReplaceConfirmDialogProps> = (props) => {
 	const { name, type } = props;
-	const isScript = type === 'file';
+	const isScript = type === 'script';
 
 	return (
 		<div className={cls.replaceConfirmDialog.block()}>

@@ -49,7 +49,7 @@ export const searchWindow = {
 	},
 };
 
-ipc.handle.endSearch((scriptPath) => {
-	console.log(scriptPath);
+ipc.handle.endSearch((scriptId) => {
+	console.log(scriptId);
 	searchWindow.close();
 });

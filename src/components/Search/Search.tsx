@@ -137,7 +137,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 			return;
 		}
 
-		await api.endSearch('id');
+		await api.endSearch(id);
 
 		setSelectedScript(id);
 		dialogRef.current?.close();

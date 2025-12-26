@@ -16,7 +16,7 @@ type DeleteConfirmDialogProps = {
 
 const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = (props) => {
 	const { node } = props;
-	const isScript = node.type === 'file';
+	const isScript = node.type === 'script';
 
 	return (
 		<div className={cls.deleteConfirmDialog.block()}>

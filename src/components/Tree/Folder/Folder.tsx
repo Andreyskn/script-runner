@@ -23,13 +23,13 @@ import { useDnD } from '@/utils';
 import { cls } from './Folder.styles';
 
 export type FolderProps = {
-	id: string;
+	id: number;
 	path: string[];
 	name: string;
 	children: React.ReactNode;
 	open?: boolean;
 	renameOnMount?: boolean;
-	onToggleOpen: (id: string, isOpen: boolean) => void;
+	onToggleOpen: (id: FolderProps['id'], isOpen: boolean) => void;
 	onCreate: (type: TreeNodeType, parent: FolderNodeWithPath) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
 };
@@ -67,7 +67,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			text: 'New Script',
 			onClick: () => {
 				setIsOpen(true);
-				onCreate('file', node);
+				onCreate('script', node);
 			},
 		},
 		{
@@ -81,7 +81,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		{
 			icon: <PenSquareIcon />,
 			text: 'Rename Folder',
-			onClick: showNameEditor,
+			onClick: () => showNameEditor.current(),
 		},
 		{
 			icon: <Trash2Icon />,

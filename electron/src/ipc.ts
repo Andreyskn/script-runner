@@ -11,7 +11,7 @@ export const ELECTRON_API_NAME = 'electronAPI';
 export type MainIpcMessages = {};
 
 export type RendererIpcMessages = {
-	endSearch: (scriptPath?: string) => void;
+	endSearch: (scriptId?: number) => void;
 };
 
 type WindowConfig = Partial<SearchWindowConfig>;

@@ -90,7 +90,11 @@ export class FilesStore extends ComponentStore<State> {
 						const { files } = payload;
 
 						files.forEach(({ id, path }) => {
-							state.files.get(id)!.path = path;
+							const target = this.state.files.get(id);
+
+							if (target && target.path !== path) {
+								state.files.get(id)!.path = path;
+							}
 						});
 						break;
 					}
@@ -114,7 +118,15 @@ export class FilesStore extends ComponentStore<State> {
 	};
 
 	moveFile = async (id: FileId, newPath: string) => {
-		await api.moveFile(id, newPath);
+		this.setState((s) => {
+			s.files.get(id)!.path = newPath;
+		});
+
+		const result = await api.moveFile(id, newPath);
+
+		if (!result.ok) {
+			// TODO: handle error
+		}
 	};
 
 	createFile = async (path: string) => {
@@ -129,10 +141,8 @@ export class FilesStore extends ComponentStore<State> {
 		}
 	};
 
-	deleteFile = async (id: FileId, clientSideOnly?: boolean) => {
-		if (!clientSideOnly) {
-			await api.deleteFile(id);
-		}
+	deleteFile = async (id: FileId) => {
+		await api.deleteFile(id);
 
 		if (this.state.selectedScriptId === id) {
 			this.setState((state) => {

@@ -3,16 +3,16 @@ import type { FolderProps } from '@/components/Tree/Folder';
 import type { TreeNodeRenameHandler } from '@/components/Tree/NameEditor';
 import type { DnDProviderProps } from '@/utils';
 
-export type TreeNodeType = 'file' | 'folder';
+export type TreeNodeType = 'script' | 'folder';
 
 type TreeNodeBase = {
-	id: string;
+	id: number;
 	name: string;
 	isTemporary?: boolean;
 };
 
 export type FileNode = TreeNodeBase & {
-	type: ExtractType<TreeNodeType, 'file'>;
+	type: ExtractType<TreeNodeType, 'script'>;
 };
 
 export type FolderNode = TreeNodeBase & {
@@ -39,13 +39,13 @@ export type TreeNodeWithPath = FileNodeWithPath | FolderNodeWithPath;
 
 export type TreeDragData = {
 	type: TreeNode['type'];
-	id: string;
+	id: TreeNode['id'];
 	name: string;
 	path: string[];
 };
 
 export type TreeDropData = {
-	id: string;
+	id: TreeNode['id'];
 	name: string;
 	path: string[];
 };

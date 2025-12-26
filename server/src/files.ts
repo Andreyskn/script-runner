@@ -79,7 +79,7 @@ const moveFile = func(async function* (
 
 	const newFullPath = abs(newPath);
 
-	await move(target.fullPath, newFullPath, { overwrite: true });
+	await move(target.fullPath, newFullPath);
 
 	const affected = new Set([target]);
 

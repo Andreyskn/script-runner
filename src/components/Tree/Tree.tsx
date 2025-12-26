@@ -26,7 +26,7 @@ export const Tree: React.FC<TreeProps> = (props) => {
 		treeStore.setTmpNode({
 			node: {
 				isTemporary: true,
-				id: crypto.randomUUID(),
+				id: -10,
 				name: '',
 				type,
 			},
@@ -61,7 +61,7 @@ export const Tree: React.FC<TreeProps> = (props) => {
 	const canDrop = (source: TreeDragData, target: TreeDropData) => {
 		const parentDir = source.path.slice(0, -1);
 
-		if (source.type === 'file') {
+		if (source.type === 'script') {
 			if (target.path.length !== parentDir.length) {
 				return true;
 			}
@@ -88,7 +88,7 @@ const TreeMiddle: React.FC<TreeMiddleProps> = (props) => {
 	const { onCreate } = props;
 
 	const root: FolderNodeWithPath = {
-		id: '',
+		id: -1,
 		name: '',
 		path: [],
 		type: 'folder',
@@ -101,7 +101,7 @@ const TreeMiddle: React.FC<TreeMiddleProps> = (props) => {
 		{
 			icon: <FileTextIcon />,
 			text: 'New Script',
-			onClick: () => onCreate('file', root),
+			onClick: () => onCreate('script', root),
 		},
 		{
 			icon: <FolderIcon />,

@@ -1,63 +1,52 @@
+import { useEffect, useRef } from 'react';
+
+import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog';
+import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog';
 import { Section } from '@/components/Section';
-import { type FolderNode } from '@/components/Tree';
+import {
+	Tree,
+	type FolderNode,
+	type TreeNode,
+	type TreeProps,
+} from '@/components/Tree';
+import { sortNodes } from '@/components/Tree/treeUtils';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
-import { FilesStore } from '@/views/Scripts/stores/filesStore';
+import { FilesStore, type File } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Scripts.styles';
 
 const getNodes = (files: FilesStore['state']['files']) => {
 	const root: FolderNode = {
-		id: '',
+		id: -1,
 		name: '',
 		type: 'folder',
 		nodes: [],
 	};
 
+	const sorted = sortNodes([...files.values()]);
 	const folders = new Map<string, FolderNode>([['', root]]);
+	const byPath = new Map<string, File>();
 
-	files.forEach(({ path }) => {
-		const pathSegments = path.split('/');
+	sorted.forEach((file) => {
+		const { id, name, path, type } = file;
+		byPath.set(path, file);
 
-		pathSegments.forEach((segment, i) => {
-			const parentPath = pathSegments.slice(0, i).join('/');
-			const currentPath = pathSegments.slice(0, i + 1).join('/');
+		const parts = path.split('/');
+		parts.pop();
+		const parentPath = parts.join('/');
 
-			if (!folders.has(parentPath)) {
-				const parentNode: FolderNode = {
-					id: parentPath,
-					name: pathSegments[i - 1]!,
-					type: 'folder',
-					nodes: [],
-				};
+		const node: TreeNode = { id, name, type };
 
-				folders.set(parentPath, parentNode);
-				const parentParentPath = pathSegments.slice(0, i - 1).join('/');
-				folders.get(parentParentPath)!.nodes!.push(parentNode);
-			}
+		if (type === 'folder') {
+			(node as FolderNode).nodes = [];
+			folders.set(path, node as FolderNode);
+		}
 
-			const parentNode = folders.get(parentPath) as FolderNode;
-
-			if (segment.endsWith('.sh')) {
-				parentNode.nodes!.push({
-					id: currentPath,
-					name: segment,
-					type: 'file',
-				});
-			} else if (!folders.has(currentPath)) {
-				const node: FolderNode = {
-					id: currentPath,
-					name: segment,
-					type: 'folder',
-					nodes: [],
-				};
-				parentNode.nodes!.push(node);
-				folders.set(currentPath, node);
-			}
-		});
+		folders.get(parentPath)!.nodes!.push(node);
 	});
 
-	return { nodes: root.nodes! };
+	return { nodes: root.nodes!, byPath };
 };
 
 export type ScriptsProps = {};
@@ -74,7 +63,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 		useSelector,
 	} = FilesStore.use();
 
-	const { nodes } = useSelector((state) => state.files, getNodes);
+	const { nodes, byPath } = useSelector((state) => state.files, getNodes);
 	const { selectedScript } = useSelector(
 		(state) => state.selectedScriptId,
 		(id) => {
@@ -85,49 +74,51 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 		}
 	);
 
-	// const handleRename: TreeProps['onRename'] = {
-	// 	before(node) {
-	// 		if (node.type === 'file') {
-	// 			return {
-	// 				text: node.name.slice(0, node.name.lastIndexOf('.sh')),
-	// 			};
-	// 		}
-	// 	},
-	// 	change(node, newName) {
-	// 		if (!newName) {
-	// 			return {
-	// 				error: <>A {node.type} name must be provided.</>,
-	// 			};
-	// 		}
+	const byPathRef = useRef(byPath);
+	useEffect(() => {
+		byPathRef.current = byPath;
+	}, [byPath]);
 
-	// 		if (node.type === 'file' && !newName.endsWith('.sh')) {
-	// 			newName = `${newName}.sh`;
-	// 		}
+	const handleRename: TreeProps['onRename'] = {
+		before(node) {
+			if (node.type === 'script') {
+				return {
+					text: node.name.slice(0, node.name.lastIndexOf('.sh')),
+				};
+			}
+		},
+		change(node, newName) {
+			if (!newName) {
+				return {
+					error: <>A {node.type} name must be provided.</>,
+				};
+			}
 
-	// 		const path = node.path.toSpliced(-1, 1, newName).join('/');
+			if (node.type === 'script' && !newName.endsWith('.sh')) {
+				newName = `${newName}.sh`;
+			}
 
-	// 		if (files.has(path)) {
-	// 			return {
-	// 				error: (
-	// 					<>
-	// 						A {node.type} <b>"{newName}"</b> already exists in
-	// 						this location. Please choose a different name.
-	// 					</>
-	// 				),
-	// 			};
-	// 		}
-	// 	},
-	// 	confirm(node, newName) {
-	// 		if (node.type === 'file' && !newName.endsWith('.sh')) {
-	// 			newName = `${newName}.sh`;
-	// 		}
+			const path = node.path.toSpliced(-1, 1, newName).join('/');
 
-	// 		moveFile(
-	// 			node.path.join('/'),
-	// 			node.path.toSpliced(-1, 1, newName).join('/')
-	// 		);
-	// 	},
-	// };
+			if (byPath.has(path)) {
+				return {
+					error: (
+						<>
+							A {node.type} <b>"{newName}"</b> already exists in
+							this location. Please choose a different name.
+						</>
+					),
+				};
+			}
+		},
+		confirm(node, newName) {
+			if (node.type === 'script' && !newName.endsWith('.sh')) {
+				newName = `${newName}.sh`;
+			}
+
+			moveFile(node.id, node.path.toSpliced(-1, 1, newName).join('/'));
+		},
+	};
 
 	return (
 		<div className={cls.scripts.block()}>
@@ -138,7 +129,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				contentClassName={cls.scripts.treeSectionContent()}
 			>
 				<div />
-				{/* <Tree
+				<Tree
 					activePath={selectedScript?.path.split('/') ?? undefined}
 					onFileSelect={setSelectedScript}
 					nodes={nodes}
@@ -147,7 +138,9 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 							.filter(Boolean)
 							.join('/');
 
-						if (files.has(newPath)) {
+						const collision = byPathRef.current.get(newPath);
+
+						if (collision) {
 							const isConfirmed =
 								await showReplaceConfirmDialog(source);
 
@@ -155,14 +148,14 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 								return;
 							}
 
-							deleteFile(newPath, true);
+							await deleteFile(collision.id);
 						}
 
-						moveFile(source.path.join('/'), newPath);
+						await moveFile(source.id, newPath);
 					}}
 					onRename={handleRename}
 					onCreate={({ path, name, type }) => {
-						if (type === 'file' && !name.endsWith('.sh')) {
+						if (type === 'script' && !name.endsWith('.sh')) {
 							name = `${name}.sh`;
 						}
 						createFile([...path, name].filter(Boolean).join('/'));
@@ -171,10 +164,10 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 						const isConfirmed = await showDeleteConfirmDialog(node);
 
 						if (isConfirmed) {
-							deleteFile(node.path.join('/'));
+							await deleteFile(node.id);
 						}
 					}}
-				/> */}
+				/>
 			</Section>
 			{selectedScript ? (
 				<ScriptViewer script={selectedScript} />

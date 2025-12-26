@@ -199,6 +199,11 @@ export const useNameEditor = (
 	const showNameEditor = () => {
 		session.toggle(node);
 	};
+	const showNameEditorRef = useRef(showNameEditor);
+
+	useEffect(() => {
+		showNameEditorRef.current = showNameEditor;
+	}, [showNameEditor]);
 
 	useLayoutEffect(() => {
 		if (renameOnMount) {
@@ -211,5 +216,5 @@ export const useNameEditor = (
 		(activeNode) => activeNode?.id === node.id
 	);
 
-	return { showNameEditor, isRenaming, NameEditorAnchor };
+	return { showNameEditor: showNameEditorRef, isRenaming, NameEditorAnchor };
 };
