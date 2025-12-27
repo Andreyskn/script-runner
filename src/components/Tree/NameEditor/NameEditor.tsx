@@ -200,10 +200,7 @@ export const useNameEditor = (
 		session.toggle(node);
 	};
 	const showNameEditorRef = useRef(showNameEditor);
-
-	useEffect(() => {
-		showNameEditorRef.current = showNameEditor;
-	}, [showNameEditor]);
+	showNameEditorRef.current = showNameEditor;
 
 	useLayoutEffect(() => {
 		if (renameOnMount) {

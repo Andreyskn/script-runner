@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 
 import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog';
 import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog';
@@ -12,7 +12,11 @@ import {
 import { sortNodes } from '@/components/Tree/treeUtils';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
-import { FilesStore, type File } from '@/views/Scripts/stores/filesStore';
+import {
+	filesStore,
+	type File,
+	type FilesStore,
+} from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Scripts.styles';
 
@@ -30,12 +34,7 @@ const getNodes = (files: FilesStore['state']['files']) => {
 
 	sorted.forEach((file) => {
 		const { id, name, path, type } = file;
-		byPath.set(path, file);
-
-		const parts = path.split('/');
-		parts.pop();
-		const parentPath = parts.join('/');
-
+		const parentPath = path.slice(0, -name.length - 1);
 		const node: TreeNode = { id, name, type };
 
 		if (type === 'folder') {
@@ -44,6 +43,7 @@ const getNodes = (files: FilesStore['state']['files']) => {
 		}
 
 		folders.get(parentPath)!.nodes!.push(node);
+		byPath.set(path, file);
 	});
 
 	return { nodes: root.nodes!, byPath };
@@ -61,7 +61,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 		createFile,
 		deleteFile,
 		useSelector,
-	} = FilesStore.use();
+	} = filesStore;
 
 	const { nodes, byPath } = useSelector((state) => state.files, getNodes);
 	const { selectedScript } = useSelector(
@@ -75,9 +75,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 	);
 
 	const byPathRef = useRef(byPath);
-	useEffect(() => {
-		byPathRef.current = byPath;
-	}, [byPath]);
+	byPathRef.current = byPath;
 
 	const handleRename: TreeProps['onRename'] = {
 		before(node) {
@@ -100,7 +98,7 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 
 			const path = node.path.toSpliced(-1, 1, newName).join('/');
 
-			if (byPath.has(path)) {
+			if (byPathRef.current.has(path)) {
 				return {
 					error: (
 						<>

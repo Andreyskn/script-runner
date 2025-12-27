@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { SpecialExitCodes } from '@server/common';
 import {
 	ChevronRightIcon,
 	ClockIcon,
@@ -10,13 +11,9 @@ import ms from 'ms';
 
 import { appStore } from '@/App/appStore';
 import { Button } from '@/components/Button';
-import type { ArchivedEntry } from '@/views/History/archiveStore';
+import type { ActiveEntry, ArchivedEntry } from '@/views/History/archiveStore';
 import { Output } from '@/views/Scripts/ScriptViewer/Output';
-import { FilesStore } from '@/views/Scripts/stores/filesStore';
-import {
-	ScriptStore,
-	type ExecutionResult,
-} from '@/views/Scripts/stores/scriptStore';
+import { filesStore } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './HistoryEntry.styles';
 
@@ -32,36 +29,48 @@ const formatDate = (date: Date) => {
 };
 
 export type HistoryEntryProps = {
-	entry: ArchivedEntry | ScriptStore;
+	entry: ArchivedEntry | ActiveEntry;
 	lastUnseen?: boolean;
 };
 
 export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 	const { entry, lastUnseen } = props;
+	const { active, execId, fileId, name, path, startedAt } = entry;
 
-	const isActive = entry instanceof ScriptStore;
-
-	const { setSelectedScript } = FilesStore.use();
+	const { setSelectedScript } = filesStore;
 
 	const [shouldShowOutput, setShowOutput] = useState(false);
 
 	const goToScript = () => {
 		appStore.setView('scripts');
-		setSelectedScript(entry.path);
+		setSelectedScript(fileId);
 	};
+
+	const result =
+		!active &&
+		(() => {
+			switch (entry.exitCode) {
+				case 0:
+					return 'success';
+				case SpecialExitCodes.Aborted:
+					return 'interrupt';
+				default:
+					return 'fail';
+			}
+		})();
 
 	return (
 		<div className={cls.historyEntry.block({ lastUnseen })}>
-			<div className={cls.historyEntry.main({ active: isActive })}>
+			<div className={cls.historyEntry.main({ active })}>
 				<div className={cls.title.block()}>
 					<div
 						className={cls.title.indicator({
-							success: !isActive && entry.result === 'success',
-							fail: !isActive && entry.result === 'fail',
-							loader: isActive,
+							success: result === 'success',
+							fail: result === 'fail',
+							loader: active,
 						})}
 					>
-						{isActive && <LoaderCircle size={10} />}
+						{active && <LoaderCircle size={10} />}
 					</div>
 					<div className={cls.title.name()} onClick={goToScript}>
 						{entry.name}
@@ -71,12 +80,10 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 				<div className={cls.info.block()}>
 					<div className={cls.info.time()}>
 						<ClockIcon size={12} />{' '}
-						{formatDate(
-							isActive ? entry.state.startedAt! : entry.endedAt
-						)}
+						{formatDate(active ? startedAt! : entry.endedAt)}
 					</div>
 					<div className={cls.info.duration()}>
-						{isActive ? (
+						{active ? (
 							'Running...'
 						) : (
 							<>
@@ -86,47 +93,44 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 						)}
 					</div>
 				</div>
-				{!isActive && (
+				{!active && (
 					<div
 						className={cls.status.block({
-							success: entry.result === 'success',
-							fail: entry.result === 'fail',
+							success: result === 'success',
+							fail: result === 'fail',
 						})}
 					>
-						{
-							(
-								{
-									fail: 'Fail',
-									interrupt: 'Interrupt',
-									success: 'Success',
-								} as Record<ExecutionResult, string>
-							)[entry.result]
-						}
+						{result === 'fail' && 'Fail'}
+						{result === 'success' && 'Success'}
+						{result === 'interrupt' && 'Interrupt'}
 					</div>
 				)}
-				{!isActive && (
+				{!active && (
 					<Button
-						text={entry.output.length ? 'Show Output' : 'No Output'}
+						text={entry.hasOutput ? 'Show Output' : 'No Output'}
 						icon={<TerminalIcon />}
-						iconEnd={
-							entry.output.length > 0 && <ChevronRightIcon />
-						}
+						iconEnd={entry.hasOutput && <ChevronRightIcon />}
 						borderless
 						className={cls.outputToggle.block({
 							open: shouldShowOutput,
 						})}
 						onClick={() => setShowOutput((s) => !s)}
-						disabled={!entry.output.length}
+						disabled={!entry.hasOutput}
 					/>
 				)}
 			</div>
-			{shouldShowOutput && !isActive && (
+			{shouldShowOutput && !active && (
 				<div className={cls.historyEntry.outputWrapper()}>
 					<Output
 						name='backup.sh'
-						result={null}
+						exitCode={null}
 						status='ended'
-						lines={entry.output}
+						lines={[
+							{
+								text: 'Output fetching is not implemented',
+								isError: true,
+							},
+						]}
 						className={cls.historyEntry.output()}
 						autoScrollDisabled
 					/>

@@ -1,5 +1,6 @@
 import { type ScriptOutput } from '@server/common';
 import type { FileId } from '@server/files';
+import type { ExecData } from '@server/runner';
 
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
@@ -61,9 +62,9 @@ export class ScriptStore extends ComponentStore<State> {
 		}
 
 		this.disposables.push(
-			ws.subscribe('script-status', ({ id, status, timestamp }) => {
-				if (id === this.id) {
-					this.setExecutionStatus(status, timestamp);
+			ws.subscribe('script-status', (data) => {
+				if (data.fileId === this.id) {
+					this.setExecutionStatus(data);
 				}
 			}),
 			ws.subscribe(`output:${this.id}`, ({ output }) => {
@@ -110,11 +111,6 @@ export class ScriptStore extends ComponentStore<State> {
 			case 'stderr': {
 				this.appendOutputLine(output.line, true);
 				break;
-			}
-			case 'exit': {
-				this.setState((state) => {
-					state.exitCode = output.code;
-				});
 			}
 		}
 	};
@@ -166,38 +162,37 @@ export class ScriptStore extends ComponentStore<State> {
 
 	appendOutputLine = (text: string, isError: boolean) => {
 		this.setState((state) => {
+			// FIXME: state.array.push should lead to rerender
 			state.output = [...state.output, { isError, text }];
 		});
 	};
 
-	setExecutionStatus = (status: ExecutionStatus, timestamp: string) => {
+	setExecutionStatus = (data: ExecData) => {
 		this.setState((state) => {
-			state.executionStatus = status;
+			state.executionStatus = data.active ? 'running' : 'ended';
 
-			switch (status) {
-				case 'running': {
-					state.execCount++;
-					state.output = [];
-					state.exitCode = null;
-					state.startedAt = new Date(timestamp);
-					state.endedAt = null;
-					break;
-				}
-				case 'ended': {
-					state.endedAt = new Date(timestamp);
-					break;
-				}
+			if (data.active) {
+				state.execCount++;
+				state.output = [];
+				state.exitCode = null;
+				state.startedAt = new Date(data.startedAt);
+				state.endedAt = null;
+			} else {
+				state.endedAt = new Date(data.endedAt);
+				state.exitCode = data.exitCode;
 			}
 		});
 	};
 
 	execute = async () => {
-		const hasStarted = await api.runScript(this.id).catch((err: Error) => {
-			this.appendOutputLine(err.message, true);
-			return false;
-		});
+		const result = await api.runScript(this.id);
 
-		if (!hasStarted) {
+		if (!result.ok) {
+			this.appendOutputLine(result.error.message, true);
+			return false;
+		}
+
+		if (!result.value) {
 			if (import.meta.env.MODE === 'mock') {
 				this.appendOutputLine(
 					'No connection to Mock Service Worker',

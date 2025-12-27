@@ -15,7 +15,8 @@ let nextId = 0;
 
 const getId = () => nextId++;
 
-export type FileId = number;
+// TODO: uuid
+export type FileId = number & {};
 
 export type BaseFileData = {
 	id: FileId;
@@ -42,20 +43,12 @@ export type ClientFileData = {
 	runningSince?: string;
 };
 
-type _Combine<
-	T,
-	K extends PropertyKey = T extends unknown ? keyof T : never,
-> = T extends unknown ? T & Partial<Record<Exclude<K, keyof T>, never>> : never;
-
-type Combine<T> = { [K in keyof _Combine<T>]: _Combine<T>[K] };
-
 type CombinedFileData = Combine<FileData>;
 
 const registry = new Map<FileId, FileData>();
 
 const errors = {
 	fileNotFound: 'File not found',
-	scriptNotFound: 'Script not found',
 	versionTooLow: (version: number) =>
 		`Version must be higher than ${version}`,
 };
@@ -221,16 +214,16 @@ const updateScript = func(async function* (
 	id: FileId,
 	data: string,
 	version: number
-): AsyncFuncGen<boolean, Pick<Errors, 'scriptNotFound' | 'versionTooLow'>> {
+): AsyncFuncGen<boolean, Pick<Errors, 'fileNotFound' | 'versionTooLow'>> {
 	yield {
-		scriptNotFound: errors.scriptNotFound,
+		fileNotFound: errors.fileNotFound,
 		versionTooLow: errors.versionTooLow,
 	};
 	const { error } = updateScript.utils;
 
 	const file = registry.get(id) as ScriptData | undefined;
 	if (!file) {
-		throw yield* error.scriptNotFound();
+		throw yield* error.fileNotFound();
 	}
 
 	if (file.textVersion >= version) {
@@ -254,16 +247,16 @@ const readScript = func(async function* (
 	id: FileId
 ): AsyncFuncGen<
 	{ text: string; version: number },
-	Pick<Errors, 'scriptNotFound'>
+	Pick<Errors, 'fileNotFound'>
 > {
 	yield {
-		scriptNotFound: errors.scriptNotFound,
+		fileNotFound: errors.fileNotFound,
 	};
 	const { error } = readScript.utils;
 
 	const file = registry.get(id) as ScriptData | undefined;
 	if (!file) {
-		throw yield* error.scriptNotFound();
+		throw yield* error.fileNotFound();
 	}
 
 	return {
@@ -281,7 +274,7 @@ const getClientFileList = func(async function* (): AsyncFuncGen<
 			id: data.id,
 			path: data.clientPath,
 			type: data.type,
-			runningSince: (data as CombinedFileData).activeRunner?.startTime,
+			runningSince: (data as CombinedFileData).activeRunner?.startedAt,
 		})
 	);
 });

@@ -14,10 +14,6 @@ export type RawScriptOutput =
 	| {
 			type: 'stderr';
 			line: string;
-	  }
-	| {
-			type: 'exit';
-			code: number;
 	  };
 
 export type ScriptOutputMetadata = {

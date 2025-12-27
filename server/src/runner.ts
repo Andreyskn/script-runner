@@ -8,7 +8,40 @@ import {
 import { files, type FileId, type ScriptData } from './files';
 import { ws } from './websocket';
 
+export type ExecId = number & {};
+
+let execId = 0;
+
+const getExecId = (): ExecId => {
+	if (execId === Number.MAX_SAFE_INTEGER) {
+		execId = 0;
+	}
+
+	return execId++;
+};
+
 const runningScripts = new Set<FileId>();
+
+type BaseExecData = {
+	path: string;
+	execId: number;
+	fileId: FileId;
+	startedAt: string;
+	textVersion: number;
+};
+
+export type ExecStartData = BaseExecData & {
+	active: true;
+};
+
+export type ExecEndData = BaseExecData & {
+	active: false;
+	exitCode: number;
+	hasOutput: boolean;
+	endedAt: string;
+};
+
+export type ExecData = ExecStartData | ExecEndData;
 
 export type ScriptStatus = 'idle' | 'running' | 'ended';
 
@@ -16,8 +49,9 @@ export class ScriptRunner {
 	controller = new AbortController();
 	output: ScriptOutput[] = [];
 	status: ScriptStatus = 'idle';
-	startTime: string | undefined;
-	endTime: string | undefined;
+	execId = -1;
+	startedAt: string | undefined;
+	endedAt: string | undefined;
 
 	constructor(public id: FileId) {
 		const data = files.registry.get(id) as ScriptData;
@@ -35,36 +69,58 @@ export class ScriptRunner {
 		ws.publish(`output:${this.id}`, { output });
 	};
 
-	setStatus = (status: Exclude<ScriptStatus, 'idle'>) => {
+	setStatus = (status: Exclude<ScriptStatus, 'idle'>, exitCode?: number) => {
 		this.status = status;
 		const timestamp = new Date().toISOString();
+		const { clientPath, textVersion } = files.registry.get(
+			this.id
+		) as ScriptData;
+
+		const baseExecData: BaseExecData = {
+			fileId: this.id,
+			execId: this.execId,
+			startedAt: this.startedAt ?? timestamp,
+			path: clientPath,
+			textVersion,
+		};
 
 		switch (status) {
 			case 'running': {
-				this.startTime = timestamp;
+				this.startedAt = timestamp;
+				this.execId = getExecId();
+
+				runningScripts.add(this.id);
+
+				ws.publish('script-status', {
+					...baseExecData,
+					active: true,
+					execId: this.execId,
+				});
 				break;
 			}
 			case 'ended': {
-				this.endTime = timestamp;
+				this.endedAt = timestamp;
+
+				runningScripts.delete(this.id);
+
+				ws.publish('script-status', {
+					...baseExecData,
+					active: false,
+					exitCode: exitCode!,
+					hasOutput: this.output.length > 0,
+					endedAt: timestamp,
+				});
 				break;
 			}
 		}
-
-		ws.publish('script-status', {
-			id: this.id,
-			status,
-			timestamp,
-		});
 	};
 
 	finalize = (exitCode: number, error?: any) => {
 		if (error) {
 			this.appendOutput({ type: 'stderr', line: String(error) });
 		}
-		this.appendOutput({ type: 'exit', code: exitCode });
 
-		this.setStatus('ended');
-		runningScripts.delete(this.id);
+		this.setStatus('ended', exitCode);
 		(files.registry.get(this.id) as ScriptData).activeRunner = undefined;
 	};
 
@@ -124,8 +180,22 @@ const getScriptOutput = func(function* (
 	return runner?.output.slice(skip) ?? [];
 });
 
-const getActiveScripts = func(function* (): FuncGen<FileId[], {}> {
-	return [...runningScripts];
+const getActiveScripts = func(function* (): FuncGen<ExecStartData[], {}> {
+	return [...runningScripts].map((fileId): ExecStartData => {
+		const { activeRunner, clientPath, textVersion } = files.registry.get(
+			fileId
+		) as ScriptData;
+		const { startedAt, execId } = activeRunner!;
+
+		return {
+			active: true,
+			fileId,
+			execId,
+			startedAt: startedAt!,
+			path: clientPath,
+			textVersion,
+		};
+	});
 });
 
 export const runner = {

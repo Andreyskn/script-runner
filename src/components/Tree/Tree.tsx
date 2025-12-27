@@ -18,6 +18,7 @@ import { DnDProvider, useDnD } from '@/utils';
 // TODO: arrows navigation
 // TODO: scroll active node into view
 // TODO: add action buttons (collapse folders, etc.)
+// TODO: handle F2, Delete keypress on tree nodes
 
 export const Tree: React.FC<TreeProps> = (props) => {
 	const { onMove, onRename, onCreate, ...restProps } = props;

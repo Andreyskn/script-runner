@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import EventEmitter from 'eventemitter3';
 
+// TODO: consider using constructor instead of init/use static methods
+
 export abstract class ComponentStore<S extends Record<string, unknown>> {
 	private static store: InstanceType<any> | undefined;
 

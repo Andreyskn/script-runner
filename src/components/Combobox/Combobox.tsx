@@ -26,6 +26,8 @@ export type ComboboxProps = {
 	onSelect?: SelectProps['onSelect'];
 } & Pick<InputProps, 'placeholder' | 'name'>;
 
+// FIXME: clicking on the first item in the menu doesn't select the item
+
 export const Combobox: React.FC<ComboboxProps> = (props) => {
 	const {
 		selectRef = useRef(null),

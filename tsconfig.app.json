@@ -31,5 +31,5 @@
 			"@server/*": ["server/src/*"]
 		}
 	},
-	"include": ["src", "scripts", "electron", "server"]
+	"include": ["src", "scripts", "electron", "server", "global.d.ts"]
 }

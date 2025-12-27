@@ -1,24 +1,16 @@
 import { server, type ScriptOutput, type WsMsg } from './common';
-import type { FileId } from './files';
-import type { ScriptStatus } from './runner';
-import type { BaseClientFileData } from './service';
+import type { ClientFileData, FileId } from './files';
+import type { ExecData } from './runner';
 
 export type FileMoveData = { id: FileId; path: string };
 
 export type WsServerMessage =
 	| WsMsg<`output:${FileId}`, { output: ScriptOutput }>
-	| WsMsg<
-			'script-status',
-			{
-				id: FileId;
-				status: Exclude<ScriptStatus, 'idle'>;
-				timestamp: string;
-			}
-	  >
+	| WsMsg<'script-status', ExecData>
 	| WsMsg<
 			'files-change',
 			| { type: 'script-content'; id: FileId; version: number }
-			| { type: 'create'; file: BaseClientFileData }
+			| { type: 'create'; file: ClientFileData }
 			| { type: 'delete'; ids: FileId[] }
 			| { type: 'move'; files: FileMoveData[] }
 	  >;

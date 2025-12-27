@@ -6,7 +6,7 @@ import { FileTextIcon, PlayIcon } from 'lucide-react';
 
 import { api, ipc } from '@/api';
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
-import { FilesStore } from '@/views/Scripts/stores/filesStore';
+import { filesStore } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Search.styles';
 
@@ -38,7 +38,7 @@ export type SearchProps = {};
 export const Search: React.FC<SearchProps> = (props) => {
 	const {} = props;
 
-	const { useSelector, setSelectedScript } = FilesStore.use();
+	const { useSelector, setSelectedScript } = filesStore;
 
 	const { options, fuse } = useSelector(
 		(state) => state.files,
