@@ -1,27 +1,29 @@
 import { useEffect, useRef } from 'react';
 
+import { SpecialExitCodes } from '@server/common';
 import { BanIcon, TerminalIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
 import { Tooltip } from '@/components/Tooltip';
 import {
-	ScriptStore,
-	type ExecutionResult,
 	type ExecutionStatus,
 	type OutputLine,
 } from '@/views/Scripts/stores/scriptStore';
 
+import type { File } from '../../stores/filesStore';
 import { cls } from './Output.styles';
 
 type Props = {
-	script: ScriptStore;
+	script: File;
 };
 
 export const OutputSection: React.FC<Props> = ({ script }) => {
 	const {
-		selectors: { output, executionStatus, result, execCount },
-		interruptExecution,
+		scriptStore: {
+			selectors: { output, executionStatus, exitCode, execCount },
+			interruptExecution,
+		},
 	} = script;
 
 	const hasActiveExecution = useRef(false);
@@ -59,7 +61,7 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 				<Output
 					key={execCount}
 					lines={output}
-					result={result}
+					exitCode={exitCode}
 					status={executionStatus}
 					name='backup.sh'
 				/>
@@ -76,13 +78,13 @@ export type OutputProps = {
 	name: string;
 	lines: OutputLine[];
 	status: ExecutionStatus;
-	result: ExecutionResult | null;
+	exitCode: number | null;
 	className?: string;
 	autoScrollDisabled?: boolean;
 };
 
 export const Output: React.FC<OutputProps> = (props) => {
-	const { lines, result, name, className, status, autoScrollDisabled } =
+	const { lines, exitCode, name, className, status, autoScrollDisabled } =
 		props;
 
 	const lastLine = useRef<HTMLDivElement>(null);
@@ -95,6 +97,21 @@ export const Output: React.FC<OutputProps> = (props) => {
 	useEffect(() => {
 		!autoScrollDisabled && lastLine.current?.scrollIntoView();
 	});
+
+	const result = (() => {
+		if (exitCode === null) {
+			return null;
+		}
+
+		switch (exitCode) {
+			case 0:
+				return 'success';
+			case SpecialExitCodes.Aborted:
+				return 'interrupt';
+			default:
+				return 'fail';
+		}
+	})();
 
 	return (
 		<div className={cls.output.block(null, className)}>
@@ -132,7 +149,7 @@ export const Output: React.FC<OutputProps> = (props) => {
 			)}
 			{result === 'fail' && (
 				<div className={cls.output.line({ error: true })}>
-					❌ Script failed
+					❌ Script failed with exit code: {exitCode}
 				</div>
 			)}
 			{result === 'interrupt' && (

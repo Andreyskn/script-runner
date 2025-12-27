@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import EventEmitter from 'eventemitter3';
 
+// TODO: consider using constructor instead of init/use static methods
+// TODO: allow subscribing to updates outside of react components
+
 export abstract class ComponentStore<S extends Record<string, unknown>> {
 	private static store: InstanceType<any> | undefined;
 
@@ -69,12 +72,13 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 
 		const selectAndProcess = (): any => {
 			const data = select(this.state);
+			const result = process ? process(data) : data;
 
-			if (process) {
-				return process(data);
-			} else {
-				return data;
+			if (!!result && Array.isArray(result)) {
+				return [...result];
 			}
+
+			return result;
 		};
 
 		const [data, setData] = useState<T>(() => {

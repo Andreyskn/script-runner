@@ -1,7 +1,7 @@
 import net from 'net';
 
 import { signals } from './signals';
-import { log } from './terminal';
+import { print } from './terminal';
 
 export type ElectronSocketMessage =
 	| 'refresh'
@@ -30,12 +30,12 @@ export const ipc = {
 		net.createServer((socket) => {
 			ipc.electron = socket;
 			signals.electronRunning.value = true;
-			log('electron', 'Started...');
+			print('electron', 'Started...');
 
 			socket.on('close', () => {
 				ipc.electron = noopProxy;
 				signals.electronRunning.value = false;
-				log('electron', 'Stopped');
+				print('electron', 'Stopped');
 			});
 		}).listen('\0script-runner-dev.sock');
 	},

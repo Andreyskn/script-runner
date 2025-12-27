@@ -1,4 +1,4 @@
-import type { Subprocess } from 'bun';
+import { $, type Subprocess } from 'bun';
 import chokidar from 'chokidar';
 import { debounce } from 'lodash';
 
@@ -44,6 +44,11 @@ export const cmd = {
 	},
 	backendDev: () => {
 		spawn('server', 'bun --watch server/src/index.ts');
+	},
+	backendStop: async () => {
+		try {
+			await $`curl -s http://localhost:3001/stop`;
+		} catch (error) {}
 	},
 	electronStart: () => {
 		if (signals.electronStarting.value) {

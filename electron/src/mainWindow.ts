@@ -17,7 +17,7 @@ const createMainWindow = () => {
 		webPreferences: {
 			zoomFactor: 1.25,
 
-			contextIsolation: true,
+			contextIsolation: false,
 			nodeIntegration: false,
 		},
 	});

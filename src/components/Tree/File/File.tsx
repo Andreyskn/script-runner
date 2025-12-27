@@ -13,12 +13,12 @@ import { useDnD } from '@/utils';
 import { cls } from './File.styles';
 
 export type FileProps = {
-	id: string;
+	id: number;
 	path: string[];
 	name: string;
 	open?: boolean;
 	renameOnMount?: boolean;
-	onSelect?: (id: string, path: string[]) => void;
+	onSelect?: (id: FileProps['id'], path: string[]) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
 };
 
@@ -29,7 +29,7 @@ export const File: React.FC<FileProps> = (props) => {
 		id,
 		name,
 		path,
-		type: 'file',
+		type: 'script',
 	};
 
 	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor(
@@ -41,7 +41,7 @@ export const File: React.FC<FileProps> = (props) => {
 		{
 			icon: <PenSquareIcon />,
 			text: 'Rename Script',
-			onClick: showNameEditor,
+			onClick: () => showNameEditor.current(),
 		},
 		{
 			icon: <Trash2Icon />,

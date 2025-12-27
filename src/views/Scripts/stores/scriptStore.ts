@@ -1,31 +1,26 @@
+import { type ScriptOutput } from '@server/common';
+import type { FileId } from '@server/files';
+import type { ExecData } from '@server/runner';
+
+import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
-import { archiveStore } from '@/views/History/archiveStore';
 
-export type ExecutionResult = 'interrupt' | 'fail' | 'success';
-
+// TODO: move 'disconnected' status to appStore
+// use websocket events to determine server availability
 export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
 
 export type OutputLine = { text: string; isError: boolean };
-
-type RunScriptData =
-	| {
-			isDone: false;
-			isError: boolean;
-			line: string;
-	  }
-	| {
-			isDone: true;
-			code: number | string;
-	  };
 
 type State = {
 	execCount: number;
 	isEditing: boolean;
 	modifiedText: string | null;
 	text: string;
+	textVersion: number;
+	serverTextVersion: number;
 	output: OutputLine[];
 	executionStatus: ExecutionStatus;
-	result: ExecutionResult | null;
+	exitCode: number | null;
 	startedAt: Date | null;
 	endedAt: Date | null;
 };
@@ -36,44 +31,93 @@ export class ScriptStore extends ComponentStore<State> {
 		isEditing: false,
 		modifiedText: null,
 		text: '',
+		textVersion: -1,
+		serverTextVersion: 0,
 		output: [],
 		executionStatus: 'idle',
-		result: null,
+		exitCode: null,
 		startedAt: null,
 		endedAt: null,
 	};
 
-	#evSource: EventSource | undefined;
+	disposables: (() => void)[] = [];
 
-	path: string = '';
-	name: string = '';
-
-	constructor(path: string) {
+	constructor(
+		public id: FileId,
+		runningSince?: string
+	) {
 		super();
-		this.setPath(path);
 
-		(async () => {
-			const result = await fetch(
-				`http://localhost:3001/api/script?path=${path}`
-			);
-			this.setText(await result.text());
-		})();
+		if (runningSince) {
+			this.state.executionStatus = 'running';
+			this.state.startedAt = new Date(runningSince);
+
+			api.getScriptOutput(this.id).then((result) => {
+				if (!result.ok) {
+					return;
+				}
+
+				result.value.forEach(this.handleOutput);
+			});
+		}
+
+		this.disposables.push(
+			ws.subscribe('script-status', (data) => {
+				if (data.fileId === this.id) {
+					this.setExecutionStatus(data);
+				}
+			}),
+			ws.subscribe(`output:${this.id}`, ({ output }) => {
+				this.handleOutput(output);
+			}),
+			ws.subscribe('files-change', (data) => {
+				if (data.type === 'script-content' && data.id === this.id) {
+					this.setState((s) => {
+						s.serverTextVersion = data.version;
+					});
+				}
+			})
+		);
 	}
 
-	setPath = (path: string) => {
-		this.path = path;
-		this.name = path.slice(path.lastIndexOf('/') + 1);
+	fetchText = async () => {
+		if (this.state.textVersion >= this.state.serverTextVersion) {
+			return;
+		}
+
+		const result = await api.readScript(this.id);
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((state) => {
+			state.text = result.value.text;
+			state.textVersion = result.value.version;
+			state.serverTextVersion = result.value.version;
+		});
+	};
+
+	cleanup = () => {
+		this.disposables.forEach((dispose) => dispose());
+	};
+
+	handleOutput = (output: ScriptOutput) => {
+		switch (output.type) {
+			case 'stdout': {
+				this.appendOutputLine(output.line, false);
+				break;
+			}
+			case 'stderr': {
+				this.appendOutputLine(output.line, true);
+				break;
+			}
+		}
 	};
 
 	setEditing = (isEditing: boolean) => {
 		this.setState((state) => {
 			state.isEditing = isEditing;
-		});
-	};
-
-	setText = (text: string) => {
-		this.setState((state) => {
-			state.text = text;
 		});
 	};
 
@@ -97,13 +141,19 @@ export class ScriptStore extends ComponentStore<State> {
 				default: {
 					state.text = state.modifiedText;
 					state.modifiedText = null;
+					state.textVersion++;
 
-					fetch(`http://localhost:3001/api/script`, {
-						method: 'POST',
-						body: JSON.stringify({
-							path: this.path,
-							text: state.text,
-						}),
+					api.updateScript(
+						this.id,
+						state.text,
+						state.textVersion
+					).then((result) => {
+						if (
+							!result.ok &&
+							result.error.kind === 'versionTooLow'
+						) {
+							// TODO: handle error
+						}
 					});
 				}
 			}
@@ -112,110 +162,57 @@ export class ScriptStore extends ComponentStore<State> {
 
 	appendOutputLine = (text: string, isError: boolean) => {
 		this.setState((state) => {
-			state.output = [...state.output, { isError, text }];
+			state.output.push({ isError, text });
 		});
 	};
 
-	setExecutionStatus = (status: ExecutionStatus) => {
+	setExecutionStatus = (data: ExecData) => {
 		this.setState((state) => {
-			state.executionStatus = status;
-		});
-	};
+			state.executionStatus = data.active ? 'running' : 'ended';
 
-	setExecutionResult = (result: ExecutionResult) => {
-		this.setState((state) => {
-			state.executionStatus = 'ended';
-			state.result = result;
-			state.endedAt = new Date();
-		});
-
-		archiveStore.setEnded(this);
-	};
-
-	execute = () => {
-		this.setState((state) => {
-			state.execCount++;
-			state.executionStatus = 'idle';
-			state.output = [];
-			state.result = null;
-			state.startedAt = new Date();
-			state.endedAt = null;
-		});
-
-		archiveStore.setActive(this);
-
-		this.#evSource = new EventSource(
-			`http://localhost:3001/api/script/run?path=${this.path}`
-		);
-
-		this.#evSource.onopen = () => {
-			this.setExecutionStatus('running');
-
-			if (import.meta.env.MODE === 'mock') {
-				const scriptChannel = new BroadcastChannel(
-					'script-runner-mock'
-				);
-				scriptChannel.postMessage({
-					type: 'SCRIPT_TEXT',
-					text: this.state.text,
-					path: this.path,
-				});
-				scriptChannel.close();
+			if (data.active) {
+				state.execCount++;
+				state.output = [];
+				state.exitCode = null;
+				state.startedAt = new Date(data.startedAt);
+				state.endedAt = null;
+			} else {
+				state.endedAt = new Date(data.endedAt);
+				state.exitCode = data.exitCode;
 			}
-		};
+		});
+	};
 
-		this.#evSource.onerror = () => {
+	execute = async () => {
+		const result = await api.runScript(this.id);
+
+		if (!result.ok) {
+			this.appendOutputLine(result.error.message, true);
+			return false;
+		}
+
+		if (!result.value) {
 			if (import.meta.env.MODE === 'mock') {
 				this.appendOutputLine(
 					'No connection to Mock Service Worker',
 					true
 				);
 			}
-			this.setExecutionStatus('disconnected');
-			this.#evSource?.close();
-		};
+			return;
+		}
 
-		this.#evSource.onmessage = (event) => {
-			const data = JSON.parse(event.data) as RunScriptData;
-
-			if (data.isDone) {
-				this.#evSource?.close();
-
-				// TODO: numeric codes only, add exit code to state.result
-
-				const { code, isNumeric } = (() => {
-					const num =
-						typeof data.code === 'number' ? data.code : +data.code;
-					const isNumeric =
-						typeof data.code === 'number' ||
-						(!isNaN(num) && num.toString() === data.code);
-
-					return { isNumeric, code: isNumeric ? num : data.code };
-				})() as
-					| { isNumeric: true; code: number }
-					| { isNumeric: false; code: string };
-
-				if (!isNumeric) {
-					this.appendOutputLine(code, true);
-					this.setExecutionResult('fail');
-					return;
-				}
-
-				if (code !== 0) {
-					this.appendOutputLine(`Exit code: ${data.code}`, true);
-					this.setExecutionResult('fail');
-					return;
-				}
-
-				this.setExecutionResult('success');
-			} else {
-				this.appendOutputLine(data.line, data.isError);
-			}
-		};
+		if (import.meta.env.MODE === 'mock') {
+			const scriptChannel = new BroadcastChannel('script-runner-mock');
+			scriptChannel.postMessage({
+				type: 'SCRIPT_TEXT',
+				text: this.state.text,
+				path: '', // this.path
+			});
+			scriptChannel.close();
+		}
 	};
 
 	interruptExecution = () => {
-		this.#evSource?.close();
-		this.setExecutionResult('interrupt');
+		api.abortScript(this.id);
 	};
 }

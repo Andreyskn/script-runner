@@ -22,8 +22,8 @@ export const History: React.FC<HistoryProps> = (props) => {
 	} = archiveStore;
 
 	const entries = useSelector(
-		(state) => (active ? state.active : state.ended),
-		(set) => [...set].reverse()
+		(state) => (active ? state.active : state.archived),
+		(map) => [...map.values()].reverse()
 	);
 
 	useEffect(() => {

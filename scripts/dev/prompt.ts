@@ -9,12 +9,12 @@ import { signals, when } from './signals';
 
 const enum Choices {
 	Restart = 'Restart electron',
-	EnableAutoRestart = 'Enable auto-restart',
-	DisableAutoRestart = 'Disable auto-restart',
 	OpenInBrowser = 'Open in browser',
 	Exit = 'Exit',
 	OpenMainWindow = 'Open main window',
 	OpenSearchWindow = 'Open search window',
+	StopServer = 'Stop server',
+	StartServer = 'Start server',
 }
 
 let controller: AbortController | undefined;
@@ -48,11 +48,13 @@ export const prompt = {
 				{
 					message: '',
 					choices: [
+						flags.mode === 'web' &&
+							signals.shouldServerRun.value &&
+							Choices.StopServer,
+						flags.mode === 'web' &&
+							!signals.shouldServerRun.value &&
+							Choices.StartServer,
 						flags.mode === 'electron' && Choices.Restart,
-						flags.mode === 'electron' &&
-							(signals.autoRestartEnabled.value
-								? Choices.DisableAutoRestart
-								: Choices.EnableAutoRestart),
 						flags.mode !== 'electron' && Choices.OpenInBrowser,
 						flags.mode === 'electron' && Choices.OpenMainWindow,
 						flags.mode === 'electron' && Choices.OpenSearchWindow,
@@ -65,14 +67,6 @@ export const prompt = {
 			switch (selected) {
 				case Choices.Restart: {
 					cmd.electronStart();
-					break;
-				}
-				case Choices.EnableAutoRestart: {
-					signals.autoRestartEnabled.value = true;
-					break;
-				}
-				case Choices.DisableAutoRestart: {
-					signals.autoRestartEnabled.value = false;
 					break;
 				}
 				case Choices.OpenInBrowser: {
@@ -95,6 +89,16 @@ export const prompt = {
 					when(signals.electronRunning, true, () => {
 						ipc.electron.write('show-search');
 					});
+					break;
+				}
+				case Choices.StopServer: {
+					signals.shouldServerRun.value = false;
+					cmd.backendStop();
+					break;
+				}
+				case Choices.StartServer: {
+					signals.shouldServerRun.value = true;
+					cmd.backendDev();
 					break;
 				}
 				case Choices.Exit: {

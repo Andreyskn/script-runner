@@ -27,8 +27,9 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"],
-			"@electron/*": ["electron/src/*"]
+			"@electron/*": ["electron/src/*"],
+			"@server/*": ["server/src/*"]
 		}
 	},
-	"include": ["src", "scripts", "electron"]
+	"include": ["src", "scripts", "electron", "server", "global.d.ts"]
 }

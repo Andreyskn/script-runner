@@ -4,9 +4,9 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import Fuse from 'fuse.js';
 import { FileTextIcon, PlayIcon } from 'lucide-react';
 
-import { ipc } from '@/api';
+import { api, ipc } from '@/api';
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
-import { FilesStore } from '@/views/Scripts/stores/filesStore';
+import { filesStore } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Search.styles';
 
@@ -21,7 +21,7 @@ const NO_RESULTS: SearchOption[] = [
 	{
 		dir: '',
 		name: '',
-		value: '',
+		value: 'NO_RESULT',
 	},
 ];
 
@@ -38,30 +38,29 @@ export type SearchProps = {};
 export const Search: React.FC<SearchProps> = (props) => {
 	const {} = props;
 
-	const { useSelector, setSelectedScript } = FilesStore.use();
+	const { useSelector, setSelectedScript } = filesStore;
 
 	const { options, fuse } = useSelector(
 		(state) => state.files,
 		(files) => {
 			// TODO: sort options
 
-			const options: SearchOption[] = [...files]
-				.filter((path) => path.endsWith('.sh'))
-				.map((path) => {
+			const options: SearchOption[] = [...files.values()]
+				.filter(({ type }) => type === 'script')
+				.map(({ path, id, name }) => {
 					const segments = path.split('/');
-					const name = segments.at(-1)!;
 					const dir =
 						segments.length > 1
 							? segments.slice(0, -1).join('/')
 							: '';
 
-					return { name, dir, value: path };
+					return { name, dir, value: id };
 				});
 
 			const fuse = new Fuse(options, {
 				keys: [
 					{ name: 'name', weight: 0.9 },
-					{ name: 'value', weight: 0.1 },
+					{ name: 'dir', weight: 0.1 },
 				],
 				includeScore: true,
 				findAllMatches: true,
@@ -108,7 +107,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 	);
 
 	const renderOption = (option: SearchOption) => {
-		if (!option.value) {
+		if (option.value === 'NO_RESULT') {
 			return <div>No matching results</div>;
 		}
 
@@ -131,19 +130,21 @@ export const Search: React.FC<SearchProps> = (props) => {
 		}
 	};
 
-	const handleSelect = (path: string) => {
-		if (!path) {
+	const handleSelect = async (stringId: string) => {
+		const id = +stringId;
+
+		if (Number.isNaN(id)) {
 			return;
 		}
 
-		ipc.send.endSearch(path);
+		await api.endSearch(id);
 
-		setSelectedScript(path);
+		setSelectedScript(id);
 		dialogRef.current?.close();
 	};
 
-	const handleClose = () => {
-		ipc.send.endSearch();
+	const handleClose = async () => {
+		await api.endSearch();
 
 		const input = inputRef.current;
 		if (input) {

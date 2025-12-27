@@ -1,138 +1,133 @@
+import type { ClientFileData, FileId } from '@server/files';
+
+import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
-type ScriptPath = string;
+export type File = OmitType<ClientFileData, 'runningSince'> & {
+	name: string;
+	scriptStore: ScriptStore;
+};
 
 type State = {
-	files: Set<ScriptPath>;
-	selectedScript: ScriptStore | null;
+	files: Map<FileId, File>;
+	selectedScriptId: FileId | null;
 };
 
 export class FilesStore extends ComponentStore<State> {
 	state: State = {
-		selectedScript: null,
-		files: new Set(),
+		selectedScriptId: null,
+		files: new Map(),
 	};
-
-	#scripts = new Map<ScriptPath, ScriptStore>();
 
 	constructor() {
 		super();
 
-		(async () => {
-			const result = await fetch('http://localhost:3001/api/file/list');
-			const { files } = (await result.json()) as { files: string[] };
+		(api.getFilesList().then((result) => {
+			if (!result.ok) {
+				return;
+			}
 
 			this.setState((state) => {
-				files.forEach((f) => state.files.add(f));
+				result.value.forEach((file) =>
+					state.files.set(file.id, this.initFileData(file))
+				);
 			});
-		})();
+		}),
+			ws.subscribe('files-change', (payload) => {
+				if (payload.type === 'script-content') {
+					return;
+				}
+
+				this.setState((state) => {
+					switch (payload.type) {
+						case 'create': {
+							const { file } = payload;
+
+							state.files.set(file.id, this.initFileData(file));
+							break;
+						}
+						case 'delete': {
+							const { ids } = payload;
+
+							ids.forEach((id) => {
+								state.files.get(id)?.scriptStore.cleanup();
+								state.files.delete(id);
+							});
+							break;
+						}
+						case 'move': {
+							const { files } = payload;
+
+							files.forEach(({ id, path }) => {
+								const target = this.state.files.get(id);
+
+								if (target && target.path !== path) {
+									state.files.get(id)!.path = path;
+								}
+							});
+							break;
+						}
+					}
+				});
+			}));
 	}
 
-	moveFile = (oldPath: string, newPath: string) => {
-		const patches: ((state: State) => void)[] = [];
-
-		const enqueuePatch = (path: string) => {
-			patches.push((state) => {
-				const modifiedPath = path.replace(oldPath, newPath);
-
-				state.files.delete(path);
-				state.files.add(modifiedPath);
-
-				const script = this.#scripts.get(path);
-
-				if (script) {
-					script.setPath(modifiedPath);
-					this.#scripts.delete(path);
-					this.#scripts.set(modifiedPath, script);
-				}
-			});
+	initFileData = (file: ClientFileData): File => {
+		const fileData: File = {
+			id: file.id,
+			get name() {
+				return this.path.slice(this.path.lastIndexOf('/') + 1);
+			},
+			path: file.path,
+			type: file.type,
+			scriptStore: ScriptStore.init(file.id, file.runningSince),
 		};
 
-		if (oldPath.endsWith('.sh')) {
-			enqueuePatch(oldPath);
-		} else {
-			const pathWithSlash = oldPath + '/';
+		return fileData;
+	};
 
-			this.state.files.forEach((p) => {
-				if (p === oldPath || p.startsWith(pathWithSlash)) {
-					enqueuePatch(p);
-				}
-			});
+	moveFile = async (id: FileId, newPath: string) => {
+		this.setState((s) => {
+			s.files.get(id)!.path = newPath;
+		});
+
+		const result = await api.moveFile(id, newPath);
+
+		if (!result.ok) {
+			// TODO: handle error
 		}
-
-		this.setState((state) => {
-			patches.forEach((patch) => patch(state));
-		});
-
-		fetch(`http://localhost:3001/api/file/move`, {
-			method: 'POST',
-			body: JSON.stringify({ oldPath, newPath }),
-		});
 	};
 
 	createFile = async (path: string) => {
-		this.setState((state) => {
-			state.files.add(path);
-		});
-
-		await fetch(`http://localhost:3001/api/file`, {
-			method: 'POST',
-			body: JSON.stringify({ path }),
-		});
-
 		if (path.endsWith('.sh')) {
-			await this.setSelectedScript(path);
+			const result = await api.createScript(path);
+
+			if (!result.ok) {
+				return;
+			}
+
+			this.setSelectedScript(result.value.id);
+		} else {
+			await api.createFolder(path);
 		}
 	};
 
-	deleteFile = async (path: string, clientSideOnly?: boolean) => {
-		this.setState((state) => {
-			state.files.delete(path);
-			this.#scripts.delete(path);
+	deleteFile = async (id: FileId) => {
+		await api.deleteFile(id);
 
-			if (!path.endsWith('.sh')) {
-				const pathWithSlash = path + '/';
-
-				state.files.forEach((p) => {
-					if (p.startsWith(pathWithSlash)) {
-						state.files.delete(p);
-						this.#scripts.delete(p);
-					}
-				});
-			}
-
-			const { selectedScript } = this.state;
-
-			if (selectedScript && !this.#scripts.has(selectedScript.path)) {
-				state.selectedScript = null;
-			}
-		});
-
-		if (!clientSideOnly) {
-			await fetch(`http://localhost:3001/api/file`, {
-				method: 'DELETE',
-				body: JSON.stringify({ path }),
+		if (this.state.selectedScriptId === id) {
+			this.setState((state) => {
+				state.selectedScriptId = null;
 			});
 		}
 	};
 
-	getScript = async (path: ScriptPath) => {
-		if (this.#scripts.has(path)) {
-			return this.#scripts.get(path)!;
-		}
-
-		const script = ScriptStore.init(path);
-
-		this.#scripts.set(path, script);
-		return script;
-	};
-
-	setSelectedScript = async (path: ScriptPath) => {
-		const script = await this.getScript(path);
-
+	setSelectedScript = (id: FileId) => {
 		this.setState((state) => {
-			state.selectedScript = script;
+			state.selectedScriptId = id;
 		});
 	};
 }
+
+export const filesStore = FilesStore.init();

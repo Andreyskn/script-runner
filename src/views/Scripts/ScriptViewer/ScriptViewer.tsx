@@ -4,12 +4,12 @@ import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
 import { OutputSection } from '@/views/Scripts/ScriptViewer/Output';
 import { ScriptContent } from '@/views/Scripts/ScriptViewer/ScriptContent';
-import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
+import type { File } from '../stores/filesStore';
 import { cls } from './ScriptViewer.styles';
 
 export type ScriptViewerProps = {
-	script: ScriptStore;
+	script: File;
 };
 
 export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
@@ -17,7 +17,7 @@ export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
 
 	return (
 		<Section
-			key={script.path}
+			key={script.id}
 			header={<Header script={script} />}
 			className={cls.scriptViewer.block()}
 			contentClassName={cls.scriptViewer.content()}
@@ -29,7 +29,7 @@ export const ScriptViewer: React.FC<ScriptViewerProps> = (props) => {
 };
 
 type HeaderProps = {
-	script: ScriptStore;
+	script: File;
 };
 
 const Header: React.FC<HeaderProps> = (props) => {
@@ -38,10 +38,12 @@ const Header: React.FC<HeaderProps> = (props) => {
 	const {
 		name,
 		path,
-		selectors: { isEditing, executionStatus, modifiedText },
-		setEditing,
-		saveScriptText,
-		execute,
+		scriptStore: {
+			selectors: { isEditing, executionStatus, modifiedText },
+			setEditing,
+			saveScriptText,
+			execute,
+		},
 	} = script;
 
 	return (

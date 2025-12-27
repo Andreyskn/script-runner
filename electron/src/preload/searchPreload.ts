@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron/renderer';
+import { ipcRenderer } from 'electron/renderer';
 
 import { createWindowAPI, ELECTRON_API_NAME } from '../ipc';
 
@@ -8,7 +8,4 @@ const config = {
 	searchOnly: true,
 };
 
-contextBridge.exposeInMainWorld(
-	ELECTRON_API_NAME,
-	createWindowAPI(ipcRenderer, config)
-);
+(window as any)[ELECTRON_API_NAME] = createWindowAPI(ipcRenderer, config);

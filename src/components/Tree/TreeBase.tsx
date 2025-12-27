@@ -1,33 +1,12 @@
 import { File } from '@/components/Tree/File';
 import { Folder, type FolderProps } from '@/components/Tree/Folder';
 import { treeStore } from '@/components/Tree/treeStore';
-import type {
-	FolderNode,
-	TreeBaseProps,
-	TreeNode,
-} from '@/components/Tree/treeTypes';
-import { isMatchingPath } from '@/components/Tree/treeUtils';
+import type { FolderNode, TreeBaseProps } from '@/components/Tree/treeTypes';
+import { isMatchingPath, sortNodes } from '@/components/Tree/treeUtils';
 
 import { cls } from './Tree.styles';
 
-// TODO: handle deleted and moved folders
-let openFolders = new Set<FolderNode['id']>();
-
-const collator = new Intl.Collator('en', { numeric: true });
-
-const sortNodes = (nodes: TreeNode[]) => {
-	return nodes.toSorted((a, b) => {
-		if (a.type === b.type) {
-			return collator.compare(a.name, b.name);
-		}
-
-		if (a.type === 'file' && b.type === 'folder') {
-			return 1;
-		} else {
-			return -1;
-		}
-	});
-};
+const openFolders = new Set<FolderNode['id']>();
 
 export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 	let { nodes = [] } = props;
@@ -55,7 +34,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 	);
 
 	if (tmpNode) {
-		nodes = [...nodes, tmpNode];
+		nodes = sortNodes([...nodes, tmpNode]);
 	}
 
 	const handleFolderOpenToggle: FolderProps['onToggleOpen'] = (
@@ -71,8 +50,8 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 
 	return (
 		<div className={cls.tree.block({ highlighted, outlined })} ref={setRef}>
-			{sortNodes(nodes).map((n) => {
-				if (n.type === 'file') {
+			{nodes.map((n) => {
+				if (n.type === 'script') {
 					return (
 						<File
 							key={n.id}
