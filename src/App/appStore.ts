@@ -4,6 +4,8 @@ type State = {
 	view: 'scripts' | 'history' | 'active';
 };
 
+// TODO: add routing history
+
 class AppStore extends ComponentStore<State> {
 	state: State = {
 		view: 'scripts',

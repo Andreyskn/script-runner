@@ -64,14 +64,9 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 	} = filesStore;
 
 	const { nodes, byPath } = useSelector((state) => state.files, getNodes);
-	const { selectedScript } = useSelector(
+	const selectedScript = useSelector(
 		(state) => state.selectedScriptId,
-		(id) => {
-			return {
-				selectedScript:
-					typeof id === 'number' ? files.get(id) : undefined,
-			};
-		}
+		(id) => (typeof id === 'number' ? files.get(id) : undefined)
 	);
 
 	const byPathRef = useRef(byPath);

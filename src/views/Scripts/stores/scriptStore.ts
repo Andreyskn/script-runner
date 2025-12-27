@@ -162,8 +162,7 @@ export class ScriptStore extends ComponentStore<State> {
 
 	appendOutputLine = (text: string, isError: boolean) => {
 		this.setState((state) => {
-			// FIXME: state.array.push should lead to rerender
-			state.output = [...state.output, { isError, text }];
+			state.output.push({ isError, text });
 		});
 	};
 

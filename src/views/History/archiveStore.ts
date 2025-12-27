@@ -161,15 +161,13 @@ const createEntry = <T extends ExecStartData | ExecEndData>(
 		Object.defineProperties(entry, {
 			path: {
 				get() {
+					// FIXME: this updates during render only
 					return filesStore.useSelector(
 						(s) => s.files,
 						(files) => {
 							const file = files.get(fileId);
 
 							if (!file) {
-								// @ts-ignore
-								delete entry.path;
-								entry.path = lastKnownPath;
 								return lastKnownPath;
 							}
 
