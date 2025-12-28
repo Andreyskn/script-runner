@@ -17,6 +17,7 @@ switch (flags.mode) {
 		break;
 	}
 	case 'web': {
+		ipc.init();
 		cmd.backendDev();
 		cmd.viteDev();
 		break;
@@ -34,7 +35,7 @@ switch (flags.mode) {
 }
 
 process.on('exit', () => {
-	ipc.electron.write('quit');
+	ipc.send('quit');
 	cleanup();
 	Bun.spawnSync(['reset']);
 });

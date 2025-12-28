@@ -1,21 +1,19 @@
 import { TriangleAlertIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
-import { dialog } from '@/components/Dialog/Dialog';
 import type { TreeNode } from '@/components/Tree';
 
+import { dialog } from '../dialogApi';
 import { cls } from './ReplaceConfirmDialog.styles';
 
-export const showReplaceConfirmDialog = (props: ReplaceConfirmDialogProps) => {
-	return dialog.open<boolean>(<ReplaceConfirmDialog {...props} />);
-};
-
-type ReplaceConfirmDialogProps = {
+export type ReplaceConfirmDialogProps = {
 	type: TreeNode['type'];
 	name: string;
 };
 
-const ReplaceConfirmDialog: React.FC<ReplaceConfirmDialogProps> = (props) => {
+export const ReplaceConfirmDialog: React.FC<ReplaceConfirmDialogProps> = (
+	props
+) => {
 	const { name, type } = props;
 	const isScript = type === 'script';
 

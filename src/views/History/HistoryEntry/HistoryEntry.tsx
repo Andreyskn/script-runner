@@ -35,7 +35,7 @@ export type HistoryEntryProps = {
 
 export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 	const { entry, lastUnseen } = props;
-	const { active, execId, fileId, name, path, startedAt } = entry;
+	const { active, fileId, startedAt } = entry;
 
 	const { setSelectedScript } = filesStore;
 

@@ -2,58 +2,61 @@ import { useEffect, useRef, useState } from 'react';
 
 import EventEmitter from 'eventemitter3';
 
-// TODO: consider using constructor instead of init/use static methods
-// TODO: allow subscribing to updates outside of react components
+import { useUpdate } from './useUpdate';
 
 export abstract class ComponentStore<S extends Record<string, unknown>> {
-	private static store: InstanceType<any> | undefined;
+	abstract state: S;
 
-	public static init<T extends new (...args: any) => any>(
-		this: T,
-		...args: ConstructorParameters<T>
-	) {
-		const staticProps = this as any as typeof ComponentStore & T;
-		const instance = new this(...args) as InstanceType<
-			typeof ComponentStore
-		>;
-		staticProps.store = instance;
-		const { state, selectors, useSelector } = instance;
+	private initializedSelectors: S | undefined;
+
+	public get selectors(): S {
+		if (this.initializedSelectors) {
+			return this.initializedSelectors;
+		}
+
+		const { state, useSelector } = this;
+		const selectors = {} as S;
 
 		Object.keys(state).forEach((key) => {
 			Object.defineProperty(selectors, key, {
 				get: function () {
-					return useSelector((state: any) => state[key]);
+					return useSelector((state: S) => state[key]);
 				},
 			});
 		});
 
-		return instance as InstanceType<T>;
+		return (this.initializedSelectors = selectors);
 	}
-
-	public static useInit<T extends new (...args: any) => any>(
-		this: T,
-		...args: ConstructorParameters<T>
-	) {
-		return useState(() => {
-			return (this as any as typeof ComponentStore & T).init(...args);
-		})[0];
-	}
-
-	public static use<T extends new (...args: any) => any>(this: T) {
-		const self = this as any as typeof ComponentStore & T;
-
-		if (self.store) {
-			return useState(() => self.store)[0] as InstanceType<T>;
-		}
-
-		return self.useInit(...([] as any));
-	}
-
-	abstract state: S;
-
-	public selectors: S = {} as S;
 
 	private ee = new EventEmitter<string>();
+
+	public subscribe = <T extends (state: Readonly<S>) => any>(
+		select: T,
+		onChange: (state: ReturnType<T>) => void,
+		initialOnChange?: boolean
+	) => {
+		const paths: string[] = [];
+		select(newProxy(this.state, paths));
+		const pathSet = new Set(paths);
+
+		const listener = () => {
+			onChange(select(this.state));
+		};
+
+		for (const p of pathSet) {
+			this.ee.on(p, listener);
+		}
+
+		if (initialOnChange) {
+			listener();
+		}
+
+		return () => {
+			for (const p of pathSet) {
+				this.ee.off(p, listener);
+			}
+		};
+	};
 
 	protected setState = (update: (state: S) => void) => {
 		const paths: string[] = [];
@@ -68,44 +71,30 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 		select: (state: Readonly<S>) => D,
 		process?: (selected: D) => T
 	) => {
-		const paths = useRef<string[]>([]);
+		const { update } = useUpdate();
 
-		const selectAndProcess = (): any => {
-			const data = select(this.state);
-			const result = process ? process(data) : data;
+		const processRef = useRef(process);
+		processRef.current = process;
 
-			if (!!result && Array.isArray(result)) {
-				return [...result];
-			}
-
-			return result;
-		};
-
-		const [data, setData] = useState<T>(() => {
-			select(newProxy(this.state, paths.current));
-			return selectAndProcess();
-		});
+		const result = useRef<T>(null as any);
 
 		const [cleanup] = useState(() => {
-			const pathSet = new Set(paths.current);
-			const listener = () => {
-				setData(selectAndProcess());
-			};
-
-			for (const p of pathSet) {
-				this.ee.on(p, listener);
-			}
-
-			return () => {
-				for (const p of pathSet) {
-					this.ee.off(p, listener);
-				}
-			};
+			return this.subscribe(
+				select,
+				(data) => {
+					// @ts-ignore
+					result.current = processRef.current
+						? processRef.current(data)
+						: data;
+					update();
+				},
+				true
+			);
 		});
 
 		useEffect(() => cleanup, []);
 
-		return data;
+		return result.current;
 	};
 }
 

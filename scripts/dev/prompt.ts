@@ -78,7 +78,7 @@ export const prompt = {
 						cmd.electronStart();
 					}
 					when(signals.electronRunning, true, () => {
-						ipc.electron.write('show-main');
+						ipc.send('show-main');
 					});
 					break;
 				}
@@ -87,7 +87,7 @@ export const prompt = {
 						cmd.electronStart();
 					}
 					when(signals.electronRunning, true, () => {
-						ipc.electron.write('show-search');
+						ipc.send('show-search');
 					});
 					break;
 				}

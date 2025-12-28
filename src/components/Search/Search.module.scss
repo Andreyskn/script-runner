@@ -39,20 +39,13 @@
 .option {
 	display: grid;
 	grid-template:
-		'icon name play' auto
-		'icon dir play' auto
-		/ auto 1fr auto;
+		'icon name dir play' auto
+		/ auto auto 1fr auto;
 	column-gap: 8px;
 	align-items: center;
 
 	width: 100%;
 	padding: 6px 0;
-
-	&--compact {
-		grid-template:
-			'icon name dir play' auto
-			/ auto auto 1fr auto;
-	}
 
 	&__icon {
 		grid-area: icon;
@@ -75,10 +68,5 @@
 		color: hsl(var(--muted-foreground));
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	&__play {
-		grid-area: play;
-		color: hsl(var(--primary));
 	}
 }

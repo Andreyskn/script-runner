@@ -23,7 +23,7 @@ export class FilesStore extends ComponentStore<State> {
 	constructor() {
 		super();
 
-		(api.getFilesList().then((result) => {
+		api.getFilesList().then((result) => {
 			if (!result.ok) {
 				return;
 			}
@@ -33,44 +33,45 @@ export class FilesStore extends ComponentStore<State> {
 					state.files.set(file.id, this.initFileData(file))
 				);
 			});
-		}),
-			ws.subscribe('files-change', (payload) => {
-				if (payload.type === 'script-content') {
-					return;
-				}
+		});
 
-				this.setState((state) => {
-					switch (payload.type) {
-						case 'create': {
-							const { file } = payload;
+		ws.subscribe('files-change', (payload) => {
+			if (payload.type === 'script-content') {
+				return;
+			}
 
-							state.files.set(file.id, this.initFileData(file));
-							break;
-						}
-						case 'delete': {
-							const { ids } = payload;
+			this.setState((state) => {
+				switch (payload.type) {
+					case 'create': {
+						const { file } = payload;
 
-							ids.forEach((id) => {
-								state.files.get(id)?.scriptStore.cleanup();
-								state.files.delete(id);
-							});
-							break;
-						}
-						case 'move': {
-							const { files } = payload;
-
-							files.forEach(({ id, path }) => {
-								const target = this.state.files.get(id);
-
-								if (target && target.path !== path) {
-									state.files.get(id)!.path = path;
-								}
-							});
-							break;
-						}
+						state.files.set(file.id, this.initFileData(file));
+						break;
 					}
-				});
-			}));
+					case 'delete': {
+						const { ids } = payload;
+
+						ids.forEach((id) => {
+							state.files.get(id)?.scriptStore.cleanup();
+							state.files.delete(id);
+						});
+						break;
+					}
+					case 'move': {
+						const { files } = payload;
+
+						files.forEach(({ id, path }) => {
+							const target = this.state.files.get(id);
+
+							if (target && target.path !== path) {
+								state.files.get(id)!.path = path;
+							}
+						});
+						break;
+					}
+				}
+			});
+		});
 	}
 
 	initFileData = (file: ClientFileData): File => {
@@ -81,7 +82,7 @@ export class FilesStore extends ComponentStore<State> {
 			},
 			path: file.path,
 			type: file.type,
-			scriptStore: ScriptStore.init(file.id, file.runningSince),
+			scriptStore: new ScriptStore(file.id, file.runningSince),
 		};
 
 		return fileData;
@@ -130,4 +131,4 @@ export class FilesStore extends ComponentStore<State> {
 	};
 }
 
-export const filesStore = FilesStore.init();
+export const filesStore = new FilesStore();

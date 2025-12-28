@@ -18,4 +18,4 @@ class AppStore extends ComponentStore<State> {
 	};
 }
 
-export const appStore = AppStore.init();
+export const appStore = new AppStore();

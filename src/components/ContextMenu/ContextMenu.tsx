@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Button, type ButtonProps } from '@/components/Button';
-import { ComponentStore } from '@/utils';
 
 import { cls } from './ContextMenu.styles';
+import { contextMenu, contextMenuStore } from './contextMenuApi';
 
 declare module 'react' {
 	interface CSSProperties {
@@ -23,44 +23,6 @@ export type ContextMenuItem = Pick<
 	ButtonProps,
 	'icon' | 'text' | 'onClick' | 'color'
 >;
-
-export const useContextMenu = <T extends HTMLElement>(
-	getContent: () => ContextMenuItem[]
-) => {
-	const contextMenuTrigger = useRef<T>(null);
-
-	useEffect(() => {
-		contextMenu.register({
-			elementRef: contextMenuTrigger,
-			getContent,
-		});
-	}, []);
-
-	const isContextMenuOpen = store.useSelector(
-		(state) => state.activeElement,
-		(el) => {
-			return (
-				!!contextMenuTrigger.current &&
-				el === contextMenuTrigger.current
-			);
-		}
-	);
-
-	return { contextMenuTrigger, isContextMenuOpen };
-};
-
-type RegisterData = {
-	elementRef: ElementRef;
-	getContent: () => ContextMenuItem[];
-};
-
-type ContextMenuAPI = {
-	register: (data: RegisterData) => void;
-};
-
-export const contextMenu: ContextMenuAPI = {
-	register: () => {},
-};
 
 type PositionX = number;
 type PositionY = number;
@@ -89,7 +51,7 @@ export const ContextMenu: React.FC = () => {
 					setMenuItems(data.getContent());
 
 					menu.current?.showPopover();
-					store.setActive(data.elementRef.current);
+					contextMenuStore.setActive(data.elementRef.current);
 				}
 			});
 		};
@@ -98,7 +60,7 @@ export const ContextMenu: React.FC = () => {
 			ev.stopImmediatePropagation();
 
 			if (ev.newState === 'closed') {
-				store.setActive(null);
+				contextMenuStore.setActive(null);
 			}
 		});
 	}, []);
@@ -132,21 +94,3 @@ export const ContextMenu: React.FC = () => {
 		</>
 	);
 };
-
-type ContextMenuState = {
-	activeElement: HTMLElement | null;
-};
-
-class ContextMenuStore extends ComponentStore<ContextMenuState> {
-	state: ContextMenuState = {
-		activeElement: null,
-	};
-
-	setActive = (ref: HTMLElement | null) => {
-		this.setState((state) => {
-			state.activeElement = ref;
-		});
-	};
-}
-
-const store = ContextMenuStore.init();

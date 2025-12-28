@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 
-import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog';
-import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog';
+import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog/dialogApi';
+import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog/dialogApi';
 import { Section } from '@/components/Section';
 import {
 	Tree,
@@ -51,22 +51,14 @@ const getNodes = (files: FilesStore['state']['files']) => {
 
 export type ScriptsProps = {};
 
-export const Scripts: React.FC<ScriptsProps> = (props) => {
-	const {} = props;
-
-	const {
-		selectors: { files },
-		setSelectedScript,
-		moveFile,
-		createFile,
-		deleteFile,
-		useSelector,
-	} = filesStore;
+export const Scripts: React.FC<ScriptsProps> = () => {
+	const { setSelectedScript, moveFile, createFile, deleteFile, useSelector } =
+		filesStore;
 
 	const { nodes, byPath } = useSelector((state) => state.files, getNodes);
 	const selectedScript = useSelector(
-		(state) => state.selectedScriptId,
-		(id) => (typeof id === 'number' ? files.get(id) : undefined)
+		(state) => [state.selectedScriptId, state.files] as const,
+		([id, files]) => (typeof id === 'number' ? files.get(id) : undefined)
 	);
 
 	const byPathRef = useRef(byPath);
@@ -91,6 +83,10 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				newName = `${newName}.sh`;
 			}
 
+			if (node.name === newName) {
+				return;
+			}
+
 			const path = node.path.toSpliced(-1, 1, newName).join('/');
 
 			if (byPathRef.current.has(path)) {
@@ -109,7 +105,12 @@ export const Scripts: React.FC<ScriptsProps> = (props) => {
 				newName = `${newName}.sh`;
 			}
 
-			moveFile(node.id, node.path.toSpliced(-1, 1, newName).join('/'));
+			if (node.name !== newName) {
+				moveFile(
+					node.id,
+					node.path.toSpliced(-1, 1, newName).join('/')
+				);
+			}
 		},
 	};
 

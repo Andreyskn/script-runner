@@ -17,4 +17,4 @@ class TreeStore extends ComponentStore<State> {
 	};
 }
 
-export const treeStore = TreeStore.init();
+export const treeStore = new TreeStore();

@@ -1,18 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { cls } from './Dialog.styles';
-
-type DialogAPI = {
-	open: <T>(content: React.ReactNode) => Promise<T | undefined>;
-	close: () => void;
-	resolve: <T>(data: T) => void;
-};
-
-export const dialog: DialogAPI = {
-	open: () => null as any,
-	close: () => null as any,
-	resolve: () => null as any,
-};
+import { dialog, type DialogAPI } from './dialogApi';
 
 export const Dialog: React.FC = () => {
 	const [content, setContent] = useState<React.ReactNode>(null);

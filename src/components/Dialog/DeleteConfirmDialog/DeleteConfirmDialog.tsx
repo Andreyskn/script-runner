@@ -1,20 +1,18 @@
 import { Trash2Icon, TriangleAlertIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
-import { dialog } from '@/components/Dialog/Dialog';
 import type { TreeNodeWithPath } from '@/components/Tree';
 
+import { dialog } from '../dialogApi';
 import { cls } from './DeleteConfirmDialog.styles';
 
-export const showDeleteConfirmDialog = (node: TreeNodeWithPath) => {
-	return dialog.open<boolean>(<DeleteConfirmDialog node={node} />);
-};
-
-type DeleteConfirmDialogProps = {
+export type DeleteConfirmDialogProps = {
 	node: TreeNodeWithPath;
 };
 
-const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = (props) => {
+export const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = (
+	props
+) => {
 	const { node } = props;
 	const isScript = node.type === 'script';
 

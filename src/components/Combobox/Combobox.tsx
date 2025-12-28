@@ -79,10 +79,9 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 					} catch (error) {}
 				}}
 				onKeyDown={(ev) => {
-					// TODO: https://www.npmjs.com/package/ts-key-enum
-					const navKeys: string[] = ['ArrowDown', 'ArrowUp', 'Tab'];
+					const navKeys: Key[] = ['ArrowDown', 'ArrowUp', 'Tab'];
 
-					if (navKeys.includes(ev.key)) {
+					if (navKeys.includes(ev.key as Key)) {
 						ev.preventDefault();
 						key.current++;
 						update();
@@ -100,18 +99,17 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 				className={cls.combobox.select(null, selectClassName)}
 				onSelect={onSelect}
 				onKeyDown={(ev) => {
-					if (ev.key.length === 1) {
+					const key = ev.key as Key;
+
+					if (key.length === 1) {
 						inputRef.current?.focus();
-					} else if (ev.key === 'Tab') {
+					} else if (key === 'Tab') {
 						ev.preventDefault();
 						ev.stopPropagation();
 						inputRef.current?.focus();
-					} else if (
-						ev.key === 'ArrowRight' ||
-						ev.key === 'ArrowLeft'
-					) {
+					} else if (key === 'ArrowRight' || key === 'ArrowLeft') {
 						ev.preventDefault();
-					} else if (ev.key === 'Enter') {
+					} else if (key === 'Enter') {
 						ev.preventDefault();
 						onSelect?.((ev.target as any).value);
 					}

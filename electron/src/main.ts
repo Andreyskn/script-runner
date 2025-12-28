@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu, Tray } from 'electron';
 import isDev from 'electron-is-dev';
 import net from 'net';
 
-import type { ElectronSocketMessage } from '../../scripts/dev/ipc';
+import type { DevSocketMessage } from '../../scripts/dev/ipc';
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
@@ -11,7 +11,7 @@ app.commandLine.appendSwitch('log-level', '3');
 
 if (isDev) {
 	net.createConnection('\0script-runner-dev.sock').on('data', (data) => {
-		switch (data.toString() as ElectronSocketMessage) {
+		switch (data.toString() as DevSocketMessage) {
 			case 'refresh': {
 				BrowserWindow.getAllWindows().forEach((win) => win.reload());
 				console.log('Windows refreshed');

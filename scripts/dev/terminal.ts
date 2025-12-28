@@ -1,6 +1,7 @@
 import type { SpawnOptions, Subprocess } from 'bun';
 import { parse } from 'shell-quote';
 
+import { ipc } from './ipc';
 import { prompt } from './prompt';
 
 export const print = (id: string, text: string) => {
@@ -51,7 +52,15 @@ export const spawn = (
 			while (true) {
 				const { value, done } = await reader.read();
 				if (done) break;
-				print(id, decoder.decode(value));
+
+				const text = decoder.decode(value);
+
+				if (id === 'vite' && text.includes('Could not Fast Refresh')) {
+					ipc.debounceSend('refresh');
+					continue;
+				}
+
+				print(id, text);
 			}
 		} finally {
 			reader.releaseLock();

@@ -34,7 +34,7 @@ export const cmd = {
 							onExit: (_, code) => {
 								if (code === 0) {
 									buildingProc = null;
-									ipc.electron.write('refresh');
+									ipc.send('refresh');
 								}
 							},
 						}
@@ -57,7 +57,7 @@ export const cmd = {
 
 		signals.electronStarting.value = true;
 
-		ipc.electron.write('quit');
+		ipc.send('quit');
 
 		when(signals.electronRunning, false, () => {
 			spawn('electron', 'electron --trace-warnings .');

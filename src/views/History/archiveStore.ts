@@ -113,7 +113,7 @@ class ArchiveStore extends ComponentStore<State> {
 	};
 }
 
-export const archiveStore = ArchiveStore.init();
+export const archiveStore = new ArchiveStore();
 
 const createEntry = <T extends ExecStartData | ExecEndData>(
 	data: T
@@ -158,22 +158,22 @@ const createEntry = <T extends ExecStartData | ExecEndData>(
 	if (scriptExists) {
 		let lastKnownPath = path;
 
+		filesStore.subscribe(
+			(s) => s.files,
+			(files) => {
+				const file = files.get(fileId);
+				if (file) {
+					lastKnownPath = file.path;
+				}
+			}
+		);
+
 		Object.defineProperties(entry, {
 			path: {
 				get() {
-					// FIXME: this updates during render only
 					return filesStore.useSelector(
 						(s) => s.files,
-						(files) => {
-							const file = files.get(fileId);
-
-							if (!file) {
-								return lastKnownPath;
-							}
-
-							lastKnownPath = file.path;
-							return file.path;
-						}
+						() => lastKnownPath
 					);
 				},
 			},

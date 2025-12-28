@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import Fuse from 'fuse.js';
-import { FileTextIcon, PlayIcon } from 'lucide-react';
+import { FileTextIcon } from 'lucide-react';
 
+import { appStore } from '@/App/appStore';
 import { api, ipc } from '@/api';
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
 import { filesStore } from '@/views/Scripts/stores/filesStore';
 
 import { cls } from './Search.styles';
+import { search, type SearchAPI } from './searchApi';
 
 // TODO: highlight matching characters
 
@@ -25,19 +27,9 @@ const NO_RESULTS: SearchOption[] = [
 	},
 ];
 
-type SearchAPI = {
-	show: () => void;
-};
-
-export const search: SearchAPI = {
-	show: () => null as any,
-};
-
 export type SearchProps = {};
 
-export const Search: React.FC<SearchProps> = (props) => {
-	const {} = props;
-
+export const Search: React.FC<SearchProps> = () => {
 	const { useSelector, setSelectedScript } = filesStore;
 
 	const { options, fuse } = useSelector(
@@ -112,11 +104,10 @@ export const Search: React.FC<SearchProps> = (props) => {
 		}
 
 		return (
-			<div className={cls.option.block({ compact: true })}>
+			<div className={cls.option.block()}>
 				<FileTextIcon size={16} className={cls.option.icon()} />
 				<div className={cls.option.name()}>{option.name}</div>
 				<div className={cls.option.dir()}>{option.dir}</div>
-				{false && <PlayIcon size={16} className={cls.option.play()} />}
 			</div>
 		);
 	};
@@ -140,6 +131,7 @@ export const Search: React.FC<SearchProps> = (props) => {
 		await api.endSearch(id);
 
 		setSelectedScript(id);
+		appStore.setView('scripts'); // FIXME: wrong sidebar item gets highlighted
 		dialogRef.current?.close();
 	};
 

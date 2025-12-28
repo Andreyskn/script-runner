@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import {
 	ChevronRightIcon,
@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 
 import { useContextMenu } from '@/components/ContextMenu';
-import { useNameEditor } from '@/components/Tree/NameEditor';
 import type {
 	FolderNodeWithPath,
 	TreeDragData,
@@ -20,6 +19,7 @@ import type {
 } from '@/components/Tree/treeTypes';
 import { useDnD } from '@/utils';
 
+import { useNameEditor } from '../NameEditor/nameEditorSession';
 import { cls } from './Folder.styles';
 
 export type FolderProps = {
@@ -49,7 +49,8 @@ export const Folder: React.FC<FolderProps> = (props) => {
 
 	const [isOpen, setIsOpen] = useState(false);
 
-	const node: FolderNodeWithPath = {
+	const node = useRef<FolderNodeWithPath>(null as any);
+	node.current = {
 		id,
 		name,
 		path,
@@ -57,7 +58,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 	};
 
 	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor(
-		node,
+		() => node.current,
 		renameOnMount
 	);
 
@@ -67,7 +68,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			text: 'New Script',
 			onClick: () => {
 				setIsOpen(true);
-				onCreate('script', node);
+				onCreate('script', node.current);
 			},
 		},
 		{
@@ -75,19 +76,19 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			text: 'New Folder',
 			onClick: () => {
 				setIsOpen(true);
-				onCreate('folder', node);
+				onCreate('folder', node.current);
 			},
 		},
 		{
 			icon: <PenSquareIcon />,
 			text: 'Rename Folder',
-			onClick: () => showNameEditor.current(),
+			onClick: showNameEditor,
 		},
 		{
 			icon: <Trash2Icon />,
 			text: 'Delete Folder',
 			color: 'red',
-			onClick: () => onDelete?.(node),
+			onClick: () => onDelete?.(node.current),
 		},
 	]);
 
@@ -95,8 +96,10 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		TreeDragData,
 		TreeDropData
 	>();
-	const { draggable } = useDraggable(() => node);
-	const { dropTarget, hasDragOver, hasLongHover } = useDropTarget(() => node);
+	const { draggable } = useDraggable(() => node.current);
+	const { dropTarget, hasDragOver, hasLongHover } = useDropTarget(
+		() => node.current
+	);
 
 	useLayoutEffect(() => {
 		if (open) {

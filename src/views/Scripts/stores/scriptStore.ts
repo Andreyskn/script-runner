@@ -5,9 +5,7 @@ import type { ExecData } from '@server/runner';
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
 
-// TODO: move 'disconnected' status to appStore
-// use websocket events to determine server availability
-export type ExecutionStatus = 'idle' | 'disconnected' | 'running' | 'ended';
+export type ExecutionStatus = 'idle' | 'running' | 'ended';
 
 export type OutputLine = { text: string; isError: boolean };
 

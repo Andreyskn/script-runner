@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { TreeNodeWithPath } from '@/components/Tree/treeTypes';
-import { ComponentStore } from '@/utils';
 
 import { cls } from './NameEditor.styles';
+import { nameEditorSession } from './nameEditorSession';
 
 type RenameInitialData = {
 	text?: string;
@@ -48,12 +48,12 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		popover.current?.addEventListener('beforetoggle', (ev) => {
 			ev.stopImmediatePropagation();
 
-			const { state } = session;
+			const { state } = nameEditorSession;
 
 			if (ev.newState === 'closed') {
-				if (state.status !== SessionStatus.Confirmed) {
+				if (state.status !== 'confirmed') {
 					onRename?.cancel?.(state.activeNode!);
-					session.setStatus(SessionStatus.Cancelled);
+					nameEditorSession.setStatus('cancelled');
 				}
 				return;
 			}
@@ -72,14 +72,11 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		popover.current?.addEventListener('toggle', (ev) => {
 			ev.stopImmediatePropagation();
 
-			const { state } = session;
+			const { state } = nameEditorSession;
 			// closed
 
-			if (
-				state.status === SessionStatus.Confirmed ||
-				state.status === SessionStatus.Cancelled
-			) {
-				session.toggle(null);
+			if (state.status === 'confirmed' || state.status === 'cancelled') {
+				nameEditorSession.toggle(null);
 				setError(null);
 				setHint(null);
 				return;
@@ -95,7 +92,9 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 		});
 	}, []);
 
-	const activeNode = session.useSelector((state) => state.activeNode);
+	const activeNode = nameEditorSession.useSelector(
+		(state) => state.activeNode
+	);
 	const shouldShowEditor = !!activeNode;
 
 	useEffect(() => {
@@ -107,19 +106,19 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 	const handleSubmit: React.FormEventHandler<HTMLFormElement> = (ev) => {
 		ev.preventDefault();
 
-		const { state } = session;
+		const { state } = nameEditorSession;
 
 		if (error || !state.activeNode || !input.current?.value) {
 			return;
 		}
 
 		onRename?.confirm?.(state.activeNode, input.current.value);
-		session.setStatus(SessionStatus.Confirmed);
+		nameEditorSession.setStatus('confirmed');
 		popover.current?.hidePopover();
 	};
 
 	const handleChange: React.ChangeEventHandler<HTMLInputElement> = (ev) => {
-		const { state } = session;
+		const { state } = nameEditorSession;
 		const result = onRename?.change?.(state.activeNode!, ev.target.value);
 		setHint(result?.hint);
 		setError(result?.error);
@@ -147,71 +146,4 @@ export const NameEditor: React.FC<NameEditorProps> = (props) => {
 			{hint}
 		</form>
 	);
-};
-
-const enum SessionStatus {
-	Inactive,
-	Active,
-	Confirmed,
-	Cancelled,
-}
-
-type State = {
-	activeNode: TreeNodeWithPath | null;
-	status: SessionStatus;
-};
-
-class RenamingSession extends ComponentStore<State> {
-	state: State = {
-		activeNode: null,
-		status: SessionStatus.Inactive,
-	};
-
-	toggle = (node: TreeNodeWithPath | null) => {
-		this.setState((state) => {
-			if (node) {
-				state.status = SessionStatus.Active;
-			} else {
-				state.status = SessionStatus.Inactive;
-			}
-
-			state.activeNode = node;
-		});
-	};
-
-	setStatus = (status: SessionStatus) => {
-		this.setState((state) => {
-			state.status = status;
-		});
-	};
-}
-
-const session = RenamingSession.init();
-
-const NameEditorAnchor: React.FC = () => {
-	return <div className={cls.anchor.block()} />;
-};
-
-export const useNameEditor = (
-	node: TreeNodeWithPath,
-	renameOnMount?: boolean
-) => {
-	const showNameEditor = () => {
-		session.toggle(node);
-	};
-	const showNameEditorRef = useRef(showNameEditor);
-	showNameEditorRef.current = showNameEditor;
-
-	useLayoutEffect(() => {
-		if (renameOnMount) {
-			showNameEditor();
-		}
-	}, []);
-
-	const isRenaming = session.useSelector(
-		(state) => state.activeNode,
-		(activeNode) => activeNode?.id === node.id
-	);
-
-	return { showNameEditor: showNameEditorRef, isRenaming, NameEditorAnchor };
 };

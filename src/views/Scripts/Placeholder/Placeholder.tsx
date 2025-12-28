@@ -4,9 +4,7 @@ import { cls } from './Placeholder.styles';
 
 export type PlaceholderProps = {};
 
-export const Placeholder: React.FC<PlaceholderProps> = (props) => {
-	const {} = props;
-
+export const Placeholder: React.FC<PlaceholderProps> = () => {
 	return (
 		<div className={cls.placeholder.block()}>
 			<div className={cls.placeholder.content()}>

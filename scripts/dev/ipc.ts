@@ -1,17 +1,12 @@
+import { debounce } from 'lodash';
 import net from 'net';
 
 import { signals } from './signals';
 import { print } from './terminal';
 
-export type ElectronSocketMessage =
-	| 'refresh'
-	| 'quit'
-	| 'show-main'
-	| 'show-search';
+export type DevSocketMessage = 'refresh' | 'quit' | 'show-main' | 'show-search';
 
-type ElectronSocket = {
-	write: (msg: ElectronSocketMessage) => void;
-};
+type DevSocketSend = (msg: DevSocketMessage) => void;
 
 const noopProxy = new Proxy(
 	{},
@@ -25,17 +20,18 @@ const noopProxy = new Proxy(
 ) as any;
 
 export const ipc = {
-	electron: noopProxy as ElectronSocket,
+	send: noopProxy as DevSocketSend,
+	debounceSend: debounce((m: DevSocketMessage) => ipc.send(m), 100),
 	init: () => {
 		net.createServer((socket) => {
-			ipc.electron = socket;
+			ipc.send = socket.write.bind(socket);
 			signals.electronRunning.value = true;
-			print('electron', 'Started...');
+			print('dev', 'IPC connected');
 
 			socket.on('close', () => {
-				ipc.electron = noopProxy;
+				ipc.send = noopProxy;
 				signals.electronRunning.value = false;
-				print('electron', 'Stopped');
+				print('dev', 'IPC disconnected');
 			});
 		}).listen('\0script-runner-dev.sock');
 	},

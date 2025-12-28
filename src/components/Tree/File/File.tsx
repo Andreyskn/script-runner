@@ -1,7 +1,8 @@
+import { useRef } from 'react';
+
 import { FileTextIcon, PenSquareIcon, Trash2Icon } from 'lucide-react';
 
 import { useContextMenu } from '@/components/ContextMenu';
-import { useNameEditor } from '@/components/Tree/NameEditor';
 import type {
 	FileNodeWithPath,
 	TreeDragData,
@@ -10,6 +11,7 @@ import type {
 } from '@/components/Tree/treeTypes';
 import { useDnD } from '@/utils';
 
+import { useNameEditor } from '../NameEditor/nameEditorSession';
 import { cls } from './File.styles';
 
 export type FileProps = {
@@ -25,7 +27,8 @@ export type FileProps = {
 export const File: React.FC<FileProps> = (props) => {
 	const { name, open, onSelect, id, path, renameOnMount, onDelete } = props;
 
-	const node: FileNodeWithPath = {
+	const node = useRef<FileNodeWithPath>(null as any);
+	node.current = {
 		id,
 		name,
 		path,
@@ -33,7 +36,7 @@ export const File: React.FC<FileProps> = (props) => {
 	};
 
 	const { NameEditorAnchor, isRenaming, showNameEditor } = useNameEditor(
-		node,
+		() => node.current,
 		renameOnMount
 	);
 
@@ -41,18 +44,18 @@ export const File: React.FC<FileProps> = (props) => {
 		{
 			icon: <PenSquareIcon />,
 			text: 'Rename Script',
-			onClick: () => showNameEditor.current(),
+			onClick: showNameEditor,
 		},
 		{
 			icon: <Trash2Icon />,
 			text: 'Delete Script',
 			color: 'red',
-			onClick: () => onDelete?.(node),
+			onClick: () => onDelete?.(node.current),
 		},
 	]);
 
 	const { useDraggable } = useDnD<TreeDragData, TreeDropData>();
-	const { draggable } = useDraggable(() => node);
+	const { draggable } = useDraggable(() => node.current);
 
 	return (
 		<div

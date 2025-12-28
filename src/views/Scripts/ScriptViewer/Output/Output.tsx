@@ -95,7 +95,9 @@ export const Output: React.FC<OutputProps> = (props) => {
 	}
 
 	useEffect(() => {
-		!autoScrollDisabled && lastLine.current?.scrollIntoView();
+		if (!autoScrollDisabled) {
+			lastLine.current?.scrollIntoView();
+		}
 	});
 
 	const result = (() => {
@@ -135,12 +137,6 @@ export const Output: React.FC<OutputProps> = (props) => {
 					{line.text}
 				</div>
 			))}
-
-			{status === 'disconnected' && (
-				<div className={cls.output.line({ error: true })}>
-					🔌 Server error
-				</div>
-			)}
 
 			{result === 'success' && (
 				<div className={cls.output.line({ success: true })}>

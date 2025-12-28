@@ -7,11 +7,9 @@ export const cls = bem(
 		dialog: string;
 		'dialog--standalone': string;
 		option: string;
-		'option--compact': string;
 		option__dir: string;
 		option__icon: string;
 		option__name: string;
-		option__play: string;
 		search: string;
 		search__select: string;
 	}

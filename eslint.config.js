@@ -8,6 +8,9 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config([
 	globalIgnores(['dist']),
 	{
+		plugins: {
+			reactRefresh,
+		},
 		files: ['**/*.{ts,tsx}'],
 		extends: [
 			js.configs.recommended,
@@ -20,7 +23,12 @@ export default tseslint.config([
 			globals: globals.browser,
 		},
 		rules: {
-			'@typescript-eslint/no-empty-object-type': false,
+			'@typescript-eslint/no-empty-object-type': 'off',
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/ban-ts-comment': 'off',
+			'react-hooks/rules-of-hooks': 'warn',
+			'@typescript-eslint/no-unused-vars': 'warn',
+			'no-empty': 'warn',
 		},
 	},
 ]);

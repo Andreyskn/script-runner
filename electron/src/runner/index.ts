@@ -22,8 +22,6 @@ future:
 - code editor
 
 notes:
-- Use a single output stream per script with sequential line numbers and timestamps.
-- Determine whether to deliver historical lines on connect or only new lines after connection.
 - Consider a “tail” mode for clients requesting only the most recent N lines.
 - Ensure server-held buffers have configurable size limits and eviction policies.
 */

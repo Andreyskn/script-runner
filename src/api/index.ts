@@ -39,7 +39,7 @@ type API = (typeof ipc)['call'] & Service;
 export const api: API = new Proxy(
 	{},
 	{
-		get(_target, p: keyof API, _receiver) {
+		get(_target, p: keyof API) {
 			return async (...args: any[]) => {
 				if (RPC_HANDLES.includes(p as any)) {
 					// @ts-ignore

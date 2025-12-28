@@ -15,10 +15,9 @@ import { isMatchingPath } from '@/components/Tree/treeUtils';
 import { DnDProvider, useDnD } from '@/utils';
 
 // TODO: optimize nodes rerender
-// TODO: arrows navigation
+// TODO: arrows navigation; F2, Delete keypress on tree nodes
 // TODO: scroll active node into view
 // TODO: add action buttons (collapse folders, etc.)
-// TODO: handle F2, Delete keypress on tree nodes
 
 export const Tree: React.FC<TreeProps> = (props) => {
 	const { onMove, onRename, onCreate, ...restProps } = props;
