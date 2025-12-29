@@ -31,30 +31,17 @@ limiter.overflow = (execId) => {
 };
 
 const getArchivedExecs = func(function* (): FuncGen<ExecEndData[], {}> {
-	return [...byExecId.values()].map((data) => {
-		const {
-			endedAt,
-			execId,
-			exitCode,
-			fileId,
-			output,
-			path,
-			startedAt,
-			textVersion,
-		} = data;
-
-		return {
-			active: false,
-			endedAt,
-			execId,
-			exitCode,
-			fileId,
-			hasOutput: output.length > 0,
-			path,
-			startedAt,
-			textVersion,
-		};
-	});
+	return [...byExecId.values()].map((data) => ({
+		active: false,
+		endedAt: data.endedAt,
+		execId: data.execId,
+		exitCode: data.exitCode,
+		fileId: data.fileId,
+		hasOutput: data.output.length > 0,
+		path: data.path,
+		startedAt: data.startedAt,
+		textVersion: data.textVersion,
+	}));
 });
 
 export const archive = {
