@@ -8,16 +8,13 @@ export type DevSocketMessage = 'refresh' | 'quit' | 'show-main' | 'show-search';
 
 type DevSocketSend = (msg: DevSocketMessage) => void;
 
-const noopProxy = new Proxy(
-	{},
-	{
-		get(_target, _prop, receiver) {
-			const fn = () => receiver;
-			Object.setPrototypeOf(fn, receiver);
-			return fn;
-		},
-	}
-) as any;
+const noopProxy = new Proxy(() => noopProxy, {
+	get(_target, _prop, receiver) {
+		const fn = () => receiver;
+		Object.setPrototypeOf(fn, receiver);
+		return fn;
+	},
+}) as any;
 
 export const ipc = {
 	send: noopProxy as DevSocketSend,

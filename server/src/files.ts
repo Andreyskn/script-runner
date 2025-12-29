@@ -4,6 +4,7 @@ import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'os';
 
+import { errors, type ServiceErrors } from './errors';
 import type { ScriptRunner } from './runner';
 import { ws, type FileMoveData } from './websocket';
 
@@ -15,7 +16,6 @@ let nextId = 0;
 
 const getId = () => nextId++;
 
-// TODO: uuid
 export type FileId = number & {};
 
 export type BaseFileData = {
@@ -47,18 +47,10 @@ type CombinedFileData = Combine<FileData>;
 
 const registry = new Map<FileId, FileData>();
 
-const errors = {
-	fileNotFound: 'File not found',
-	versionTooLow: (version: number) =>
-		`Version must be higher than ${version}`,
-};
-
-export type Errors = typeof errors & DefaultErrorSet;
-
 const moveFile = func(async function* (
 	id: FileId,
 	newPath: string
-): AsyncFuncGen<FileMoveData[], Pick<Errors, 'fileNotFound'>> {
+): AsyncFuncGen<FileMoveData[], Pick<ServiceErrors, 'fileNotFound'>> {
 	yield {
 		fileNotFound: errors.fileNotFound,
 	};
@@ -105,7 +97,7 @@ const moveFile = func(async function* (
 
 const deleteFile = func(async function* (
 	id: FileId
-): AsyncFuncGen<FileId[], Pick<Errors, 'fileNotFound'>> {
+): AsyncFuncGen<FileId[], Pick<ServiceErrors, 'fileNotFound'>> {
 	yield {
 		fileNotFound: errors.fileNotFound,
 	};
@@ -214,7 +206,10 @@ const updateScript = func(async function* (
 	id: FileId,
 	data: string,
 	version: number
-): AsyncFuncGen<boolean, Pick<Errors, 'fileNotFound' | 'versionTooLow'>> {
+): AsyncFuncGen<
+	boolean,
+	Pick<ServiceErrors, 'fileNotFound' | 'versionTooLow'>
+> {
 	yield {
 		fileNotFound: errors.fileNotFound,
 		versionTooLow: errors.versionTooLow,
@@ -247,7 +242,7 @@ const readScript = func(async function* (
 	id: FileId
 ): AsyncFuncGen<
 	{ text: string; version: number },
-	Pick<Errors, 'fileNotFound'>
+	Pick<ServiceErrors, 'fileNotFound'>
 > {
 	yield {
 		fileNotFound: errors.fileNotFound,

@@ -1,3 +1,5 @@
+import EventEmitter from 'eventemitter3';
+
 import { server, type ScriptOutput, type WsMsg } from './common';
 import type { ClientFileData, FileId } from './files';
 import type { ExecData } from './runner';
@@ -52,6 +54,12 @@ export const websocket: Bun.WebSocketHandler<undefined> = {
 	},
 };
 
+type EventEmitterEvents = {
+	[T in WsServerMessage as T['type']]: [T['payload']];
+};
+
+const ee = new EventEmitter<EventEmitterEvents>();
+
 export const ws = {
 	publish: <T extends keyof WsServerMessageRecord>(
 		type: T,
@@ -59,5 +67,7 @@ export const ws = {
 	) => {
 		const data: WsMsg<any, any> = { type, payload };
 		server.current.publish(type, JSON.stringify(data));
+		ee.emit(type, payload as any);
 	},
+	on: ee.on.bind(ee),
 };

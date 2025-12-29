@@ -27,6 +27,7 @@ const RPC_HANDLES = [
 	'abortScript',
 	'getScriptOutput',
 	'getActiveScripts',
+	'getArchivedExecs',
 	//#endregion
 ] as const;
 

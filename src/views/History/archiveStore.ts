@@ -2,9 +2,10 @@ import type { FileId } from '@server/files';
 import type { ExecEndData, ExecId, ExecStartData } from '@server/runner';
 
 import { api, ws } from '@/api';
-import { ComponentStore } from '@/utils';
+import { ComponentStore, getFilename } from '@/utils';
 
 import { filesStore } from '../Scripts/stores/filesStore';
+import type { OutputLine } from '../Scripts/stores/scriptStore';
 
 export type ActiveEntry = {
 	active: true;
@@ -17,29 +18,28 @@ export type ActiveEntry = {
 	// TODO: Clicking an archived script name should
 	// display the script's text as it was at execution time
 	textVersion: number;
-
-	archive: (data: ExecEndData) => ArchivedEntry;
 };
 
-export type ArchivedEntry = Replace<
-	OmitType<ActiveEntry, 'archive'>,
-	{ active: false }
-> & {
+export type ArchivedEntry = Replace<ActiveEntry, { active: false }> & {
 	exitCode: number;
 	hasOutput: boolean;
+	output: OutputLine[] | null;
 	endedAt: Date;
+	duration: number;
 };
 
 type CombinedEntry = Combine<ActiveEntry | ArchivedEntry>;
 
+export type ArchiveStoreEntry = Entry<CombinedEntry>;
+
 type State = {
-	active: Map<ExecId, ActiveEntry>;
-	archived: Map<ExecId, ArchivedEntry>;
+	active: Map<ExecId, Entry<ActiveEntry>>;
+	archived: Map<ExecId, Entry<ArchivedEntry>>;
 	unseenCount: number;
 };
 
 /** Minimal execution time for a script to be placed on the active list  */
-const minExecTimeForActive = 1000;
+const ACTIVE_STATUS_DELAY = 1000;
 
 class ArchiveStore extends ComponentStore<State> {
 	state: State = {
@@ -51,13 +51,33 @@ class ArchiveStore extends ComponentStore<State> {
 	constructor() {
 		super();
 
-		api.getActiveScripts().then((result) => {
-			if (!result.ok) {
-				return;
-			}
+		Promise.all([
+			api.getActiveScripts().then((result) => {
+				if (!result.ok) {
+					return;
+				}
 
-			result.value.forEach(this.setActive);
-		});
+				result.value.forEach(this.setActive);
+			}),
+			api.getArchivedExecs().then((result) => {
+				if (!result.ok) {
+					return;
+				}
+
+				if (!result.value.length) {
+					return;
+				}
+
+				this.setState((s) => {
+					result.value.forEach((data) => {
+						s.archived.set(
+							data.execId,
+							new Entry<ArchivedEntry>(data)
+						);
+					});
+				});
+			}),
+		]);
 
 		ws.subscribe('script-status', (data) => {
 			if (data.active) {
@@ -72,33 +92,27 @@ class ArchiveStore extends ComponentStore<State> {
 		const startedAt = new Date(data.startedAt);
 		const delta = Date.now() - +startedAt;
 
-		if (delta >= minExecTimeForActive) {
-			this.setState((state) => {
-				state.active.set(data.execId, createEntry(data));
-			});
-		}
-
 		setTimeout(() => {
 			if (this.state.archived.has(data.execId)) {
 				return;
 			}
 
 			this.setState((state) => {
-				state.active.set(data.execId, createEntry(data));
+				state.active.set(data.execId, new Entry<ActiveEntry>(data));
 			});
-		}, minExecTimeForActive - delta);
+		}, ACTIVE_STATUS_DELAY - delta);
 	};
 
 	private setArchived = (data: ExecEndData) => {
 		this.setState((state) => {
-			let archiveEntry: ArchivedEntry;
+			let archiveEntry: Entry<ArchivedEntry>;
 			const activeEntry = this.state.active.get(data.execId);
 
 			if (activeEntry) {
 				state.active.delete(data.execId);
 				archiveEntry = activeEntry.archive(data);
 			} else {
-				archiveEntry = createEntry(data);
+				archiveEntry = new Entry<ArchivedEntry>(data);
 			}
 
 			state.archived.set(data.execId, archiveEntry);
@@ -115,70 +129,118 @@ class ArchiveStore extends ComponentStore<State> {
 
 export const archiveStore = new ArchiveStore();
 
-const createEntry = <T extends ExecStartData | ExecEndData>(
-	data: T
-): T extends { active: true } ? ActiveEntry : ArchivedEntry => {
-	const { fileId, execId, path, startedAt, active, textVersion } = data;
+class Entry<
+	T extends ActiveEntry | ArchivedEntry | CombinedEntry,
+> extends ComponentStore<T> {
+	state: T;
 
-	const entry: CombinedEntry = {
-		active,
-		execId,
-		fileId,
-		path,
-		startedAt: new Date(startedAt),
-		textVersion,
+	constructor(data: T extends ActiveEntry ? ExecStartData : ExecEndData) {
+		super();
 
-		endedAt: active ? undefined : new Date(data.endedAt),
-		exitCode: active ? undefined : data.exitCode,
-		hasOutput: active ? undefined : data.hasOutput,
+		const { fileId, execId, path, startedAt, textVersion } = data;
 
-		get name() {
-			return entry.path.slice(entry.path.lastIndexOf('/') + 1);
-		},
+		const entry: CombinedEntry = {
+			active: true,
+			execId,
+			fileId,
+			path,
+			startedAt: new Date(startedAt),
+			textVersion,
+			name: getFilename(path),
+			duration: undefined,
+			endedAt: undefined,
+			exitCode: undefined,
+			hasOutput: undefined,
+			output: undefined,
+		};
 
-		archive: active
-			? (data: ExecEndData): ArchivedEntry => {
-					const { endedAt, exitCode, hasOutput } = data;
-					entry.active = false;
+		const scriptExists = filesStore.state.files.has(fileId);
+		if (scriptExists) {
+			const unsubscribe = filesStore.subscribe(
+				(s) => s.files,
+				(files) => {
+					const file = files.get(fileId);
 
-					Object.assign(entry, {
-						archive: null as any,
-						endedAt: new Date(endedAt),
-						exitCode,
-						hasOutput,
-					} satisfies SymmetricDiff<ActiveEntry, ArchivedEntry>);
+					if (!file) {
+						unsubscribe();
+						return;
+					}
 
-					return entry as ArchivedEntry;
+					if (file.path !== this.state.path) {
+						this.setState((s) => {
+							s.path = file.path;
+							s.name = getFilename(file.path);
+						});
+					}
 				}
-			: undefined,
-	};
+			);
+		}
 
-	const scriptExists = filesStore.state.files.has(fileId);
+		this.state = entry as any;
 
-	if (scriptExists) {
-		let lastKnownPath = path;
-
-		filesStore.subscribe(
-			(s) => s.files,
-			(files) => {
-				const file = files.get(fileId);
-				if (file) {
-					lastKnownPath = file.path;
-				}
-			}
-		);
-
-		Object.defineProperties(entry, {
-			path: {
-				get() {
-					return filesStore.useSelector(
-						(s) => s.files,
-						() => lastKnownPath
-					);
-				},
-			},
-		});
+		if (!data.active) {
+			this.archive(data);
+		}
 	}
 
-	return entry as any;
-};
+	archive = (data: ExecEndData) => {
+		const { endedAt, exitCode, hasOutput } = data;
+
+		this.setState((s) => {
+			const state = s as ArchivedEntry;
+
+			state.active = false;
+			state.endedAt = new Date(endedAt);
+			state.duration = +state.endedAt - +state.startedAt;
+			state.exitCode = exitCode;
+			state.hasOutput = hasOutput;
+		});
+
+		return this as Entry<ArchivedEntry>;
+	};
+
+	fetchOutput = async (): Promise<void> => {
+		const { active, hasOutput, execId, fileId } = this
+			.state as CombinedEntry;
+
+		if (active || !hasOutput) {
+			return;
+		}
+
+		const scriptStore = filesStore.state.files.get(fileId)?.scriptStore;
+
+		if (scriptStore?.state.execId === execId) {
+			this.setState((s) => {
+				(s as ArchivedEntry).output = scriptStore.state.output;
+			});
+		}
+
+		const result = await api.getScriptOutput(execId);
+
+		if (!result.ok) {
+			const error: OutputLine[] = [
+				{
+					isError: true,
+					text: result.error.message,
+					order: 0,
+					timestamp: new Date().toTimeString(),
+				},
+			];
+			this.setState((s) => {
+				(s as ArchivedEntry).output = error;
+			});
+			return;
+		}
+
+		const lines: OutputLine[] = result.value.map((data) => ({
+			text: data.line,
+			isError: data.type === 'stderr',
+			order: data.order,
+			timestamp: data.timestamp,
+		}));
+
+		this.setState((s) => {
+			(s as ArchivedEntry).output = lines;
+		});
+	};
+}

@@ -21,7 +21,7 @@ type Props = {
 export const OutputSection: React.FC<Props> = ({ script }) => {
 	const {
 		scriptStore: {
-			selectors: { output, executionStatus, exitCode, execCount },
+			selectors: { output, executionStatus, exitCode, execId },
 			interruptExecution,
 		},
 	} = script;
@@ -59,7 +59,7 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 		>
 			{hasActiveExecution.current ? (
 				<Output
-					key={execCount}
+					key={execId}
 					lines={output}
 					exitCode={exitCode}
 					status={executionStatus}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { SpecialExitCodes } from '@server/common';
 import {
@@ -11,7 +11,7 @@ import ms from 'ms';
 
 import { appStore } from '@/App/appStore';
 import { Button } from '@/components/Button';
-import type { ActiveEntry, ArchivedEntry } from '@/views/History/archiveStore';
+import type { ArchiveStoreEntry } from '@/views/History/archiveStore';
 import { Output } from '@/views/Scripts/ScriptViewer/Output';
 import { filesStore } from '@/views/Scripts/stores/filesStore';
 
@@ -29,35 +29,56 @@ const formatDate = (date: Date) => {
 };
 
 export type HistoryEntryProps = {
-	entry: ArchivedEntry | ActiveEntry;
+	entry: ArchiveStoreEntry;
 	lastUnseen?: boolean;
 };
 
 export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 	const { entry, lastUnseen } = props;
-	const { active, fileId, startedAt } = entry;
+	const {
+		selectors: {
+			active,
+			fileId,
+			startedAt,
+			name,
+			path,
+			exitCode,
+			endedAt,
+			duration,
+			hasOutput,
+			output,
+		},
+		fetchOutput,
+	} = entry;
 
 	const { setSelectedScript } = filesStore;
 
 	const [shouldShowOutput, setShowOutput] = useState(false);
 
+	useEffect(() => {
+		if (shouldShowOutput && !output) {
+			fetchOutput();
+		}
+	}, [shouldShowOutput, output]);
+
 	const goToScript = () => {
 		appStore.setView('scripts');
 		setSelectedScript(fileId);
+		// TODO: notify if script is deleted
 	};
 
-	const result =
-		!active &&
-		(() => {
-			switch (entry.exitCode) {
-				case 0:
-					return 'success';
-				case SpecialExitCodes.Aborted:
-					return 'interrupt';
-				default:
-					return 'fail';
-			}
-		})();
+	const result = (() => {
+		switch (exitCode) {
+			case undefined:
+				return null;
+			case 0:
+				return 'success';
+			case SpecialExitCodes.Aborted:
+				return 'interrupt';
+			default:
+				return 'fail';
+		}
+	})();
 
 	return (
 		<div className={cls.historyEntry.block({ lastUnseen })}>
@@ -73,24 +94,17 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 						{active && <LoaderCircle size={10} />}
 					</div>
 					<div className={cls.title.name()} onClick={goToScript}>
-						{entry.name}
+						{name}
 					</div>
-					<div className={cls.title.path()}>{entry.path}</div>
+					<div className={cls.title.path()}>{path}</div>
 				</div>
 				<div className={cls.info.block()}>
 					<div className={cls.info.time()}>
 						<ClockIcon size={12} />{' '}
-						{formatDate(active ? startedAt! : entry.endedAt)}
+						{formatDate(active ? startedAt : endedAt!)}
 					</div>
 					<div className={cls.info.duration()}>
-						{active ? (
-							'Running...'
-						) : (
-							<>
-								Duration:{' '}
-								{ms(+entry.endedAt - +entry.startedAt)}
-							</>
-						)}
+						{active ? 'Running...' : <>Duration: {ms(duration!)}</>}
 					</div>
 				</div>
 				{!active && (
@@ -107,33 +121,40 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 				)}
 				{!active && (
 					<Button
-						text={entry.hasOutput ? 'Show Output' : 'No Output'}
+						text={hasOutput ? 'Show Output' : 'No Output'}
 						icon={<TerminalIcon />}
-						iconEnd={entry.hasOutput && <ChevronRightIcon />}
+						iconEnd={hasOutput && <ChevronRightIcon />}
 						borderless
 						className={cls.outputToggle.block({
 							open: shouldShowOutput,
 						})}
 						onClick={() => setShowOutput((s) => !s)}
-						disabled={!entry.hasOutput}
+						disabled={!hasOutput}
 					/>
 				)}
 			</div>
-			{shouldShowOutput && !active && (
+			{shouldShowOutput && (
 				<div className={cls.historyEntry.outputWrapper()}>
-					<Output
-						name='backup.sh'
-						exitCode={null}
-						status='ended'
-						lines={[
-							{
-								text: 'Output fetching is not implemented',
-								isError: true,
-							},
-						]}
-						className={cls.historyEntry.output()}
-						autoScrollDisabled
-					/>
+					{output && (
+						<>
+							{output[0]?.order !== 0 && (
+								<div
+									className={cls.historyEntry.outputTruncated()}
+								>
+									Output truncated: first {output[0]?.order}{' '}
+									lines skipped
+								</div>
+							)}
+							<Output
+								name='backup.sh'
+								exitCode={exitCode!}
+								status='ended'
+								lines={output}
+								className={cls.historyEntry.output()}
+								autoScrollDisabled
+							/>
+						</>
+					)}
 				</div>
 			)}
 		</div>

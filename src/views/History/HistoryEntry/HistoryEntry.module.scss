@@ -48,6 +48,15 @@
 			padding: 16px;
 			border-top-width: 1px;
 		}
+
+		&-truncated {
+			margin-bottom: 8px;
+
+			font-size: 14px;
+			font-style: italic;
+			line-height: 20px;
+			color: hsl(var(--muted-foreground));
+		}
 	}
 }
 
