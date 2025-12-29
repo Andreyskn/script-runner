@@ -1,16 +1,19 @@
-import { type ScriptOutput } from '@server/common';
+import { type ScriptOutput, type ScriptOutputMetadata } from '@server/common';
 import type { FileId } from '@server/files';
-import type { ExecData } from '@server/runner';
+import type { ExecData, ExecId } from '@server/runner';
 
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
 
 export type ExecutionStatus = 'idle' | 'running' | 'ended';
 
-export type OutputLine = { text: string; isError: boolean };
+export type OutputLine = {
+	text: string;
+	isError: boolean;
+} & ScriptOutputMetadata;
 
 type State = {
-	execCount: number;
+	execId: ExecId;
 	isEditing: boolean;
 	modifiedText: string | null;
 	text: string;
@@ -25,7 +28,7 @@ type State = {
 
 export class ScriptStore extends ComponentStore<State> {
 	state: State = {
-		execCount: 0,
+		execId: -1,
 		isEditing: false,
 		modifiedText: null,
 		text: '',
@@ -55,7 +58,7 @@ export class ScriptStore extends ComponentStore<State> {
 					return;
 				}
 
-				result.value.forEach(this.handleOutput);
+				result.value.forEach(this.appendOutputLine);
 			});
 		}
 
@@ -66,7 +69,7 @@ export class ScriptStore extends ComponentStore<State> {
 				}
 			}),
 			ws.subscribe(`output:${this.id}`, ({ output }) => {
-				this.handleOutput(output);
+				this.appendOutputLine(output);
 			}),
 			ws.subscribe('files-change', (data) => {
 				if (data.type === 'script-content' && data.id === this.id) {
@@ -98,19 +101,6 @@ export class ScriptStore extends ComponentStore<State> {
 
 	cleanup = () => {
 		this.disposables.forEach((dispose) => dispose());
-	};
-
-	handleOutput = (output: ScriptOutput) => {
-		switch (output.type) {
-			case 'stdout': {
-				this.appendOutputLine(output.line, false);
-				break;
-			}
-			case 'stderr': {
-				this.appendOutputLine(output.line, true);
-				break;
-			}
-		}
 	};
 
 	setEditing = (isEditing: boolean) => {
@@ -158,9 +148,15 @@ export class ScriptStore extends ComponentStore<State> {
 		});
 	};
 
-	appendOutputLine = (text: string, isError: boolean) => {
+	appendOutputLine = (value: ScriptOutput) => {
+		const { line, order, timestamp, type } = value;
 		this.setState((state) => {
-			state.output.push({ isError, text });
+			state.output.push({
+				isError: type === 'stderr',
+				text: line,
+				order,
+				timestamp,
+			});
 		});
 	};
 
@@ -169,7 +165,7 @@ export class ScriptStore extends ComponentStore<State> {
 			state.executionStatus = data.active ? 'running' : 'ended';
 
 			if (data.active) {
-				state.execCount++;
+				state.execId = data.execId;
 				state.output = [];
 				state.exitCode = null;
 				state.startedAt = new Date(data.startedAt);
@@ -185,29 +181,34 @@ export class ScriptStore extends ComponentStore<State> {
 		const result = await api.runScript(this.id);
 
 		if (!result.ok) {
-			this.appendOutputLine(result.error.message, true);
+			this.appendOutputLine({
+				line: result.error.message,
+				order: 0,
+				timestamp: new Date().toISOString(),
+				type: 'stderr',
+			});
 			return false;
 		}
 
-		if (!result.value) {
-			if (import.meta.env.MODE === 'mock') {
-				this.appendOutputLine(
-					'No connection to Mock Service Worker',
-					true
-				);
-			}
-			return;
-		}
+		// if (!result.value) {
+		// 	if (import.meta.env.MODE === 'mock') {
+		// 		this.appendOutputLine(
+		// 			'No connection to Mock Service Worker',
+		// 			true
+		// 		);
+		// 	}
+		// 	return;
+		// }
 
-		if (import.meta.env.MODE === 'mock') {
-			const scriptChannel = new BroadcastChannel('script-runner-mock');
-			scriptChannel.postMessage({
-				type: 'SCRIPT_TEXT',
-				text: this.state.text,
-				path: '', // this.path
-			});
-			scriptChannel.close();
-		}
+		// if (import.meta.env.MODE === 'mock') {
+		// 	const scriptChannel = new BroadcastChannel('script-runner-mock');
+		// 	scriptChannel.postMessage({
+		// 		type: 'SCRIPT_TEXT',
+		// 		text: this.state.text,
+		// 		path: '', // this.path
+		// 	});
+		// 	scriptChannel.close();
+		// }
 	};
 
 	interruptExecution = () => {

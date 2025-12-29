@@ -48,6 +48,7 @@ export const prompt = {
 				{
 					message: '',
 					choices: [
+						flags.mode !== 'electron' && Choices.OpenInBrowser,
 						flags.mode === 'web' &&
 							signals.shouldServerRun.value &&
 							Choices.StopServer,
@@ -55,7 +56,6 @@ export const prompt = {
 							!signals.shouldServerRun.value &&
 							Choices.StartServer,
 						flags.mode === 'electron' && Choices.Restart,
-						flags.mode !== 'electron' && Choices.OpenInBrowser,
 						flags.mode === 'electron' && Choices.OpenMainWindow,
 						flags.mode === 'electron' && Choices.OpenSearchWindow,
 						Choices.Exit,

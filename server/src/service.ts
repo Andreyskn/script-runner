@@ -1,8 +1,10 @@
 import { type CallReturn } from '@andrey/func';
 import type { JsonValue } from 'typed-rpc/server';
 
-import { files, type Errors, type FileId } from './files';
-import { runner } from './runner';
+import { archive } from './archive';
+import type { ServiceErrors } from './errors';
+import { files, type FileId } from './files';
+import { runner, type ExecId } from './runner';
 
 export type Service = typeof service;
 
@@ -34,15 +36,18 @@ export const service = {
 	abortScript: async (id: FileId) => {
 		return runner.abortScript(id).result();
 	},
-	getScriptOutput: async (id: FileId, skip = 0) => {
-		return runner.getScriptOutput(id, skip).result();
+	getScriptOutput: async (execId: ExecId) => {
+		return runner.getScriptOutput(execId).result();
 	},
 	getActiveScripts: async () => {
 		return runner.getActiveScripts().result();
+	},
+	getArchivedExecs: async () => {
+		return archive.getArchivedExecs().result();
 	},
 } satisfies Record<
 	string,
 	(
 		...args: any[]
-	) => Promise<CallReturn<(...args: any[]) => JsonValue, Errors>>
+	) => Promise<CallReturn<(...args: any[]) => JsonValue, ServiceErrors>>
 >;

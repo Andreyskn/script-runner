@@ -42,7 +42,7 @@ export const History: React.FC<HistoryProps> = (props) => {
 			{entries.length ? (
 				entries.map((entry, i) => (
 					<HistoryEntry
-						key={i}
+						key={entry.state.execId}
 						entry={entry}
 						lastUnseen={
 							unseenCount !== entries.length &&

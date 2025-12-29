@@ -9,6 +9,7 @@ export const cls = bem(
 		'history-entry__main': string;
 		'history-entry__main--active': string;
 		'history-entry__output': string;
+		'history-entry__output-truncated': string;
 		'history-entry__output-wrapper': string;
 		info: string;
 		info__duration: string;
