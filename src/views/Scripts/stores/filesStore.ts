@@ -1,7 +1,7 @@
 import type { ClientFileData, FileId } from '@server/files';
 
 import { api, ws } from '@/api';
-import { ComponentStore } from '@/utils';
+import { ComponentStore, getFilename } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 export type File = OmitType<ClientFileData, 'runningSince'> & {
@@ -78,7 +78,7 @@ export class FilesStore extends ComponentStore<State> {
 		const fileData: File = {
 			id: file.id,
 			get name() {
-				return this.path.slice(this.path.lastIndexOf('/') + 1);
+				return getFilename(this.path);
 			},
 			path: file.path,
 			type: file.type,

@@ -2,7 +2,7 @@ import type { FileId } from '@server/files';
 import type { ExecEndData, ExecId, ExecStartData } from '@server/runner';
 
 import { api, ws } from '@/api';
-import { ComponentStore } from '@/utils';
+import { ComponentStore, getFilename } from '@/utils';
 
 import { filesStore } from '../Scripts/stores/filesStore';
 import type { OutputLine } from '../Scripts/stores/scriptStore';
@@ -92,12 +92,6 @@ class ArchiveStore extends ComponentStore<State> {
 		const startedAt = new Date(data.startedAt);
 		const delta = Date.now() - +startedAt;
 
-		if (delta >= ACTIVE_STATUS_DELAY) {
-			this.setState((state) => {
-				state.active.set(data.execId, new Entry<ActiveEntry>(data));
-			});
-		}
-
 		setTimeout(() => {
 			if (this.state.archived.has(data.execId)) {
 				return;
@@ -145,8 +139,6 @@ class Entry<
 
 		const { fileId, execId, path, startedAt, textVersion } = data;
 
-		const self = this;
-
 		const entry: CombinedEntry = {
 			active: true,
 			execId,
@@ -154,10 +146,7 @@ class Entry<
 			path,
 			startedAt: new Date(startedAt),
 			textVersion,
-			get name() {
-				const { path } = self.state;
-				return path.slice(path.lastIndexOf('/') + 1);
-			},
+			name: getFilename(path),
 			duration: undefined,
 			endedAt: undefined,
 			exitCode: undefined,
@@ -180,6 +169,7 @@ class Entry<
 					if (file.path !== this.state.path) {
 						this.setState((s) => {
 							s.path = file.path;
+							s.name = getFilename(file.path);
 						});
 					}
 				}
@@ -209,16 +199,12 @@ class Entry<
 		return this as Entry<ArchivedEntry>;
 	};
 
-	fetchOutput = async (): Promise<OutputLine[]> => {
-		const { active, hasOutput, execId, fileId, output } = this
+	fetchOutput = async (): Promise<void> => {
+		const { active, hasOutput, execId, fileId } = this
 			.state as CombinedEntry;
 
-		if (!!output) {
-			return output;
-		}
-
 		if (active || !hasOutput) {
-			return [];
+			return;
 		}
 
 		const scriptStore = filesStore.state.files.get(fileId)?.scriptStore;
@@ -227,7 +213,6 @@ class Entry<
 			this.setState((s) => {
 				(s as ArchivedEntry).output = scriptStore.state.output;
 			});
-			return scriptStore.state.output;
 		}
 
 		const result = await api.getScriptOutput(execId);
@@ -244,7 +229,7 @@ class Entry<
 			this.setState((s) => {
 				(s as ArchivedEntry).output = error;
 			});
-			return error;
+			return;
 		}
 
 		const lines: OutputLine[] = result.value.map((data) => ({
@@ -257,7 +242,5 @@ class Entry<
 		this.setState((s) => {
 			(s as ArchivedEntry).output = lines;
 		});
-
-		return lines;
 	};
 }

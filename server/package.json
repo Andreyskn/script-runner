@@ -9,6 +9,7 @@
 	"dependencies": {
 		"@andrey/func": "^0.2.0",
 		"CBuffer": "^2.2.0",
+		"eventemitter3": "^5.0.1",
 		"fs-extra": "^11.3.3",
 		"typed-rpc": "^6.1.2"
 	},

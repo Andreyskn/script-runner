@@ -105,7 +105,6 @@ export class ScriptRunner {
 				this.endedAt = timestamp;
 
 				activeRunners.delete(this.execId);
-				archive.add(this, exitCode!);
 
 				ws.publish('script-status', {
 					...baseExecData,

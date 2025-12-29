@@ -2,10 +2,11 @@ import { func, type FuncGen } from '@andrey/func';
 import CBuffer from 'CBuffer';
 
 import { type ScriptOutput } from './common';
-import { files, type FileId, type ScriptData } from './files';
-import type { ExecEndData, ExecId, ScriptRunner } from './runner';
+import { files, type FileId } from './files';
+import type { ExecEndData, ExecId } from './runner';
+import { ws } from './websocket';
 
-const ARCHIVE_CAPACITY = 10;
+const ARCHIVE_CAPACITY = 20;
 
 export type ArchivedExec = {
 	execId: ExecId;
@@ -18,16 +19,19 @@ export type ArchivedExec = {
 	endedAt: string;
 };
 
-const entries = new Map<ExecId, ArchivedExec>();
+const byExecId = new Map<ExecId, ArchivedExec>();
+const byFileId = new Map<FileId, ArchivedExec>();
 
 const limiter = new CBuffer<ExecId>(ARCHIVE_CAPACITY);
 
 limiter.overflow = (execId) => {
-	entries.delete(execId);
+	const entry = byExecId.get(execId)!;
+	byExecId.delete(execId);
+	byFileId.delete(entry.fileId);
 };
 
 const getArchivedExecs = func(function* (): FuncGen<ExecEndData[], {}> {
-	return [...entries.values()].map((data) => {
+	return [...byExecId.values()].map((data) => {
 		const {
 			endedAt,
 			execId,
@@ -54,27 +58,41 @@ const getArchivedExecs = func(function* (): FuncGen<ExecEndData[], {}> {
 });
 
 export const archive = {
-	add: (runner: ScriptRunner, exitCode: number) => {
-		const { endedAt, execId, fileId, output, startedAt } = runner;
-		const { clientPath, textVersion } = files.registry.get(
-			fileId
-		) as ScriptData;
-
-		const entry: ArchivedExec = {
-			execId,
-			endedAt: endedAt!,
-			exitCode,
-			fileId,
-			output: output.toArray(),
-			path: clientPath,
-			textVersion,
-			startedAt: startedAt!,
-		};
-
-		entries.set(execId, entry);
-		limiter.push(execId);
-	},
-	get: entries.get.bind(entries),
-
+	get: byExecId.get.bind(byExecId),
 	getArchivedExecs,
 };
+
+ws.on('script-status', (data) => {
+	if (data.active) {
+		return;
+	}
+
+	const runner = files.registry.get(data.fileId)?.activeRunner!;
+
+	const entry: ArchivedExec = {
+		execId: data.execId,
+		endedAt: data.endedAt,
+		exitCode: data.exitCode,
+		fileId: data.fileId,
+		output: runner.output.toArray(),
+		path: data.path,
+		textVersion: data.textVersion,
+		startedAt: data.startedAt,
+	};
+
+	byExecId.set(data.execId, entry);
+	byFileId.set(data.fileId, entry);
+	limiter.push(data.execId);
+});
+
+ws.on('files-change', (data) => {
+	if (data.type === 'move') {
+		data.files.forEach((f) => {
+			const entry = byFileId.get(f.id);
+
+			if (entry) {
+				entry.path = f.path;
+			}
+		});
+	}
+});
