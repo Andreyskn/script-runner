@@ -6,6 +6,7 @@ import type { DevSocketMessage } from '../../scripts/dev/ipc';
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
+import './ws';
 
 app.commandLine.appendSwitch('log-level', '3');
 

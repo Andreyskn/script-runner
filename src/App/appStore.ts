@@ -1,7 +1,9 @@
 import { ComponentStore } from '@/utils';
 
+export type View = 'scripts' | 'history' | 'active';
+
 type State = {
-	view: 'scripts' | 'history' | 'active';
+	view: View;
 };
 
 // TODO: add routing history

@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 
 import { ipc } from './ipc';
 import { paths } from './paths';
+import { rpc } from './rpc';
 
 let win: BrowserWindow | null = null;
 
@@ -16,9 +17,6 @@ const createSearchWindow = () => {
 		frame: false,
 		transparent: true,
 		resizable: false,
-
-		// titleBarStyle: 'hidden',
-		// titleBarOverlay: true,
 
 		webPreferences: {
 			zoomFactor: 1.25,
@@ -50,6 +48,8 @@ export const searchWindow = {
 };
 
 ipc.handle.endSearch((scriptId) => {
-	console.log(scriptId);
+	if (scriptId) {
+		rpc.runScript(scriptId);
+	}
 	searchWindow.close();
 });

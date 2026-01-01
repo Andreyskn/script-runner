@@ -9,11 +9,19 @@ import { Main } from 'src/App/Main';
 import { Sidebar } from 'src/App/Sidebar';
 
 import { cls } from './App.styles';
+import { appStore } from './appStore';
 
 export const App: React.FC = () => {
 	useEffect(() => {
-		if (ipc.config?.searchOnly) {
-			search.show();
+		if (ipc.available) {
+			if (ipc.config?.searchOnly) {
+				search.show();
+			} else {
+				ipc.handle.setView((view) => {
+					appStore.setView(view);
+				});
+				ipc.call.appReady();
+			}
 		}
 	}, []);
 

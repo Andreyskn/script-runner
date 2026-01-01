@@ -4,17 +4,22 @@ import type {
 	MessagePortMain,
 } from 'electron';
 
+import type { View } from '../../src/shared';
+import type { MainWindowConfig } from './preload/mainPreload';
 import type { SearchWindowConfig } from './preload/searchPreload';
 
 export const ELECTRON_API_NAME = 'electronAPI';
 
-export type MainIpcMessages = {};
+export type MainIpcMessages = {
+	setView: (view: View) => void;
+};
 
 export type RendererIpcMessages = {
 	endSearch: (scriptId?: number) => void;
+	appReady: () => void;
 };
 
-type WindowConfig = Partial<SearchWindowConfig>;
+type WindowConfig = Combine<MainWindowConfig | SearchWindowConfig>;
 
 type RemoveHandler = () => void;
 

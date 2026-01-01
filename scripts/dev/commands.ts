@@ -60,7 +60,7 @@ export const cmd = {
 		ipc.send('quit');
 
 		when(signals.electronRunning, false, () => {
-			spawn('electron', 'electron --trace-warnings .');
+			spawn('electron', 'bunx electron --trace-warnings .');
 
 			when(signals.electronRunning, true, () => {
 				signals.electronStarting.value = false;
@@ -75,7 +75,7 @@ export const cmd = {
 
 		spawn(
 			'electron-src',
-			'bun build ./electron/src/preload/searchPreload.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
+			'bun build ./electron/src/preload/*.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
 		);
 	},
 };

@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { handleRpc } from 'typed-rpc/server';
 
 import { server } from './common';
@@ -21,6 +22,7 @@ server.current = Bun.serve({
 	development: true,
 	port: 3001,
 	idleTimeout: 255,
+	websocket,
 	routes: {
 		'/api/*': {
 			OPTIONS: () => new Response(null, cors),
@@ -39,20 +41,33 @@ server.current = Bun.serve({
 			},
 		},
 
+		'/ws': async (req) => {
+			if (!server.current.upgrade(req)) {
+				throw Error('WebSocket upgrade failed');
+			}
+		},
+
 		'/stop': async () => {
 			console.log('Server is shutting down');
 			process.exit(0);
 		},
+
+		'/*': async (req) => {
+			const staticDir = 'dist';
+			const { pathname } = new URL(req.url);
+			const path = join(
+				staticDir,
+				pathname === '/' ? 'index.html' : pathname
+			);
+			const file = Bun.file(path);
+
+			if (await file.exists()) {
+				return new Response(file, cors);
+			}
+
+			return new Response('Page not found', cors);
+		},
 	},
-
-	fetch(req, server) {
-		if (!server.upgrade(req)) {
-			throw Error('WebSocket upgrade failed');
-		}
-	},
-
-	websocket,
-
 	error(error) {
 		console.error(error);
 		return new Response(error.message, {

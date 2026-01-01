@@ -1,16 +1,35 @@
-import { BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
+import createPositioner, { type State as WinPos } from 'electron-window-state';
+import { fileURLToPath } from 'url';
 
+import { ipc } from './ipc';
 import { paths } from './paths';
 
 let win: BrowserWindow | null = null;
+let winPos: WinPos;
+let appReady = Promise.withResolvers();
 
-const createMainWindow = () => {
+app.whenReady().then(() => {
 	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
+	winPos = createPositioner({
+		defaultWidth: width,
+		defaultHeight: height,
+	});
+
+	ipc.handle.appReady(() => {
+		appReady.resolve();
+	});
+});
+
+const createMainWindow = () => {
 	win = new BrowserWindow({
+		x: winPos.x,
+		y: winPos.y,
+		width: winPos.width,
+		height: winPos.height,
+
 		icon: paths.icon,
-		width,
-		height,
 		titleBarStyle: 'hidden',
 		titleBarOverlay: true,
 
@@ -19,13 +38,18 @@ const createMainWindow = () => {
 
 			contextIsolation: false,
 			nodeIntegration: false,
+			preload: fileURLToPath(
+				new URL('../build/mainPreload.js', import.meta.url)
+			),
 		},
 	});
+	winPos.manage(win);
 
 	win.loadURL(paths.index);
 
 	win.on('closed', () => {
 		win = null;
+		appReady = Promise.withResolvers();
 	});
 };
 
@@ -39,5 +63,8 @@ export const mainWindow = {
 	},
 	close: () => {
 		win?.close();
+	},
+	get appReady() {
+		return appReady.promise;
 	},
 };

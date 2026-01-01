@@ -72,7 +72,7 @@ export const api: API = new Proxy(
 	}
 ) as API;
 
-const websocket = new WebSocket('ws://localhost:3001/');
+const websocket = new WebSocket('ws://localhost:3001/ws');
 const wsConnection = Promise.withResolvers();
 
 websocket.onopen = wsConnection.resolve;

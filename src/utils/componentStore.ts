@@ -32,7 +32,7 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 
 	public subscribe = <T extends (state: Readonly<S>) => any>(
 		select: T,
-		onChange: (state: ReturnType<T>) => void,
+		onChange: (data: ReturnType<T>) => void,
 		initialOnChange?: boolean
 	) => {
 		const paths: string[] = [];
@@ -69,12 +69,12 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 
 	public useSelector = <D, T = D>(
 		select: (state: Readonly<S>) => D,
-		process?: (selected: D) => T
+		transform?: (selected: D) => T
 	) => {
 		const { update } = useUpdate();
 
-		const processRef = useRef(process);
-		processRef.current = process;
+		const transformRef = useRef(transform);
+		transformRef.current = transform;
 
 		const result = useRef<T>(null as any);
 
@@ -83,8 +83,8 @@ export abstract class ComponentStore<S extends Record<string, unknown>> {
 				select,
 				(data) => {
 					// @ts-ignore
-					result.current = processRef.current
-						? processRef.current(data)
+					result.current = transformRef.current
+						? transformRef.current(data)
 						: data;
 					update();
 				},

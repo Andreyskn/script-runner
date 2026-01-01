@@ -1,5 +1,4 @@
 import { MakerDeb } from '@electron-forge/maker-deb';
-// import { MakerSnap } from '@electron-forge/maker-snap';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import type { ForgeConfig } from '@electron-forge/shared-types';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
@@ -25,7 +24,6 @@ export default {
 				categories: ['Utility'],
 			},
 		}),
-		// new MakerSnap(),
 	],
 	plugins: [
 		{

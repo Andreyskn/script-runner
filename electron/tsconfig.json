@@ -4,5 +4,5 @@
 		"lib": ["ESNext", "DOM"],
 		"paths": {}
 	},
-	"include": ["src", "../server"]
+	"include": ["src", "../server", "../global.d.ts", "../src/shared.d.ts"]
 }
