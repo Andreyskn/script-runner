@@ -151,7 +151,7 @@ export const Search: React.FC<SearchProps> = () => {
 			closedby='any'
 			ref={dialogRef}
 			className={cls.dialog.block({
-				standalone: ipc.config?.searchOnly,
+				standalone: ipc.config?.windowId === 'search',
 			})}
 			onClose={handleClose}
 			onCancel={handleClose}

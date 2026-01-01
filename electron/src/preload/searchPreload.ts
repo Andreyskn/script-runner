@@ -5,7 +5,7 @@ import { createWindowAPI, ELECTRON_API_NAME } from '../ipc';
 export type SearchWindowConfig = typeof config;
 
 const config = {
-	searchOnly: true,
-};
+	windowId: 'search',
+} as const;
 
 (window as any)[ELECTRON_API_NAME] = createWindowAPI(ipcRenderer, config);

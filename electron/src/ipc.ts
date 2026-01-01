@@ -16,10 +16,10 @@ export type MainIpcMessages = {
 
 export type RendererIpcMessages = {
 	endSearch: (scriptId?: number) => void;
-	appReady: () => void;
+	appReady: (winId: WindowConfig['windowId']) => void;
 };
 
-type WindowConfig = Combine<MainWindowConfig | SearchWindowConfig>;
+export type WindowConfig = Combine<MainWindowConfig | SearchWindowConfig>;
 
 type RemoveHandler = () => void;
 
@@ -28,7 +28,7 @@ export type IPC<
 	In extends Record<string, (...args: any[]) => any> = any,
 > = {
 	available: boolean;
-	config?: WindowConfig;
+	config: WindowConfig;
 	call: {
 		[K in keyof Out]: (
 			...args: Parameters<Out[K]>

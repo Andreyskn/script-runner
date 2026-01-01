@@ -17,8 +17,10 @@ app.whenReady().then(() => {
 		defaultHeight: height,
 	});
 
-	ipc.handle.appReady(() => {
-		appReady.resolve();
+	ipc.handle.appReady((winId) => {
+		if (winId === 'main') {
+			appReady.resolve();
+		}
 	});
 });
 

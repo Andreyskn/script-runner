@@ -13,19 +13,26 @@ import { appStore } from './appStore';
 
 export const App: React.FC = () => {
 	useEffect(() => {
-		if (ipc.available) {
-			if (ipc.config?.searchOnly) {
-				search.show();
-			} else {
-				ipc.handle.setView((view) => {
-					appStore.setView(view);
-				});
-				ipc.call.appReady();
-			}
+		if (!ipc.available) {
+			return;
 		}
+
+		const { config } = ipc;
+
+		if (config.windowId === 'search') {
+			search.show();
+		}
+
+		if (config.windowId === 'main') {
+			ipc.handle.setView((view) => {
+				appStore.setView(view);
+			});
+		}
+
+		ipc.call.appReady(ipc.config!.windowId);
 	}, []);
 
-	if (ipc.config?.searchOnly) {
+	if (ipc.config?.windowId === 'search') {
 		return null;
 	}
 

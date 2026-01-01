@@ -75,7 +75,12 @@ export const cmd = {
 
 		spawn(
 			'electron-src',
-			'bun build ./electron/src/preload/*.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
+			'bun build ./electron/src/preload/mainPreload.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
+		);
+
+		spawn(
+			'electron-src',
+			'bun build ./electron/src/preload/searchPreload.ts --outdir ./electron/build --target node --format cjs --external electron --watch --no-clear-screen'
 		);
 	},
 };
