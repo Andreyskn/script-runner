@@ -7,7 +7,7 @@ import { ipc } from './ipc';
 import { prompt } from './prompt';
 import { cleanup } from './terminal';
 
-if (flags.mode === 'prompt' || !MODES.includes(flags.mode)) {
+if (!MODES.includes(flags.mode)) {
 	await prompt.init();
 }
 

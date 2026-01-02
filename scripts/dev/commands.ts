@@ -43,7 +43,7 @@ export const cmd = {
 			);
 	},
 	backendDev: () => {
-		spawn('server', 'bun --watch server/src/index.ts');
+		spawn('server', 'bun --watch server/src/index.ts --mode dev');
 	},
 	backendStop: async () => {
 		try {

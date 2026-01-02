@@ -1,6 +1,16 @@
 export {};
 
 declare global {
+	namespace NodeJS {
+		interface ProcessEnv {
+			PORT: string;
+			NODE_ENV: 'production' | 'development';
+			STATIC_DIR: string;
+		}
+	}
+}
+
+declare global {
 	type Maybe<T> = T | undefined;
 
 	type Replace<

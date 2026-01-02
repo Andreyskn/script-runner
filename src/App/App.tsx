@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { ipc } from '@/api';
 import { search } from '@/components/Search';
 import { Section } from '@/components/Section';
-
 import { Header } from 'src/App/Header';
 import { Main } from 'src/App/Main';
 import { Sidebar } from 'src/App/Sidebar';
@@ -17,19 +16,19 @@ export const App: React.FC = () => {
 			return;
 		}
 
-		const { config } = ipc;
+		const { windowId } = ipc.config!;
 
-		if (config.windowId === 'search') {
+		if (windowId === 'search') {
 			search.show();
 		}
 
-		if (config.windowId === 'main') {
+		if (windowId === 'main') {
 			ipc.handle.setView((view) => {
 				appStore.setView(view);
 			});
 		}
 
-		ipc.call.appReady(ipc.config!.windowId);
+		ipc.call.appReady(windowId);
 	}, []);
 
 	if (ipc.config?.windowId === 'search') {
