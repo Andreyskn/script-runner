@@ -5,7 +5,7 @@ import type { ExecData } from '../../server/src/runner';
 import { ipc } from './ipc';
 import { mainWindow } from './mainWindow';
 
-const socket = new WebSocket('ws://localhost:3001/ws');
+const socket = new WebSocket(`ws://${process.env.IP}:${process.env.PORT}/ws`);
 
 socket.addEventListener('open', () => {
 	socket.send(

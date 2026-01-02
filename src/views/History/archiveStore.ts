@@ -14,9 +14,6 @@ export type ActiveEntry = {
 	startedAt: Date;
 	fileId: FileId;
 	execId: ExecId;
-
-	// TODO: Clicking an archived script name should
-	// display the script's text as it was at execution time
 	textVersion: number;
 };
 

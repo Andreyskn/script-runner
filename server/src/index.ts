@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+
 import { handleRpc } from 'typed-rpc/server';
 
 import { server } from './common';
@@ -19,9 +20,8 @@ const cors: ResponseInit = {
 };
 
 server.current = Bun.serve({
-	development: true,
-	port: 3001,
-	idleTimeout: 255,
+	development: process.env.NODE_ENV === 'development',
+	port: process.env.PORT,
 	websocket,
 	routes: {
 		'/api/*': {
@@ -53,10 +53,9 @@ server.current = Bun.serve({
 		},
 
 		'/*': async (req) => {
-			const staticDir = 'dist';
 			const { pathname } = new URL(req.url);
 			const path = join(
-				staticDir,
+				process.env.STATIC_DIR,
 				pathname === '/' ? 'index.html' : pathname
 			);
 			const file = Bun.file(path);
@@ -69,7 +68,10 @@ server.current = Bun.serve({
 		},
 	},
 	error(error) {
-		console.error(error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error(error);
+		}
+
 		return new Response(error.message, {
 			status: 500,
 			headers: {

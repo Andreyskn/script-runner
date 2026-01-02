@@ -5,7 +5,7 @@ export const DEFAULT_PORT = '5177';
 
 type Flags = {
 	values: {
-		mode: (typeof MODES)[number] | 'prompt';
+		mode: (typeof MODES)[number];
 		port: string;
 	};
 };
@@ -15,7 +15,7 @@ export const { values: flags } = parseArgs({
 	options: {
 		mode: {
 			type: 'string',
-			default: 'prompt' as Flags['values']['mode'],
+			default: 'prompt',
 		},
 		port: {
 			type: 'string',

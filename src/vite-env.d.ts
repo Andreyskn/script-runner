@@ -2,6 +2,11 @@
 import type { LucideProps } from 'lucide-react';
 
 declare global {
+	interface ImportMetaEnv {
+		VITE_IP: string;
+		VITE_PORT: string;
+	}
+
 	type Icon = React.ReactElement<LucideProps>;
 
 	type NonRenderable = false | '' | null | undefined;

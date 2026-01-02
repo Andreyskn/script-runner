@@ -5,4 +5,5 @@ await Promise.all([
 	$`bun build ./electron/src/main.ts --outdir ./electron/build --target node --packages external`,
 	$`bun build ./electron/src/preload/mainPreload.ts --outdir ./electron/build --target node --format cjs --external electron`,
 	$`bun build ./electron/src/preload/searchPreload.ts --outdir ./electron/build --target node --format cjs --external electron`,
+	$`bunx esbuild server/src/index.ts --platform=node --bundle --outfile=server/out/server.js`,
 ]);

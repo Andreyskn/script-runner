@@ -28,7 +28,7 @@ export type IPC<
 	In extends Record<string, (...args: any[]) => any> = any,
 > = {
 	available: boolean;
-	config: WindowConfig;
+	config?: WindowConfig;
 	call: {
 		[K in keyof Out]: (
 			...args: Parameters<Out[K]>

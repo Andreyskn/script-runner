@@ -9,10 +9,21 @@ export default {
 		prePackage: async () => {
 			await $`bun ./scripts/bundle`;
 		},
+		generateAssets: async () => {
+			await $`cp ./.env.production ./.env`;
+		},
+		postMake: async () => {
+			await $`rm ./.env`;
+		},
 	},
 	packagerConfig: {
 		asar: true,
-		extraResource: ['./public/icon.png'],
+		extraResource: [
+			'./public/icon.png',
+			'./.env',
+			'./dist',
+			'./server/out/server.js',
+		],
 	},
 	rebuildConfig: {},
 	makers: [
