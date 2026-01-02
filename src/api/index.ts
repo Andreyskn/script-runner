@@ -32,7 +32,7 @@ const RPC_HANDLES = [
 ] as const;
 
 const rpc = rpcClient<Service>(
-	`http://localhost:${import.meta.env.VITE_PORT}/api/`
+	`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/`
 );
 
 const originalFetch = window.fetch.bind(window);
@@ -75,7 +75,7 @@ export const api: API = new Proxy(
 ) as API;
 
 const websocket = new WebSocket(
-	`ws://localhost:${import.meta.env.VITE_PORT}/ws`
+	`ws://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/ws`
 );
 const wsConnection = Promise.withResolvers();
 

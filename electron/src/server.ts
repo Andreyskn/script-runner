@@ -1,4 +1,5 @@
 import { exec, spawn } from 'node:child_process';
+import path from 'path';
 
 import isDev from 'electron-is-dev';
 
@@ -7,14 +8,10 @@ if (!isDev) {
 
 	const serverProc = spawn(
 		'bun',
-		[
-			'~/Projects/script-runner/server/out/index.ts',
-			'--port',
-			process.env.PORT,
-		],
+		[path.join(process.resourcesPath, 'server.js')],
 		{
 			shell: true,
-			stdio: ['ignore', 'pipe', 'inherit'],
+			stdio: ['ignore', 'pipe', 'ignore'],
 		}
 	);
 
@@ -23,11 +20,11 @@ if (!isDev) {
 	});
 
 	serverProc.on('close', (code) => {
-		// handle close
+		// TODO: handle close
 	});
 
 	process.on('exit', () => {
-		exec(`curl -s http://localhost:${process.env.PORT}/stop`);
+		exec(`curl -s http://${process.env.IP}:${process.env.PORT}/stop`);
 	});
 
 	await connection.promise;

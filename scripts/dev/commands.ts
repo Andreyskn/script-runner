@@ -43,11 +43,11 @@ export const cmd = {
 			);
 	},
 	backendDev: () => {
-		spawn('server', 'bun --watch server/src/index.ts --mode dev');
+		spawn('server', 'bun --watch server/src/index.ts');
 	},
 	backendStop: async () => {
 		try {
-			await $`curl -s http://localhost:3001/stop`;
+			await $`curl -s http://${process.env.IP}:${process.env.PORT}/stop`;
 		} catch (error) {}
 	},
 	electronStart: () => {

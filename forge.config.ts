@@ -18,7 +18,12 @@ export default {
 	},
 	packagerConfig: {
 		asar: true,
-		extraResource: ['./public/icon.png', './.env', './dist'],
+		extraResource: [
+			'./public/icon.png',
+			'./.env',
+			'./dist',
+			'./server/out/server.js',
+		],
 	},
 	rebuildConfig: {},
 	makers: [
