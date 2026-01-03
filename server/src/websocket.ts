@@ -7,6 +7,7 @@ import type { ExecData } from './runner';
 export type FileMoveData = { id: FileId; path: string };
 
 export type WsServerMessage =
+	| WsMsg<'open-search-request'>
 	| WsMsg<`output:${FileId}`, { output: ScriptOutput }>
 	| WsMsg<'script-status', ExecData>
 	| WsMsg<
@@ -67,7 +68,8 @@ export const ws = {
 	) => {
 		const data: WsMsg<any, any> = { type, payload };
 		server.current.publish(type, JSON.stringify(data));
-		ee.emit(type, payload as any);
+		// @ts-ignore
+		ee.emit(type, payload);
 	},
 	on: ee.on.bind(ee),
 };

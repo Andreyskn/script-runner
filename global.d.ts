@@ -3,8 +3,6 @@ export {};
 declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
-			IP: string;
-			VITE_IP: string;
 			PORT: string;
 			VITE_PORT: string;
 			NODE_ENV: 'production' | 'development';

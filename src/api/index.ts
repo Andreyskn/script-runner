@@ -31,9 +31,7 @@ const RPC_HANDLES = [
 	//#endregion
 ] as const;
 
-const rpc = rpcClient<Service>(
-	`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/`
-);
+const rpc = rpcClient<Service>('/api/');
 
 const originalFetch = window.fetch.bind(window);
 
@@ -74,9 +72,7 @@ export const api: API = new Proxy(
 	}
 ) as API;
 
-const websocket = new WebSocket(
-	`ws://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/ws`
-);
+const websocket = new WebSocket('/ws');
 const wsConnection = Promise.withResolvers();
 
 websocket.onopen = wsConnection.resolve;

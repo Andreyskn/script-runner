@@ -1,19 +1,32 @@
 import { Notification } from 'electron';
 
 import { SpecialExitCodes } from '../../server/src/common';
-import type { ExecData } from '../../server/src/runner';
+import type {
+	WsClientMessage,
+	WsServerMessage,
+} from '../../server/src/websocket';
 import { ipc } from './ipc';
 import { mainWindow } from './mainWindow';
+import { searchWindow } from './searchWindow';
 
-const socket = new WebSocket(`ws://${process.env.IP}:${process.env.PORT}/ws`);
+const socket = new WebSocket(`ws://localhost:${process.env.PORT}/ws`);
 
 socket.addEventListener('open', () => {
-	socket.send(
-		JSON.stringify({
-			type: 'subscribe',
-			payload: { topic: 'script-status' },
+	const subscriptions: WsClientMessage['payload']['topic'][] = [
+		'script-status',
+		'open-search-request',
+	];
+
+	subscriptions
+		.map((topic) => {
+			const msg: WsClientMessage = {
+				type: 'subscribe',
+				payload: { topic },
+			};
+
+			return JSON.stringify(msg);
 		})
-	);
+		.forEach((m) => socket.send(m));
 });
 
 const outcomeIndicator = (exitCode: number) => {
@@ -28,24 +41,33 @@ const outcomeIndicator = (exitCode: number) => {
 };
 
 socket.addEventListener('message', (e) => {
-	const data = JSON.parse(e.data).payload as ExecData;
+	const { type, payload } = JSON.parse(e.data) as WsServerMessage;
 
-	if (!data.active) {
-		const { path, exitCode } = data;
+	switch (type) {
+		case 'script-status': {
+			if (!payload.active) {
+				const { path, exitCode } = payload;
 
-		const notification = new Notification({
-			title: `Script ${outcomeIndicator(exitCode)}`,
-			body: `Execution complete: ${path}`,
-		});
+				const notification = new Notification({
+					title: `Script ${outcomeIndicator(exitCode)}`,
+					body: `Execution complete: ${path}`,
+				});
 
-		notification.on('click', () => {
-			mainWindow.open();
+				notification.on('click', () => {
+					mainWindow.open();
 
-			mainWindow.appReady.then(() => {
-				ipc.call.setView('history');
-			});
-		});
+					mainWindow.appReady.then(() => {
+						ipc.call.setView('history');
+					});
+				});
 
-		notification.show();
+				notification.show();
+			}
+			break;
+		}
+		case 'open-search-request': {
+			searchWindow.open();
+			break;
+		}
 	}
 });

@@ -4,7 +4,7 @@ import { handleRpc } from 'typed-rpc/server';
 
 import { server } from './common';
 import { service } from './service';
-import { websocket } from './websocket';
+import { websocket, ws } from './websocket';
 
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
@@ -45,6 +45,11 @@ server.current = Bun.serve({
 			if (!server.current.upgrade(req)) {
 				throw Error('WebSocket upgrade failed');
 			}
+		},
+
+		'/search': async () => {
+			ws.publish('open-search-request', undefined);
+			return new Response(null, { status: 200, ...cors });
 		},
 
 		'/stop': async () => {

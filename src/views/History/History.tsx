@@ -3,8 +3,8 @@ import { useEffect } from 'react';
 import { TerminalIcon } from 'lucide-react';
 
 import { Section } from '@/components/Section';
-import { HistoryEntry } from '@/views/History/HistoryEntry';
 import { archiveStore } from '@/views/History/archiveStore';
+import { HistoryEntry } from '@/views/History/HistoryEntry';
 
 import { cls } from './History.styles';
 
@@ -18,6 +18,7 @@ export const History: React.FC<HistoryProps> = (props) => {
 	const {
 		clearUnseen,
 		useSelector,
+		saveLastSeen,
 		selectors: { unseenCount },
 	} = archiveStore;
 
@@ -25,6 +26,12 @@ export const History: React.FC<HistoryProps> = (props) => {
 		(state) => (active ? state.active : state.archived),
 		(map) => [...map.values()].reverse()
 	);
+
+	useEffect(() => {
+		if (!active) {
+			saveLastSeen(entries[0] as any);
+		}
+	}, [entries]);
 
 	useEffect(() => {
 		if (!active) {
@@ -45,7 +52,7 @@ export const History: React.FC<HistoryProps> = (props) => {
 						key={entry.state.execId}
 						entry={entry}
 						lastUnseen={
-							unseenCount !== entries.length &&
+							unseenCount < entries.length &&
 							i + 1 === unseenCount
 						}
 					/>

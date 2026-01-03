@@ -1,6 +1,7 @@
+import { fileURLToPath } from 'url';
+
 import { app, BrowserWindow, screen } from 'electron';
 import createPositioner, { type State as WinPos } from 'electron-window-state';
-import { fileURLToPath } from 'url';
 
 import { ipc } from './ipc';
 import { paths } from './paths';
@@ -47,7 +48,7 @@ const createMainWindow = () => {
 	});
 	winPos.manage(win);
 
-	win.loadURL(paths.index);
+	win.loadURL(`http://localhost:${process.env.PORT}/`);
 
 	win.on('closed', () => {
 		win = null;

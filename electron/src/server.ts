@@ -24,7 +24,7 @@ if (!isDev) {
 	});
 
 	process.on('exit', () => {
-		exec(`curl -s http://${process.env.IP}:${process.env.PORT}/stop`);
+		exec(`curl -s http://localhost:${process.env.PORT}/stop`);
 	});
 
 	await connection.promise;

@@ -1,5 +1,6 @@
-import { BrowserWindow, screen } from 'electron';
 import { fileURLToPath } from 'url';
+
+import { BrowserWindow, screen } from 'electron';
 
 import { ipc } from './ipc';
 import { paths } from './paths';
@@ -29,7 +30,7 @@ const createSearchWindow = () => {
 		},
 	});
 
-	win.loadURL(paths.index);
+	win.loadURL(`http://localhost:${process.env.PORT}/`);
 
 	win.on('blur', searchWindow.close);
 

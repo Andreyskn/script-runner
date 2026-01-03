@@ -29,6 +29,8 @@ type CombinedEntry = Combine<ActiveEntry | ArchivedEntry>;
 
 export type ArchiveStoreEntry = Entry<CombinedEntry>;
 
+type StorageKey = 'lastSeenEndedAt';
+
 type State = {
 	active: Map<ExecId, Entry<ActiveEntry>>;
 	archived: Map<ExecId, Entry<ArchivedEntry>>;
@@ -43,6 +45,15 @@ class ArchiveStore extends ComponentStore<State> {
 		active: new Map(),
 		archived: new Map(),
 		unseenCount: 0,
+	};
+
+	storage = {
+		get: (key: StorageKey) => {
+			return localStorage.getItem(key);
+		},
+		set: (key: StorageKey, value: string) => {
+			localStorage.setItem(key, value);
+		},
 	};
 
 	constructor() {
@@ -65,13 +76,27 @@ class ArchiveStore extends ComponentStore<State> {
 					return;
 				}
 
+				const lastSeen = this.storage.get('lastSeenEndedAt');
+				const lastSeenMs = lastSeen && +new Date(lastSeen);
+
 				this.setState((s) => {
-					result.value.forEach((data) => {
-						s.archived.set(
-							data.execId,
-							new Entry<ArchivedEntry>(data)
-						);
+					result.value.forEach((data, i) => {
+						const entry = new Entry<ArchivedEntry>(data);
+
+						s.archived.set(data.execId, entry);
+
+						if (
+							lastSeenMs &&
+							s.unseenCount === 0 &&
+							+entry.state.endedAt > lastSeenMs
+						) {
+							s.unseenCount = result.value.length - i;
+						}
 					});
+
+					if (!lastSeenMs) {
+						s.unseenCount = result.value.length;
+					}
 				});
 			}),
 		]);
@@ -121,6 +146,15 @@ class ArchiveStore extends ComponentStore<State> {
 		this.setState((state) => {
 			state.unseenCount = 0;
 		});
+	};
+
+	saveLastSeen = (entry?: Entry<ArchivedEntry>) => {
+		if (entry) {
+			this.storage.set(
+				'lastSeenEndedAt',
+				entry.state.endedAt.toISOString()
+			);
+		}
 	};
 }
 
