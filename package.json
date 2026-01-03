@@ -8,7 +8,6 @@
 	"scripts": {
 		"dev": "NODE_ENV=development bun scripts/dev",
 		"bundle": "NODE_ENV=production bun scripts/bundle",
-		"bundle:demo": "bunx --bun vite build --mode mock --outDir ../Andreyskn.github.io --emptyOutDir",
 		"lint": "eslint src",
 		"check": "tsc --build",
 		"package": "NODE_ENV=production bunx --bun electron-forge package",
@@ -62,7 +61,6 @@
 		"eslint-plugin-react-hooks": "^5.2.0",
 		"eslint-plugin-react-refresh": "^0.4.26",
 		"globals": "^16.3.0",
-		"msw": "^2.11.3",
 		"open": "^11.0.0",
 		"prettier": "^3.6.2",
 		"sass": "^1.90.0",

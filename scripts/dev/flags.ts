@@ -1,6 +1,6 @@
 import { parseArgs } from 'util';
 
-export const MODES = ['electron', 'web', 'mock'] as const;
+export const MODES = ['electron', 'web'] as const;
 export const DEFAULT_PORT = '5177';
 
 type Flags = {

@@ -146,12 +146,9 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 								</div>
 							)}
 							<Output
-								name='backup.sh'
 								exitCode={exitCode!}
-								status='ended'
 								lines={output}
 								className={cls.historyEntry.output()}
-								autoScrollDisabled
 							/>
 						</>
 					)}

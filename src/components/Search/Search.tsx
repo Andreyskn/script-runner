@@ -4,11 +4,12 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import Fuse from 'fuse.js';
 import { FileTextIcon } from 'lucide-react';
 
-import { appStore } from '@/App/appStore';
 import { api, ipc } from '@/api';
+import { appStore } from '@/App/appStore';
 import { Combobox, type ComboboxOption } from '@/components/Combobox';
 import { filesStore } from '@/views/Scripts/stores/filesStore';
 
+import { sortNodes } from '../Tree/treeUtils';
 import { cls } from './Search.styles';
 import { search, type SearchAPI } from './searchApi';
 
@@ -35,9 +36,7 @@ export const Search: React.FC<SearchProps> = () => {
 	const { options, fuse } = useSelector(
 		(state) => state.files,
 		(files) => {
-			// TODO: sort options
-
-			const options: SearchOption[] = [...files.values()]
+			const options: SearchOption[] = sortNodes([...files.values()])
 				.filter(({ type }) => type === 'script')
 				.map(({ path, id, name }) => {
 					const segments = path.split('/');
@@ -128,15 +127,19 @@ export const Search: React.FC<SearchProps> = () => {
 			return;
 		}
 
-		await api.endSearch(id);
+		if (ipc.config?.windowId === 'search') {
+			await api.endSearch(id);
+		}
 
 		setSelectedScript(id);
-		appStore.setView('scripts'); // FIXME: wrong sidebar item gets highlighted
+		appStore.setView('scripts');
 		dialogRef.current?.close();
 	};
 
 	const handleClose = async () => {
-		await api.endSearch();
+		if (ipc.config?.windowId === 'search') {
+			await api.endSearch();
+		}
 
 		const input = inputRef.current;
 		if (input) {

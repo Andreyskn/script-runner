@@ -1,5 +1,6 @@
-import react from '@vitejs/plugin-react-swc';
 import net from 'net';
+
+import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -33,6 +34,14 @@ export default defineConfig(({ mode }) => ({
 		sourcemap: mode === 'dev',
 		rollupOptions: {
 			external: ['electron'],
+		},
+	},
+	server: {
+		proxy: {
+			'/api': {
+				target: 'http://localhost:3001',
+				changeOrigin: true,
+			},
 		},
 	},
 }));

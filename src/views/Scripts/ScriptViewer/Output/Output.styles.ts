@@ -13,7 +13,6 @@ export const cls = bem(
 		'output-section__placeholder': string;
 		output__line: string;
 		'output__line--error': string;
-		'output__line--initial': string;
 		'output__line--success': string;
 	}
 );

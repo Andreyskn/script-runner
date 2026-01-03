@@ -3,6 +3,7 @@
 	min-width: 0;
 
 	&__content {
+		overflow-x: hidden;
 		display: flex;
 		gap: 16px;
 	}

@@ -189,26 +189,6 @@ export class ScriptStore extends ComponentStore<State> {
 			});
 			return false;
 		}
-
-		// if (!result.value) {
-		// 	if (import.meta.env.MODE === 'mock') {
-		// 		this.appendOutputLine(
-		// 			'No connection to Mock Service Worker',
-		// 			true
-		// 		);
-		// 	}
-		// 	return;
-		// }
-
-		// if (import.meta.env.MODE === 'mock') {
-		// 	const scriptChannel = new BroadcastChannel('script-runner-mock');
-		// 	scriptChannel.postMessage({
-		// 		type: 'SCRIPT_TEXT',
-		// 		text: this.state.text,
-		// 		path: '', // this.path
-		// 	});
-		// 	scriptChannel.close();
-		// }
 	};
 
 	interruptExecution = () => {

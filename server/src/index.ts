@@ -69,7 +69,7 @@ server.current = Bun.serve({
 				return new Response(file, cors);
 			}
 
-			return new Response('Page not found', cors);
+			return new Response('Page not found', { status: 404, ...cors });
 		},
 	},
 	error(error) {

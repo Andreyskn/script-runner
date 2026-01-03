@@ -6,10 +6,7 @@ import { BanIcon, TerminalIcon } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Section } from '@/components/Section';
 import { Tooltip } from '@/components/Tooltip';
-import {
-	type ExecutionStatus,
-	type OutputLine,
-} from '@/views/Scripts/stores/scriptStore';
+import { type OutputLine } from '@/views/Scripts/stores/scriptStore';
 
 import type { File } from '../../stores/filesStore';
 import { cls } from './Output.styles';
@@ -27,7 +24,7 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 	} = script;
 
 	const hasActiveExecution = useRef(false);
-	if (executionStatus !== 'idle') {
+	if (executionStatus !== 'idle' || !!output.length) {
 		hasActiveExecution.current = true;
 	}
 
@@ -62,8 +59,7 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 					key={execId}
 					lines={output}
 					exitCode={exitCode}
-					status={executionStatus}
-					name='backup.sh'
+					autoScroll
 				/>
 			) : (
 				<div className={cls.outputSection.placeholder()}>
@@ -75,27 +71,19 @@ export const OutputSection: React.FC<Props> = ({ script }) => {
 };
 
 export type OutputProps = {
-	name: string;
 	lines: OutputLine[];
-	status: ExecutionStatus;
 	exitCode: number | null;
 	className?: string;
-	autoScrollDisabled?: boolean;
+	autoScroll?: boolean;
 };
 
 export const Output: React.FC<OutputProps> = (props) => {
-	const { lines, exitCode, name, className, status, autoScrollDisabled } =
-		props;
+	const { lines, exitCode, className, autoScroll } = props;
 
 	const lastLine = useRef<HTMLDivElement>(null);
 
-	const hasStartedExecution = useRef(false);
-	if (status === 'running') {
-		hasStartedExecution.current = true;
-	}
-
 	useEffect(() => {
-		if (!autoScrollDisabled) {
+		if (autoScroll) {
 			lastLine.current?.scrollIntoView();
 		}
 	});
@@ -117,17 +105,6 @@ export const Output: React.FC<OutputProps> = (props) => {
 
 	return (
 		<div className={cls.output.block(null, className)}>
-			{hasStartedExecution.current && (
-				<div
-					className={cls.output.line({
-						success: true,
-						initial: true,
-					})}
-				>
-					$ Executing {name}...
-				</div>
-			)}
-
 			{lines.map((line, i) => (
 				<div
 					key={i}

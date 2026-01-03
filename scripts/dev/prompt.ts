@@ -3,7 +3,7 @@ import { debounce } from 'lodash';
 import open from 'open';
 
 import { cmd } from './commands';
-import { DEFAULT_PORT, flags, MODES, setFlag } from './flags';
+import { flags, MODES, setFlag } from './flags';
 import { ipc } from './ipc';
 import { signals, when } from './signals';
 
@@ -28,10 +28,6 @@ export const prompt = {
 			});
 
 			setFlag('mode', selected);
-
-			if (selected === 'mock' && flags.port === DEFAULT_PORT) {
-				setFlag('port', '5178');
-			}
 		} catch (error) {
 			process.exit();
 		}

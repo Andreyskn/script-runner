@@ -1,22 +1,44 @@
 import { ComponentStore } from '@/utils';
 
-export type View = 'scripts' | 'history' | 'active';
+const VIEWS = ['scripts', 'active', 'history'] as const;
+
+export type View = (typeof VIEWS)[number];
 
 type State = {
 	view: View;
 };
 
-// TODO: add routing history
-
 class AppStore extends ComponentStore<State> {
 	state: State = {
-		view: 'scripts',
+		view: VIEWS[0],
 	};
 
+	constructor() {
+		super();
+
+		if (history.state) {
+			this.state.view = history.state;
+		} else {
+			history.replaceState(this.state.view, '');
+		}
+
+		window.addEventListener('popstate', (e) => {
+			this.setState((state) => {
+				state.view = e.state;
+			});
+		});
+	}
+
 	setView = (view: State['view']) => {
+		if (view === this.state.view) {
+			return;
+		}
+
 		this.setState((state) => {
 			state.view = view;
 		});
+
+		history.pushState(view, '');
 	};
 }
 

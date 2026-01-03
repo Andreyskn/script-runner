@@ -67,6 +67,10 @@ export const Select: React.FC<SelectProps> = (props) => {
 					value={opt.value}
 					selected={opt.selected}
 					className={cls.select.option()}
+					onMouseUp={(e) => {
+						e.preventDefault();
+						onSelect?.(e.currentTarget.value);
+					}}
 				>
 					{renderOption ? (
 						renderOption(opt)

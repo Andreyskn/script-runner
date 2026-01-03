@@ -12,10 +12,6 @@ if (!MODES.includes(flags.mode)) {
 }
 
 switch (flags.mode) {
-	case 'mock': {
-		cmd.viteDev();
-		break;
-	}
 	case 'web': {
 		ipc.init();
 		cmd.backendDev();
