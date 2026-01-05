@@ -2,6 +2,7 @@ import { useRef } from 'react';
 
 import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog/dialogApi';
 import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog/dialogApi';
+import { showScriptDialog } from '@/components/Dialog/ScriptDialog';
 import { Section } from '@/components/Section';
 import {
 	Tree,
@@ -10,6 +11,7 @@ import {
 	type TreeProps,
 } from '@/components/Tree';
 import { sortNodes } from '@/components/Tree/treeUtils';
+import { Responsive, useBreakpoint } from '@/utils';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
 import {
@@ -63,6 +65,17 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 
 	const byPathRef = useRef(byPath);
 	byPathRef.current = byPath;
+
+	const { desktopScreenRef } = useBreakpoint({ disableAutoUpdate: true });
+
+	const handleScriptSelect: TreeProps['onFileSelect'] = (id) => {
+		if (desktopScreenRef.current) {
+			setSelectedScript(id);
+		} else {
+			const script = filesStore.state.files.get(id)!;
+			showScriptDialog({ script });
+		}
+	};
 
 	const handleRename: TreeProps['onRename'] = {
 		before(node) {
@@ -122,10 +135,9 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 				headerClassName={cls.scripts.treeSectionTitle()}
 				contentClassName={cls.scripts.treeSectionContent()}
 			>
-				<div />
 				<Tree
 					activePath={selectedScript?.path.split('/') ?? undefined}
-					onFileSelect={setSelectedScript}
+					onFileSelect={handleScriptSelect}
 					nodes={nodes}
 					onMove={async (source, target) => {
 						const newPath = [...target.path, source.name]
@@ -163,11 +175,15 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 					}}
 				/>
 			</Section>
-			{selectedScript ? (
-				<ScriptViewer script={selectedScript} />
-			) : (
-				<Placeholder />
-			)}
+			<Responsive
+				desktopScreen={
+					selectedScript ? (
+						<ScriptViewer script={selectedScript} />
+					) : (
+						<Placeholder />
+					)
+				}
+			/>
 		</div>
 	);
 };

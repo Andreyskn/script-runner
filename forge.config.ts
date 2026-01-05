@@ -20,6 +20,7 @@ export default {
 		asar: true,
 		extraResource: [
 			'./public/icon.png',
+			'./public/icon_tray.png',
 			'./.env',
 			'./dist',
 			'./server/out/server.js',

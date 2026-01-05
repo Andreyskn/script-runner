@@ -72,7 +72,11 @@ export const api: API = new Proxy(
 	}
 ) as API;
 
-const websocket = new WebSocket('/ws');
+const websocket = new WebSocket(
+	import.meta.env.DEV
+		? `ws://localhost:${import.meta.env.VITE_PORT}/ws`
+		: '/ws'
+);
 const wsConnection = Promise.withResolvers();
 
 websocket.onopen = wsConnection.resolve;

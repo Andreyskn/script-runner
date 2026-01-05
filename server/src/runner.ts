@@ -166,6 +166,12 @@ export class ScriptRunner {
 }
 
 const runScript = func(function* (id: FileId): FuncGen<boolean, {}> {
+	const file = files.registry.get(id) as ScriptData;
+
+	if (file.activeRunner) {
+		return false;
+	}
+
 	const runner = new ScriptRunner(id);
 	return runner.status === 'running';
 });

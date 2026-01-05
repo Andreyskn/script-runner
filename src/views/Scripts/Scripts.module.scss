@@ -3,8 +3,14 @@
 	height: 100%;
 
 	&__tree-section {
-		width: 300px;
-		border-right-width: 1px;
+		@include desktop-screen {
+			width: 300px;
+			border-right-width: 1px;
+		}
+
+		@include mobile-screen {
+			width: 100%;
+		}
 
 		&-title {
 			font-size: 14px;
