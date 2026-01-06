@@ -1,11 +1,14 @@
 .replace-confirm-dialog {
+	width: 512px;
+
 	&__header {
-		font-size: 18px;
-		line-height: 28px;
-		font-weight: 600;
 		display: flex;
 		gap: 8px;
 		align-items: center;
+
+		font-size: 18px;
+		font-weight: 600;
+		line-height: 28px;
 
 		svg {
 			color: hsl(var(--destructive));
@@ -13,16 +16,17 @@
 	}
 
 	&__body {
-		color: hsl(var(--muted-foreground));
-		font-size: 14px;
-		line-height: 20px;
 		margin-top: 8px;
 		margin-bottom: 16px;
+
+		font-size: 14px;
+		line-height: 20px;
+		color: hsl(var(--muted-foreground));
 	}
 
 	&__actions {
 		display: flex;
-		justify-content: flex-end;
 		gap: 8px;
+		justify-content: flex-end;
 	}
 }

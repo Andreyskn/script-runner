@@ -1,5 +1,5 @@
 export type DialogAPI = {
-	open: <T>(content: React.ReactNode) => Promise<T | undefined>;
+	open: <T = undefined>(content: React.ReactNode) => Promise<T | undefined>;
 	close: () => void;
 	resolve: <T>(data: T) => void;
 };

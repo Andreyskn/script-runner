@@ -1,5 +1,6 @@
 import './env';
 import './server';
+import './ws';
 
 import net from 'net';
 
@@ -10,8 +11,6 @@ import type { DevSocketMessage } from '../../scripts/dev/ipc';
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
-
-import './ws';
 
 app.commandLine.appendSwitch('log-level', '3');
 
@@ -40,7 +39,7 @@ if (isDev) {
 }
 
 app.whenReady().then(() => {
-	const tray = new Tray(paths.icon);
+	const tray = new Tray(paths.trayIcon);
 	const contextMenu = Menu.buildFromTemplate([
 		{ label: 'Main', click: mainWindow.open },
 		{ label: 'Search', click: searchWindow.open },

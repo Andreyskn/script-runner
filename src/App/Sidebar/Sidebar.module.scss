@@ -1,9 +1,12 @@
 .sidebar {
 	&__nav {
 		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		padding: 8px;
+
+		@include desktop-screen {
+			flex-direction: column;
+			gap: 8px;
+			padding: 8px;
+		}
 
 		&-button {
 			padding: 7px 4px;

@@ -5,13 +5,25 @@
 
 	&__content {
 		display: flex;
+
+		@include mobile-screen {
+			overflow: visible;
+			flex-direction: column;
+		}
 	}
 
 	&__sidebar {
-		border-right-width: 1px;
+		@include desktop-screen {
+			border-right-width: 1px;
+		}
+
+		@include mobile-screen {
+			border-bottom-width: 1px;
+		}
 	}
 
 	&__main {
 		flex: 1;
+		min-height: 0;
 	}
 }

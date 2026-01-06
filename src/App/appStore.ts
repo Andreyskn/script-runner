@@ -1,8 +1,6 @@
 import { ComponentStore } from '@/utils';
 
-const VIEWS = ['scripts', 'active', 'history'] as const;
-
-export type View = (typeof VIEWS)[number];
+export type View = 'scripts' | 'history' | 'active';
 
 type State = {
 	view: View;
@@ -10,7 +8,7 @@ type State = {
 
 class AppStore extends ComponentStore<State> {
 	state: State = {
-		view: VIEWS[0],
+		view: 'scripts',
 	};
 
 	constructor() {

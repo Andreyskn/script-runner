@@ -1,8 +1,8 @@
 import { CodeXml, HistoryIcon, TerminalIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
+import { useBreakpoint } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
-
 import { appStore } from 'src/App/appStore';
 
 import { cls } from './Sidebar.styles';
@@ -13,6 +13,7 @@ export type SidebarProps = {
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
 	const { className } = props;
+	const { mobileScreen } = useBreakpoint();
 	const {
 		selectors: { view },
 		setView,
@@ -32,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 		<div className={cls.sidebar.block(null, className)}>
 			<div className={cls.sidebar.nav()}>
 				<Button
-					layout='vertical'
+					layout={mobileScreen ? 'horizontal' : 'vertical'}
 					icon={<CodeXml />}
 					text='Scripts'
 					fill={view === 'scripts' ? 'green' : 'none'}
@@ -40,9 +41,10 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					className={cls.sidebar.navButton()}
 					textClassName={cls.sidebar.navButtonText()}
 					onClick={() => setView('scripts')}
+					stretch={mobileScreen}
 				/>
 				<Button
-					layout='vertical'
+					layout={mobileScreen ? 'horizontal' : 'vertical'}
 					icon={<TerminalIcon />}
 					text='Active'
 					fill={view === 'active' ? 'green' : 'none'}
@@ -51,9 +53,10 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					textClassName={cls.sidebar.navButtonText()}
 					onClick={() => setView('active')}
 					badge={activeCount || undefined}
+					stretch={mobileScreen}
 				/>
 				<Button
-					layout='vertical'
+					layout={mobileScreen ? 'horizontal' : 'vertical'}
 					icon={<HistoryIcon />}
 					text='History'
 					fill={view === 'history' ? 'green' : 'none'}
@@ -62,6 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					textClassName={cls.sidebar.navButtonText()}
 					onClick={() => setView('history')}
 					badge={unseenCount || undefined}
+					stretch={mobileScreen}
 				/>
 			</div>
 		</div>
