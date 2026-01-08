@@ -9,7 +9,7 @@ export type ButtonProps = NonRenderableOptions<{
 	iconEnd?: Icon;
 	color?: 'none' | 'green' | 'red';
 	fill?: 'none' | 'green' | 'red';
-	text?: string;
+	text?: React.ReactNode;
 	stretch?: boolean;
 	size?: 'medium' | 'large' | 'small';
 	minimal?: boolean;

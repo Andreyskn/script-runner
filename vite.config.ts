@@ -36,14 +36,6 @@ export default defineConfig(({ mode }) => ({
 			external: ['electron'],
 		},
 	},
-	server: {
-		proxy: {
-			'/api': {
-				target: 'http://localhost:3001',
-				changeOrigin: true,
-			},
-		},
-	},
 	css: {
 		preprocessorOptions: {
 			scss: {

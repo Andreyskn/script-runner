@@ -4,6 +4,7 @@ export const server: { current: Bun.Server<undefined> } = {
 
 export const enum SpecialExitCodes {
 	Aborted = 1000,
+	FailedToStart,
 }
 
 export type RawScriptOutput =
@@ -23,7 +24,7 @@ export type ScriptOutputMetadata = {
 
 export type ScriptOutput = RawScriptOutput & ScriptOutputMetadata;
 
-export type WsMsg<
+export type Message<
 	T extends string,
 	P extends Record<string, any> | null = null,
 > = P extends null

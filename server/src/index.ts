@@ -1,10 +1,12 @@
 import { join } from 'node:path';
 
-import { handleRpc } from 'typed-rpc/server';
+import { handleRpc, type JsonRpcRequest } from 'typed-rpc/server';
 
 import { server } from './common';
-import { service } from './service';
+import { publicMethods, service } from './service';
 import { websocket, ws } from './websocket';
+
+import './socket';
 
 // https://github.com/microsoft/node-pty
 // https://github.com/xtermjs/xterm.js
@@ -28,16 +30,22 @@ server.current = Bun.serve({
 			OPTIONS: () => new Response(null, cors),
 
 			POST: async (req) => {
-				const rpcData = await handleRpc(
-					await req.json(),
-					service as any
-				);
+				const rpcReq = (await req.json()) as JsonRpcRequest;
 
-				if ('error' in rpcData) {
-					throw rpcData.error;
+				if (!publicMethods.includes(rpcReq.method as any)) {
+					return new Response(null, {
+						status: 403,
+						headers: cors.headers,
+					});
 				}
 
-				return Response.json(rpcData, cors);
+				const rpcResponse = await handleRpc(rpcReq, service as any);
+
+				if ('error' in rpcResponse) {
+					throw rpcResponse.error;
+				}
+
+				return Response.json(rpcResponse, cors);
 			},
 		},
 
@@ -84,6 +92,10 @@ server.current = Bun.serve({
 				...cors.headers,
 			},
 		});
+	},
+	tls: {
+		key: Bun.file('server/cert/key.pem'),
+		cert: Bun.file('server/cert/cert.pem'),
 	},
 });
 

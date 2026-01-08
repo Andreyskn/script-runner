@@ -59,7 +59,7 @@ export class ScriptRunner {
 		this.fileId = fileId;
 		const data = files.registry.get(fileId) as ScriptData;
 		data.activeRunner = this;
-		this.run(data.fullPath);
+		this.run(this, data.fullPath).option();
 	}
 
 	appendOutput = (rawOutput: RawScriptOutput) => {
@@ -128,20 +128,30 @@ export class ScriptRunner {
 			undefined;
 	};
 
-	private run = (path: string) => {
-		const proc = Bun.spawn([path], {
-			signal: this.controller.signal,
-			stdio: ['ignore', 'pipe', 'pipe'],
-			onExit: (_subprocess, exitCode, _signalCode, error) => {
-				if (this.controller.signal.aborted) {
-					exitCode = SpecialExitCodes.Aborted;
-				}
-				this.finalize(exitCode || 0, error);
-			},
+	private run = func(function* (
+		self: ScriptRunner,
+		path: string
+	): FuncGen<void, {}> {
+		const { defer } = self.run.utils;
+
+		yield* defer((error) => {
+			if (error) {
+				self.finalize(SpecialExitCodes.FailedToStart, error);
+			}
 		});
 
-		this.setStatus('running');
+		self.setStatus('running');
 
+		const proc = Bun.spawn(['sh', path], {
+			signal: self.controller.signal,
+			stdio: ['ignore', 'pipe', 'pipe'],
+			onExit: (_subprocess, exitCode, _signalCode, error) => {
+				if (self.controller.signal.aborted) {
+					exitCode = SpecialExitCodes.Aborted;
+				}
+				self.finalize(exitCode || 0, error);
+			},
+		});
 		const decoder = new TextDecoder();
 
 		Promise.all([
@@ -149,7 +159,7 @@ export class ScriptRunner {
 				for await (const chunk of proc.stdout) {
 					const text = decoder.decode(chunk);
 					for (const line of text.split('\n').filter(Boolean)) {
-						this.appendOutput({ type: 'stdout', line });
+						self.appendOutput({ type: 'stdout', line });
 					}
 				}
 			})(),
@@ -157,12 +167,12 @@ export class ScriptRunner {
 				for await (const chunk of proc.stderr) {
 					const text = decoder.decode(chunk);
 					for (const line of text.split('\n').filter(Boolean)) {
-						this.appendOutput({ type: 'stderr', line });
+						self.appendOutput({ type: 'stderr', line });
 					}
 				}
 			})(),
 		]);
-	};
+	});
 }
 
 const runScript = func(function* (id: FileId): FuncGen<boolean, {}> {

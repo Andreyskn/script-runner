@@ -30,7 +30,7 @@ const createSearchWindow = () => {
 		},
 	});
 
-	win.loadURL(`http://localhost:${process.env.PORT}/`);
+	win.loadURL(`https://localhost:${process.env.PORT}/`);
 
 	win.on('blur', searchWindow.close);
 

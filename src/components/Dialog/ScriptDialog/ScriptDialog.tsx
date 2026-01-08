@@ -23,7 +23,6 @@ export type ScriptDialogProps = {
 export const ScriptDialog: React.FC<ScriptDialogProps> = (props) => {
 	const {
 		name,
-		path,
 		scriptStore: {
 			state,
 			execute,
@@ -89,7 +88,7 @@ export const ScriptDialog: React.FC<ScriptDialogProps> = (props) => {
 	return (
 		<div className={cls.scriptDialog.block()}>
 			<Button
-				icon={<PlusIcon size={16} />}
+				icon={<PlusIcon />}
 				minimal
 				size='small'
 				round
@@ -100,10 +99,9 @@ export const ScriptDialog: React.FC<ScriptDialogProps> = (props) => {
 				<FileTextIcon size={20} />
 				{name}
 			</div>
-			<div className={cls.scriptDialog.path()}>{path}</div>
 			<div>
 				<Button
-					text='Script Content'
+					text='Script Text'
 					iconEnd={<ChevronRightIcon />}
 					borderless
 					stretch
@@ -112,36 +110,50 @@ export const ScriptDialog: React.FC<ScriptDialogProps> = (props) => {
 					})}
 					onClick={() => setShowText((s) => !s)}
 				/>
-				{shouldShowText && (
+				{shouldShowText && !!text && (
 					<pre className={cls.scriptDialog.accordionContent()}>
 						{text}
 					</pre>
 				)}
-			</div>
-			{output.length > 0 && (
-				<div>
-					<Button
-						text='Output'
-						iconEnd={<ChevronRightIcon />}
-						borderless
-						stretch
-						className={cls.scriptDialog.accordionBtn({
-							open: shouldShowOutput,
-						})}
-						onClick={() => setShowOutput((s) => !s)}
-					/>
-					{shouldShowOutput && (
-						<Output
-							exitCode={exitCode}
-							lines={output}
-							className={cls.scriptDialog.accordionContent()}
+				{executionStatus !== 'idle' && (
+					<>
+						<Button
+							text={
+								<>
+									{output.length > 0 && 'Output'}{' '}
+									<StatusBadge
+										exitCode={exitCode}
+										running={running}
+									/>
+								</>
+							}
+							iconEnd={output.length > 0 && <ChevronRightIcon />}
+							borderless
+							stretch
+							className={cls.scriptDialog.accordionBtn({
+								open: shouldShowOutput,
+								output: true,
+							})}
+							textClassName={cls.scriptDialog.outputBtnText()}
+							onClick={() => {
+								if (output.length) {
+									setShowOutput((s) => !s);
+								}
+							}}
 						/>
-					)}
-				</div>
-			)}
+						{shouldShowOutput && (
+							<Output
+								exitCode={exitCode}
+								lines={output}
+								className={cls.scriptDialog.accordionContent()}
+							/>
+						)}
+					</>
+				)}
+			</div>
 			<div className={cls.scriptDialog.actions()}>
-				<StatusBadge exitCode={exitCode} running={running} />
-				{shouldAllowInterrupt && (
+				<Button text='Close' size='large' onClick={dialog.close} />
+				{shouldAllowInterrupt ? (
 					<Button
 						icon={<BanIcon />}
 						text='Interrupt'
@@ -149,15 +161,16 @@ export const ScriptDialog: React.FC<ScriptDialogProps> = (props) => {
 						size='large'
 						onClick={interruptExecution}
 					/>
+				) : (
+					<Button
+						icon={<PlayIcon />}
+						text={running ? 'Running...' : 'Run'}
+						fill='green'
+						size='large'
+						onClick={execute}
+						disabled={running}
+					/>
 				)}
-				<Button
-					icon={<PlayIcon />}
-					text={running ? 'Running...' : 'Run'}
-					fill='green'
-					size='large'
-					onClick={execute}
-					disabled={running}
-				/>
 			</div>
 		</div>
 	);

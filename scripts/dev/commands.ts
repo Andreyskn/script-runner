@@ -11,7 +11,7 @@ export const cmd = {
 	viteDev: () => {
 		spawn(
 			'vite',
-			`bunx --bun vite --port ${flags.port} --mode ${flags.mode} --open`
+			`bunx --bun vite --port ${flags.port} --mode ${flags.mode} --open  --host`
 		);
 	},
 	viteBuildWatch: async () => {
@@ -47,7 +47,7 @@ export const cmd = {
 	},
 	backendStop: async () => {
 		try {
-			await $`curl -s http://localhost:${process.env.PORT}/stop`;
+			await $`curl -s https://localhost:${process.env.PORT}/stop`;
 		} catch (error) {}
 	},
 	electronStart: () => {

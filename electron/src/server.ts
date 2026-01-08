@@ -1,31 +1,96 @@
+import nodeNet from 'net';
 import { exec, spawn } from 'node:child_process';
-import path from 'path';
 
+import { app, net, protocol } from 'electron';
 import isDev from 'electron-is-dev';
+import type { JsonRpcRequest } from 'typed-rpc';
 
-if (!isDev) {
-	const connection = Promise.withResolvers();
+import type {
+	ElectronSocketMessage,
+	ServerSocketMessage,
+} from '../../server/src/socket';
+import { paths } from './paths';
 
-	const serverProc = spawn(
-		'bun',
-		[path.join(process.resourcesPath, 'server.js')],
-		{
-			shell: true,
-			stdio: ['ignore', 'pipe', 'ignore'],
-		}
-	);
+const connection = Promise.withResolvers();
+let serverSocket: nodeNet.Socket;
 
-	serverProc.stdout.on('data', () => {
+nodeNet
+	.createServer((socket) => {
+		serverSocket = socket;
 		connection.resolve();
-	});
+	})
+	.listen('\0script-runner.sock');
 
-	serverProc.on('close', (code) => {
-		// TODO: handle close
-	});
+app.whenReady().then(() => {
+	protocol.handle('https', async (request) => {
+		const { pathname } = new URL(request.url);
 
-	process.on('exit', () => {
-		exec(`curl -s http://localhost:${process.env.PORT}/stop`);
-	});
+		if (!pathname.startsWith('/api/')) {
+			return net.fetch(request.url, {
+				bypassCustomProtocolHandlers: true,
+				...request,
+			});
+		}
 
-	await connection.promise;
-}
+		const rpcRequest = (await request.json()) as JsonRpcRequest;
+		const msg: ElectronSocketMessage = {
+			type: 'rpc-request',
+			payload: rpcRequest,
+		};
+		const response = Promise.withResolvers<Response>();
+
+		const listener = (data: Buffer<ArrayBufferLike>) => {
+			// TODO: root listener that parses data
+			const msg = JSON.parse(data.toString()) as ServerSocketMessage;
+
+			if (
+				msg.type !== 'rpc-response' ||
+				msg.payload.id !== rpcRequest.id
+			) {
+				return;
+			}
+
+			serverSocket.off('data', listener);
+
+			if ('error' in msg.payload) {
+				response.resolve(
+					new Response(msg.payload.error.message, {
+						status: 500,
+					})
+				);
+				return;
+			}
+
+			response.resolve(
+				new Response(JSON.stringify(msg.payload), {
+					status: 200,
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				})
+			);
+		};
+
+		serverSocket.on('data', listener);
+		serverSocket.write(JSON.stringify(msg));
+
+		return response.promise;
+	});
+});
+
+const args = [isDev && '--watch', paths.server].filter(Boolean) as string[];
+
+spawn('bun', args, {
+	shell: true,
+	stdio: [
+		'ignore',
+		isDev ? 'inherit' : 'ignore',
+		isDev ? 'inherit' : 'ignore',
+	],
+});
+
+process.on('exit', () => {
+	exec(`curl -s https://localhost:${process.env.PORT}/stop`);
+});
+
+await connection.promise;

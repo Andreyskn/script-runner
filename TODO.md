@@ -1,3 +1,2 @@
-- [ ] Mobile layout
-- [ ] Auth
 - [ ] In-app notifications
+- [ ] Support any file extensions
