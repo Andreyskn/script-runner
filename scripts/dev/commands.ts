@@ -47,7 +47,7 @@ export const cmd = {
 	},
 	backendStop: async () => {
 		try {
-			await $`curl -s https://localhost:${process.env.PORT}/stop`;
+			await $`curl -s http://localhost:${process.env.PORT}/stop`;
 		} catch (error) {}
 	},
 	electronStart: () => {

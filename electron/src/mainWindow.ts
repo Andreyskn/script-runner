@@ -48,7 +48,7 @@ const createMainWindow = () => {
 	});
 	winPos.manage(win);
 
-	win.loadURL(`https://localhost:${process.env.PORT}/`);
+	win.loadURL(`http://localhost:${process.env.PORT}/`);
 
 	win.on('closed', () => {
 		win = null;

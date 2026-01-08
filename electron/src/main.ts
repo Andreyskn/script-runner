@@ -2,41 +2,13 @@ import './env';
 import './server';
 import './ws';
 
-import net from 'net';
+import { app, Menu, Tray } from 'electron';
 
-import { app, BrowserWindow, Menu, Tray } from 'electron';
-import isDev from 'electron-is-dev';
-
-import type { DevSocketMessage } from '../../scripts/dev/ipc';
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
 import { searchWindow } from './searchWindow';
 
 app.commandLine.appendSwitch('log-level', '3');
-
-if (isDev) {
-	net.createConnection('\0script-runner-dev.sock').on('data', (data) => {
-		switch (data.toString() as DevSocketMessage) {
-			case 'refresh': {
-				BrowserWindow.getAllWindows().forEach((win) => win.reload());
-				console.log('Windows refreshed');
-				break;
-			}
-			case 'quit': {
-				app.quit();
-				break;
-			}
-			case 'show-main': {
-				mainWindow.open();
-				break;
-			}
-			case 'show-search': {
-				searchWindow.open();
-				break;
-			}
-		}
-	});
-}
 
 app.whenReady().then(() => {
 	const tray = new Tray(paths.trayIcon);

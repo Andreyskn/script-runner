@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
 import { SpecialExitCodes } from '@server/common';
-import {
-	ChevronRightIcon,
-	ClockIcon,
-	LoaderCircle,
-	TerminalIcon,
-} from 'lucide-react';
+import { ChevronRightIcon, ClockIcon, TerminalIcon } from 'lucide-react';
 import ms from 'ms';
 
 import { appStore } from '@/App/appStore';
 import { Button } from '@/components/Button';
+import { Loader } from '@/components/Loader';
 import type { ArchiveStoreEntry } from '@/views/History/archiveStore';
 import { Output } from '@/views/Scripts/ScriptViewer/Output';
 import { filesStore } from '@/views/Scripts/stores/filesStore';
@@ -91,7 +87,7 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 							loader: active,
 						})}
 					>
-						{active && <LoaderCircle size={10} />}
+						{active && <Loader size={10} />}
 					</div>
 					<div className={cls.title.name()} onClick={goToScript}>
 						{name}

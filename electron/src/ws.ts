@@ -9,24 +9,22 @@ import { ipc } from './ipc';
 import { mainWindow } from './mainWindow';
 import { searchWindow } from './searchWindow';
 
-const socket = new WebSocket(`ws://localhost:${process.env.PORT}/ws`);
+const ws = new WebSocket(`ws://localhost:${process.env.PORT}/ws`);
 
-socket.addEventListener('open', () => {
+ws.addEventListener('open', () => {
 	const subscriptions: WsClientMessage['payload']['topic'][] = [
 		'script-status',
 		'open-search-request',
 	];
 
-	subscriptions
-		.map((topic) => {
-			const msg: WsClientMessage = {
-				type: 'subscribe',
-				payload: { topic },
-			};
+	subscriptions.forEach((topic) => {
+		const msg: WsClientMessage = {
+			type: 'subscribe',
+			payload: { topic },
+		};
 
-			return JSON.stringify(msg);
-		})
-		.forEach((m) => socket.send(m));
+		return ws.send(JSON.stringify(msg));
+	});
 });
 
 const outcomeIndicator = (exitCode: number) => {
@@ -40,7 +38,7 @@ const outcomeIndicator = (exitCode: number) => {
 	}
 };
 
-socket.addEventListener('message', (e) => {
+ws.addEventListener('message', (e) => {
 	const { type, payload } = JSON.parse(e.data) as WsServerMessage;
 
 	switch (type) {

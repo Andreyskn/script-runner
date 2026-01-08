@@ -10,6 +10,7 @@ if (!isDev) {
 		process.env as any,
 		{
 			STATIC_DIR: path.join(process.resourcesPath, 'dist'),
+			CERT_DIR: path.join(process.resourcesPath, 'cert'),
 		} satisfies Partial<(typeof process)['env']>,
 		{
 			override: true,

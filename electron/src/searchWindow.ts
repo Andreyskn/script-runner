@@ -30,7 +30,7 @@ const createSearchWindow = () => {
 		},
 	});
 
-	win.loadURL(`https://localhost:${process.env.PORT}/`);
+	win.loadURL(`http://localhost:${process.env.PORT}/`);
 
 	win.on('blur', searchWindow.close);
 
@@ -50,7 +50,7 @@ export const searchWindow = {
 
 ipc.handle.endSearch((scriptId) => {
 	if (scriptId) {
-		rpc.runScript(scriptId);
+		rpc.call('runScript', scriptId);
 	}
 	searchWindow.close();
 });

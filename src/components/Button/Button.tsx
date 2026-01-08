@@ -1,5 +1,4 @@
-import { LoaderCircle } from 'lucide-react';
-
+import { Loader } from '../Loader';
 import { cls } from './Button.styles';
 
 type ButtonAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
@@ -72,7 +71,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
 			)}
 			{children ??
 				(loading ? (
-					<LoaderCircle size={16} className={cls.button.loader()} />
+					<Loader />
 				) : (
 					<>
 						{icon && (

@@ -14,6 +14,9 @@ export default {
 		},
 		postMake: async () => {
 			await $`rm ./.env`;
+			console.log(`
+sudo dpkg -r script-runner && sudo dpkg -i ./out/make/deb/x64/script-runner_0.0.0_amd64.deb
+`);
 		},
 	},
 	packagerConfig: {
@@ -24,6 +27,7 @@ export default {
 			'./.env',
 			'./dist',
 			'./server/out/server.js',
+			'./server/cert',
 		],
 	},
 	rebuildConfig: {},

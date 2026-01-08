@@ -10,8 +10,6 @@ export type SectionProps = {
 	contentClassName?: string;
 };
 
-// TODO: fix header rerenders
-
 export const Section: React.FC<SectionProps> = (props) => {
 	const {
 		header,
