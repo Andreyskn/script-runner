@@ -18,22 +18,27 @@ if (flags.socket) {
 	const socket = net.createConnection('\0' + flags.socket);
 
 	socket.on('data', async (data) => {
-		const msg = JSON.parse(data.toString()) as ElectronSocketMessage;
+		data.toString()
+			.split('\n')
+			.filter(Boolean)
+			.forEach(async (chunk) => {
+				const msg = JSON.parse(chunk) as ElectronSocketMessage;
 
-		switch (msg.type) {
-			case 'rpc-request': {
-				const rpcResponse = await handleRpc(
-					msg.payload,
-					service as any
-				);
+				switch (msg.type) {
+					case 'rpc-request': {
+						const rpcResponse = await handleRpc(
+							msg.payload,
+							service as any
+						);
 
-				const res: ServerSocketMessage = {
-					type: 'rpc-response',
-					payload: rpcResponse as any,
-				};
+						const res: ServerSocketMessage = {
+							type: 'rpc-response',
+							payload: rpcResponse as any,
+						};
 
-				socket.write(JSON.stringify(res));
-			}
-		}
+						socket.write(JSON.stringify(res) + '\n');
+					}
+				}
+			});
 	});
 }

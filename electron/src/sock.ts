@@ -44,8 +44,13 @@ net.createServer((socket) => {
 	connection.resolve();
 
 	socket.on('data', (data) => {
-		const msg = JSON.parse(data.toString()) as ServerSocketMessage;
-		listeners.forEach((listener) => listener(msg));
+		data.toString()
+			.split('\n')
+			.filter(Boolean)
+			.forEach((chunk) => {
+				const msg = JSON.parse(chunk) as ServerSocketMessage;
+				listeners.forEach((listener) => listener(msg));
+			});
 	});
 }).listen('\0' + socketName);
 
@@ -65,6 +70,6 @@ export const socket = {
 	},
 	send: async (msg: ElectronSocketMessage) => {
 		await socket.connection;
-		serverSocket.write(JSON.stringify(msg));
+		serverSocket.write(JSON.stringify(msg) + '\n');
 	},
 };

@@ -35,6 +35,8 @@ async function rpcCall(
 			return;
 		}
 
+		removeListener();
+
 		if ('error' in msg.payload) {
 			value.resolve({
 				response: new Response(msg.payload.error.message, {
@@ -56,9 +58,6 @@ async function rpcCall(
 			result: msg.payload.result,
 		});
 	});
-
-	await value.promise;
-	removeListener();
 
 	return value.promise;
 }
