@@ -9,7 +9,7 @@ import { rpc } from './rpc';
 import { socket } from './sock';
 
 app.whenReady().then(() => {
-	protocol.handle('http', async (request) => {
+	protocol.handle('https', async (request) => {
 		const { pathname } = new URL(request.url);
 
 		if (!pathname.startsWith('/api/')) {

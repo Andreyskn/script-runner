@@ -48,6 +48,7 @@ const createMainWindow = () => {
 	});
 	winPos.manage(win);
 
+	win.setBackgroundColor('#09090b');
 	win.loadURL(`https://localhost:${process.env.PORT}/`);
 
 	win.on('closed', () => {

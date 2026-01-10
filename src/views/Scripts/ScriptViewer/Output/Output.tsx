@@ -15,7 +15,7 @@ import { cls } from './Output.styles';
 type Props = {
 	script: File;
 };
-// TODO: show loader when output is empty
+
 export const OutputSection: React.FC<Props> = ({ script }) => {
 	const {
 		scriptStore: {
