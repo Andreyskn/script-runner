@@ -14,9 +14,12 @@ export default {
 		},
 		postMake: async () => {
 			await $`rm ./.env`;
-			console.log(`
+
+			setTimeout(() => {
+				console.log(`
 sudo dpkg -r script-runner && sudo dpkg -i ./out/make/deb/x64/script-runner_0.0.0_amd64.deb
 `);
+			}, 300);
 		},
 	},
 	packagerConfig: {

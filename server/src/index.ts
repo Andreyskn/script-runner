@@ -93,10 +93,10 @@ server.current = Bun.serve({
 			},
 		});
 	},
-	// tls: {
-	// 	key: Bun.file(join(process.env.CERT_DIR, 'key.pem')),
-	// 	cert: Bun.file(join(process.env.CERT_DIR, 'cert.pem')),
-	// },
+	tls: {
+		key: Bun.file(join(process.env.CERT_DIR, 'key.pem')),
+		cert: Bun.file(join(process.env.CERT_DIR, 'cert.pem')),
+	},
 });
 
 console.log('Server is active on port:', server.current.port);

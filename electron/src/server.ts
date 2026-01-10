@@ -30,7 +30,7 @@ const args = [isDev && '--watch', paths.server, '--socket', socket.name].filter(
 	Boolean
 ) as string[];
 
-exec(`curl -s http://localhost:${process.env.PORT}/stop`);
+exec(`curl -s https://localhost:${process.env.PORT}/stop`);
 
 spawn('bun', args, {
 	shell: true,
@@ -42,7 +42,7 @@ spawn('bun', args, {
 });
 
 process.on('exit', () => {
-	exec(`curl -s http://localhost:${process.env.PORT}/stop`);
+	exec(`curl -s https://localhost:${process.env.PORT}/stop`);
 });
 
 await socket.connection;
