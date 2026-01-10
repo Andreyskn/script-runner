@@ -1,4 +1,5 @@
 import { Notification } from 'electron';
+import WebSocket from 'ws';
 
 import { SpecialExitCodes } from '../../server/src/common';
 import type {
@@ -9,24 +10,24 @@ import { ipc } from './ipc';
 import { mainWindow } from './mainWindow';
 import { searchWindow } from './searchWindow';
 
-const socket = new WebSocket(`ws://localhost:${process.env.PORT}/ws`);
+const ws = new WebSocket(`wss://localhost:${process.env.PORT}/ws`, {
+	rejectUnauthorized: false,
+});
 
-socket.addEventListener('open', () => {
+ws.on('open', () => {
 	const subscriptions: WsClientMessage['payload']['topic'][] = [
 		'script-status',
 		'open-search-request',
 	];
 
-	subscriptions
-		.map((topic) => {
-			const msg: WsClientMessage = {
-				type: 'subscribe',
-				payload: { topic },
-			};
+	subscriptions.forEach((topic) => {
+		const msg: WsClientMessage = {
+			type: 'subscribe',
+			payload: { topic },
+		};
 
-			return JSON.stringify(msg);
-		})
-		.forEach((m) => socket.send(m));
+		return ws.send(JSON.stringify(msg));
+	});
 });
 
 const outcomeIndicator = (exitCode: number) => {
@@ -40,8 +41,8 @@ const outcomeIndicator = (exitCode: number) => {
 	}
 };
 
-socket.addEventListener('message', (e) => {
-	const { type, payload } = JSON.parse(e.data) as WsServerMessage;
+ws.on('message', (data) => {
+	const { type, payload } = JSON.parse(data.toString()) as WsServerMessage;
 
 	switch (type) {
 		case 'script-status': {

@@ -1,31 +1,48 @@
 import { exec, spawn } from 'node:child_process';
-import path from 'path';
 
+import { app, net, protocol } from 'electron';
 import isDev from 'electron-is-dev';
+import type { JsonRpcRequest } from 'typed-rpc';
 
-if (!isDev) {
-	const connection = Promise.withResolvers();
+import { paths } from './paths';
+import { rpc } from './rpc';
+import { socket } from './sock';
 
-	const serverProc = spawn(
-		'bun',
-		[path.join(process.resourcesPath, 'server.js')],
-		{
-			shell: true,
-			stdio: ['ignore', 'pipe', 'ignore'],
+app.whenReady().then(() => {
+	protocol.handle('https', async (request) => {
+		const { pathname } = new URL(request.url);
+
+		if (!pathname.startsWith('/api/')) {
+			return net.fetch(request.url, {
+				bypassCustomProtocolHandlers: true,
+				...request,
+			});
 		}
-	);
 
-	serverProc.stdout.on('data', () => {
-		connection.resolve();
+		const rpcRequest = (await request.json()) as JsonRpcRequest;
+		const { response } = await rpc.call(rpcRequest);
+
+		return response;
 	});
+});
 
-	serverProc.on('close', (code) => {
-		// TODO: handle close
-	});
+const args = [isDev && '--watch', paths.server, '--socket', socket.name].filter(
+	Boolean
+) as string[];
 
-	process.on('exit', () => {
-		exec(`curl -s http://localhost:${process.env.PORT}/stop`);
-	});
+exec(`curl -s https://localhost:${process.env.PORT}/stop`);
 
-	await connection.promise;
-}
+spawn('bun', args, {
+	shell: true,
+	stdio: [
+		'ignore',
+		isDev ? 'inherit' : 'ignore',
+		isDev ? 'inherit' : 'ignore',
+	],
+});
+
+process.on('exit', () => {
+	exec(`curl -s https://localhost:${process.env.PORT}/stop`);
+});
+
+await socket.connection;

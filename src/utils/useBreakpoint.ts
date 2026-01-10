@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useUpdate } from './useUpdate';
 
@@ -10,6 +10,12 @@ export const useBreakpoint = (options?: UseBreakpointOptions) => {
 	const { update } = useUpdate();
 	const break768Up = useRef(false);
 
+	const [mediaQuery] = useState(() => {
+		const mediaQuery = matchMedia(`(min-width: 768px)`);
+		break768Up.current = mediaQuery.matches;
+		return mediaQuery;
+	});
+
 	useEffect(() => {
 		const onMatchMedia = ({ matches }: MediaQueryListEvent) => {
 			break768Up.current = matches;
@@ -18,9 +24,6 @@ export const useBreakpoint = (options?: UseBreakpointOptions) => {
 				update();
 			}
 		};
-
-		const mediaQuery = matchMedia(`(min-width: 768px)`);
-		break768Up.current = mediaQuery.matches;
 
 		mediaQuery.addEventListener('change', onMatchMedia);
 

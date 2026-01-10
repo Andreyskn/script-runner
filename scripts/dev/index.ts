@@ -20,7 +20,6 @@ switch (flags.mode) {
 	}
 	case 'electron': {
 		ipc.init();
-		cmd.backendDev();
 		cmd.viteBuildWatch();
 		cmd.electronBuildWatch();
 		chokidar

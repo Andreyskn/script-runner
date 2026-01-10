@@ -4,6 +4,7 @@ import { SpecialExitCodes } from '@server/common';
 import { BanIcon, TerminalIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
+import { Loader } from '@/components/Loader';
 import { Section } from '@/components/Section';
 import { Tooltip } from '@/components/Tooltip';
 import { type OutputLine } from '@/views/Scripts/stores/scriptStore';
@@ -105,6 +106,8 @@ export const Output: React.FC<OutputProps> = (props) => {
 
 	return (
 		<div className={cls.output.block(null, className)}>
+			{!lines.length && !result && <Loader />}
+
 			{lines.map((line, i) => (
 				<div
 					key={i}

@@ -51,3 +51,16 @@ export const service = {
 		...args: any[]
 	) => Promise<CallReturn<(...args: any[]) => JsonValue, ServiceErrors>>
 >;
+
+export const publicMethods: (keyof Service)[] =
+	process.env.NODE_ENV === 'development'
+		? (Object.keys(service) as (keyof Service)[])
+		: [
+				'getFilesList',
+				'readScript',
+				'runScript',
+				'abortScript',
+				'getActiveScripts',
+				'getArchivedExecs',
+				'getScriptOutput',
+			];

@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@andrey/bem": "^0.1.1",
+		"@types/ws": "^8.18.1",
 		"dotenv": "^17.2.3",
 		"electron-is-dev": "^3.0.1",
 		"electron-squirrel-startup": "^1.0.1",
@@ -30,7 +31,8 @@
 		"react-hotkeys-hook": "^5.1.0",
 		"shell-quote": "^1.8.3",
 		"ts-key-enum": "2",
-		"typed-rpc": "^6.1.2"
+		"typed-rpc": "^6.1.2",
+		"ws": "^8.19.0"
 	},
 	"devDependencies": {
 		"@electron-forge/cli": "^7.10.2",
@@ -55,7 +57,7 @@
 		"@types/shell-quote": "^1.7.5",
 		"@vitejs/plugin-react-swc": "^4.0.1",
 		"chokidar": "^5.0.0",
-		"electron": "^39.2.6",
+		"electron": "^39.2.7",
 		"esbuild": "^0.27.2",
 		"eslint": "^9.33.0",
 		"eslint-plugin-react-hooks": "^5.2.0",

@@ -8,7 +8,7 @@ export type LoaderProps = {
 };
 
 export const Loader: React.FC<LoaderProps> = (props) => {
-	const { className, size = 18 } = props;
+	const { className, size = 16 } = props;
 
 	return (
 		<LoaderCircleIcon

@@ -1,16 +1,16 @@
 import EventEmitter from 'eventemitter3';
 
-import { server, type ScriptOutput, type WsMsg } from './common';
+import { server, type Message, type ScriptOutput } from './common';
 import type { ClientFileData, FileId } from './files';
 import type { ExecData } from './runner';
 
 export type FileMoveData = { id: FileId; path: string };
 
 export type WsServerMessage =
-	| WsMsg<'open-search-request'>
-	| WsMsg<`output:${FileId}`, { output: ScriptOutput }>
-	| WsMsg<'script-status', ExecData>
-	| WsMsg<
+	| Message<'open-search-request'>
+	| Message<`output:${FileId}`, { output: ScriptOutput }>
+	| Message<'script-status', ExecData>
+	| Message<
 			'files-change',
 			| { type: 'script-content'; id: FileId; version: number }
 			| { type: 'create'; file: ClientFileData }
@@ -23,8 +23,8 @@ export type WsServerMessageRecord = {
 };
 
 export type WsClientMessage =
-	| WsMsg<'subscribe', { topic: WsServerMessage['type'] }>
-	| WsMsg<'unsubscribe', { topic: WsServerMessage['type'] }>;
+	| Message<'subscribe', { topic: WsServerMessage['type'] }>
+	| Message<'unsubscribe', { topic: WsServerMessage['type'] }>;
 
 export type WsClientMessageRecord = {
 	[T in WsClientMessage as T['type']]: T['payload'];
@@ -66,7 +66,7 @@ export const ws = {
 		type: T,
 		payload: WsServerMessageRecord[T]
 	) => {
-		const data: WsMsg<any, any> = { type, payload };
+		const data: Message<any, any> = { type, payload };
 		server.current.publish(type, JSON.stringify(data));
 		// @ts-ignore
 		ee.emit(type, payload);

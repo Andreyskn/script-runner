@@ -10,4 +10,7 @@ export const paths = {
 	trayIcon: isDev
 		? fileURLToPath(new URL('../../public/icon_dev.png', import.meta.url))
 		: path.join(process.resourcesPath, 'icon_tray.png'),
+	server: isDev
+		? fileURLToPath(new URL('../../server/src/index.ts', import.meta.url))
+		: path.join(process.resourcesPath, 'server.js'),
 };

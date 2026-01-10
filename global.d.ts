@@ -7,6 +7,7 @@ declare global {
 			VITE_PORT: string;
 			NODE_ENV: 'production' | 'development';
 			STATIC_DIR: string;
+			CERT_DIR: string;
 		}
 	}
 }
