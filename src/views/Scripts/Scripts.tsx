@@ -11,7 +11,7 @@ import {
 	type TreeProps,
 } from '@/components/Tree';
 import { sortNodes } from '@/components/Tree/treeUtils';
-import { Responsive, useBreakpoint } from '@/utils';
+import { parseBase, Responsive, useBreakpoint } from '@/utils';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
 import {
@@ -54,8 +54,14 @@ const getNodes = (files: FilesStore['state']['files']) => {
 export type ScriptsProps = {};
 
 export const Scripts: React.FC<ScriptsProps> = () => {
-	const { setSelectedScript, moveFile, createFile, deleteFile, useSelector } =
-		filesStore;
+	const {
+		setSelectedScript,
+		moveFile,
+		createFolder,
+		createScript,
+		deleteFile,
+		useSelector,
+	} = filesStore;
 
 	const { nodes, byPath } = useSelector((state) => state.files, getNodes);
 	const selectedScript = useSelector(
@@ -81,7 +87,7 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 		before(node) {
 			if (node.type === 'script') {
 				return {
-					text: node.name.slice(0, node.name.lastIndexOf('.sh')),
+					text: parseBase(node.name).name,
 				};
 			}
 		},
@@ -92,8 +98,14 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 				};
 			}
 
-			if (node.type === 'script' && !newName.endsWith('.sh')) {
-				newName = `${newName}.sh`;
+			if (newName.startsWith('.')) {
+				return {
+					error: <>A name must not start with a dot.</>,
+				};
+			}
+
+			if (node.type === 'script' && !newName.includes('.')) {
+				newName = `${newName}${parseBase(node.name).ext || '.sh'}`;
 			}
 
 			if (node.name === newName) {
@@ -114,8 +126,8 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 			}
 		},
 		confirm(node, newName) {
-			if (node.type === 'script' && !newName.endsWith('.sh')) {
-				newName = `${newName}.sh`;
+			if (node.type === 'script' && !parseBase(newName).ext) {
+				newName = `${newName}${parseBase(node.name).ext}`;
 			}
 
 			if (node.name !== newName) {
@@ -161,10 +173,19 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 					}}
 					onRename={handleRename}
 					onCreate={({ path, name, type }) => {
-						if (type === 'script' && !name.endsWith('.sh')) {
+						if (type === 'script' && !name.includes('.')) {
 							name = `${name}.sh`;
 						}
-						createFile([...path, name].filter(Boolean).join('/'));
+
+						const pathString = [...path, name]
+							.filter(Boolean)
+							.join('/');
+
+						if (type === 'script') {
+							createScript(pathString);
+						} else {
+							createFolder(pathString);
+						}
 					}}
 					onDelete={async (node) => {
 						const isConfirmed = await showDeleteConfirmDialog(node);

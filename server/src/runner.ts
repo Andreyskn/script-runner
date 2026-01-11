@@ -142,7 +142,14 @@ export class ScriptRunner {
 
 		self.setStatus('running');
 
-		const proc = Bun.spawn(['sh', path], {
+		// TODO: Add user setting to associate file extensions with programs
+		//       for running files without requiring a shebang
+
+		const cmds = [path.endsWith('.sh') && 'sh', path].filter(
+			Boolean
+		) as string[];
+
+		const proc = Bun.spawn(cmds, {
 			signal: self.controller.signal,
 			stdio: ['ignore', 'pipe', 'pipe'],
 			onExit: (_subprocess, exitCode, _signalCode, error) => {

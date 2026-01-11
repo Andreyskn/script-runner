@@ -1,8 +1,9 @@
-import { func, type AsyncFuncGen, type DefaultErrorSet } from '@andrey/func';
-import { ensureDir, move } from 'fs-extra';
 import { chmod, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'os';
+
+import { func, type AsyncFuncGen, type DefaultErrorSet } from '@andrey/func';
+import { ensureDir, move } from 'fs-extra';
 
 import { errors, type ServiceErrors } from './errors';
 import type { ScriptRunner } from './runner';
@@ -179,7 +180,7 @@ const createScript = func(async function* (
 ): AsyncFuncGen<ClientFileData, DefaultErrorSet> {
 	const fullPath = abs(path);
 
-	await Bun.write(fullPath, '#!/bin/sh\n\n');
+	await Bun.write(fullPath, '');
 	await chmod(fullPath, 0o755);
 
 	const data: FileData = {
@@ -294,11 +295,7 @@ readdir(SCRIPTS_DIR, {
 		const notHidden =
 			!f.parentPath.includes('/.') && !f.name.startsWith('.');
 
-		if (f.isDirectory()) {
-			return notHidden;
-		}
-
-		return notHidden && f.name.endsWith('.sh');
+		return notHidden;
 	});
 
 	filtered.forEach((f) => {

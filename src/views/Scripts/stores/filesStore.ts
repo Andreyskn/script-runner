@@ -100,18 +100,19 @@ export class FilesStore extends ComponentStore<State> {
 		}
 	};
 
-	createFile = async (path: string) => {
-		if (path.endsWith('.sh')) {
-			const result = await api.createScript(path);
+	createScript = async (path: string) => {
+		const result = await api.createScript(path);
 
-			if (!result.ok) {
-				return;
-			}
-
-			this.setSelectedScript(result.value.id);
-		} else {
-			await api.createFolder(path);
+		if (!result.ok) {
+			// TODO: show notification
+			return;
 		}
+
+		this.setSelectedScript(result.value.id);
+	};
+
+	createFolder = async (path: string) => {
+		await api.createFolder(path);
 	};
 
 	deleteFile = async (id: FileId) => {
