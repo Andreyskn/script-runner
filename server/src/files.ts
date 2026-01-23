@@ -291,20 +291,28 @@ readdir(SCRIPTS_DIR, {
 	recursive: true,
 	withFileTypes: true,
 }).then((files) => {
-	const filtered = files.filter((f) => {
-		const notHidden =
-			!f.parentPath.includes('/.') && !f.name.startsWith('.');
+	// Files are sorted to maintain consistent IDs across server restarts.
+	const collator = new Intl.Collator('en', { numeric: true });
+	const filtered = files
+		.filter((f) => {
+			const notHidden =
+				!f.parentPath.includes('/.') && !f.name.startsWith('.');
 
-		return notHidden;
-	});
+			return notHidden;
+		})
+		.map((f) => {
+			const file = f as typeof f & { fullPath: string };
+			file.fullPath = join(f.parentPath, f.name);
+
+			return file;
+		})
+		.sort((a, b) => collator.compare(a.fullPath, b.fullPath));
 
 	filtered.forEach((f) => {
-		const fullPath = join(f.parentPath, f.name);
-
 		const data: CombinedFileData = {
 			id: getId(),
-			fullPath,
-			clientPath: fullPath.slice(SCRIPTS_DIR.length + 1),
+			fullPath: f.fullPath,
+			clientPath: f.fullPath.slice(SCRIPTS_DIR.length + 1),
 			type: f.isDirectory() ? 'folder' : 'script',
 			textVersion: 0,
 		};

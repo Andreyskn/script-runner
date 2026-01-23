@@ -2,12 +2,28 @@ import { useEffect, useRef, useState } from 'react';
 
 import EventEmitter from 'eventemitter3';
 
+import {
+	createStatePack,
+	type Pack,
+	type PackContent,
+	type Unpack,
+} from './statePacker';
 import { useUpdate } from './useUpdate';
 
 export abstract class ComponentStore<S extends Record<string, unknown>> {
 	abstract state: S;
 
 	private initializedSelectors: S | undefined;
+
+	protected packState = <T extends PackContent>(data: {
+		pack: Pack<T>;
+		unpack: Unpack<T>;
+		id?: string | number;
+	}) => {
+		const { pack, unpack, id = '' } = data;
+		const { name } = this.constructor;
+		return createStatePack(name + id, pack, unpack);
+	};
 
 	public get selectors(): S {
 		if (this.initializedSelectors) {

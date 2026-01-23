@@ -12,6 +12,7 @@ export const ELECTRON_API_NAME = 'electronAPI';
 
 export type MainIpcMessages = {
 	setView: (view: View) => void;
+	getStateJson: () => string;
 };
 
 export type RendererIpcMessages = {
@@ -82,10 +83,12 @@ export const createWindowAPI = (
 	config?: WindowConfig
 ) => {
 	let port: MessagePort;
+	const ready = Promise.withResolvers();
 
 	ipcRenderer.on('port', (e) => {
 		port = e.ports[0];
 		port.start();
+		ready.resolve();
 	});
 
 	return {
@@ -94,13 +97,19 @@ export const createWindowAPI = (
 			ipcRenderer.invoke('connect');
 		},
 		postMessage: (data: unknown[]) => {
-			port.postMessage(data);
+			ready.promise.then(() => {
+				port.postMessage(data);
+			});
 		},
 		addListener: (type: 'message', handler: PortHandler) => {
-			port.addEventListener(type, handler);
+			ready.promise.then(() => {
+				port.addEventListener(type, handler);
+			});
 		},
 		removeListener: (type: 'message', handler: PortHandler) => {
-			port.removeEventListener(type, handler);
+			ready.promise.then(() => {
+				port.removeEventListener(type, handler);
+			});
 		},
 	};
 };
