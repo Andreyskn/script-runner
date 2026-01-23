@@ -39,3 +39,21 @@ export const parseBase = (base: string) => {
 
 	return result;
 };
+
+export const omit = <T extends Record<any, any>, K extends (keyof T)[]>(
+	obj: T,
+	...keys: K
+): OmitType<T, K[number]> => {
+	return Object.fromEntries(
+		Object.entries(obj).filter(([k]) => !keys.includes(k))
+	) as any;
+};
+
+export const pick = <T extends Record<any, any>, K extends (keyof T)[]>(
+	obj: T,
+	...keys: K
+): Pick<T, K[number]> => {
+	return Object.fromEntries(
+		Object.entries(obj).filter(([k]) => keys.includes(k))
+	) as any;
+};

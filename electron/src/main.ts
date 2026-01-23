@@ -2,7 +2,7 @@ import './env';
 import './server';
 import './ws';
 
-import { app, Menu, Tray } from 'electron';
+import { app, BrowserWindow, Menu, Tray } from 'electron';
 
 import { mainWindow } from './mainWindow';
 import { paths } from './paths';
@@ -19,6 +19,13 @@ app.whenReady().then(() => {
 		{ label: 'Quit', click: app.quit },
 	]);
 	tray.setContextMenu(contextMenu);
+	tray.on('click', mainWindow.toggle);
 });
 
 app.on('window-all-closed', () => {});
+
+app.on('before-quit', () => {
+	BrowserWindow.getAllWindows().forEach((win) => {
+		win.removeAllListeners();
+	});
+});
