@@ -3,7 +3,6 @@ import type { FileId } from '@server/files';
 import type { ExecData, ExecId } from '@server/runner';
 
 import { api, ws } from '@/api';
-import type { PackContent } from '@/shared';
 import { ComponentStore } from '@/utils';
 
 export type ExecutionStatus = 'idle' | 'running' | 'ended';
@@ -59,12 +58,10 @@ export class ScriptStore extends ComponentStore<State> {
 					return;
 				}
 
-				const pack = {
+				return {
 					isEditing,
 					modifiedText,
-				} satisfies PackContent;
-
-				return pack;
+				};
 			},
 			unpack: (data) => {
 				const { isEditing, modifiedText } = data;

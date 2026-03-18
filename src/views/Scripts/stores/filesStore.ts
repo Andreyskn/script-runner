@@ -2,7 +2,6 @@ import type { ClientFileData, FileId } from '@server/files';
 
 import { api, ws } from '@/api';
 import { ComponentStore, getFilename } from '@/utils';
-import type { PackContent } from '@/utils/statePacker';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 export type File = OmitType<ClientFileData, 'runningSince'> & {
@@ -25,15 +24,9 @@ export class FilesStore extends ComponentStore<State> {
 		super();
 
 		this.packState({
-			pack: () => {
-				const { selectedScriptId } = this.state;
-
-				const pack = {
-					selectedId: selectedScriptId,
-				} satisfies PackContent;
-
-				return pack;
-			},
+			pack: () => ({
+				selectedId: this.state.selectedScriptId,
+			}),
 			unpack: (data) => {
 				this.state.selectedScriptId = data.selectedId;
 			},

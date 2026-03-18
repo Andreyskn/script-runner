@@ -12,7 +12,7 @@ export type PackContent =
 	| boolean
 	| null
 	| undefined
-	| PackContent[]
+	| Exclude<PackContent, undefined>[]
 	| {
 			[key: string]: PackContent;
 	  };

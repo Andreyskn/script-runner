@@ -24,6 +24,8 @@ export type ComboboxProps = {
 	renderOption?: (option: ComboboxOption) => React.ReactNode;
 	onInputChange?: (value: string) => void;
 	onSelect?: SelectProps['onSelect'];
+	inputId?: InputProps['id'];
+	selectId?: SelectProps['id'];
 } & Pick<InputProps, 'placeholder' | 'name'>;
 
 export const Combobox: React.FC<ComboboxProps> = (props) => {
@@ -37,6 +39,8 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 		options,
 		onInputChange,
 		onSelect,
+		inputId,
+		selectId,
 	} = props;
 
 	const { update } = useUpdate();
@@ -51,6 +55,7 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 	return (
 		<div className={cls.combobox.block()}>
 			<Input
+				id={inputId}
 				ref={inputRef}
 				icon={<SearchIcon />}
 				name={name}
@@ -87,6 +92,7 @@ export const Combobox: React.FC<ComboboxProps> = (props) => {
 				}}
 			/>
 			<Select
+				id={selectId}
 				key={key.current}
 				tabIndex={-1}
 				customToggle

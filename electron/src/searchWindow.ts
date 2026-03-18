@@ -54,3 +54,13 @@ ipc.handle.endSearch((scriptId) => {
 	}
 	searchWindow.close();
 });
+
+ipc.handle.appReady((winId) => {
+	if (winId === 'search') {
+		win?.webContents.executeJavaScript(
+			`document.getElementById('search-select').showPicker();
+				document.getElementById('search-input').focus();`,
+			true
+		);
+	}
+});

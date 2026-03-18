@@ -22,7 +22,7 @@ export type SelectProps = {
 	tabIndex?: number;
 	renderOption?: (option: SelectOption) => React.ReactNode;
 	onSelect?: (value: string) => void;
-} & Pick<React.DOMAttributes<HTMLSelectElement>, 'onKeyDown'>;
+} & Pick<React.SelectHTMLAttributes<HTMLSelectElement>, 'onKeyDown' | 'id'>;
 
 export const Select: React.FC<SelectProps> = (props) => {
 	const {
@@ -35,10 +35,12 @@ export const Select: React.FC<SelectProps> = (props) => {
 		onKeyDown,
 		renderOption,
 		onSelect,
+		id,
 	} = props;
 
 	return (
 		<select
+			id={id}
 			ref={ref}
 			name={name}
 			tabIndex={tabIndex}

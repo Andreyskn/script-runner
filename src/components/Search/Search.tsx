@@ -168,6 +168,8 @@ export const Search: React.FC<SearchProps> = () => {
 				renderOption={(opt) => renderOption(opt as SearchOption)}
 				onInputChange={handleInputChange}
 				onSelect={handleSelect}
+				inputId='search-input'
+				selectId='search-select'
 			/>
 		</dialog>
 	);
