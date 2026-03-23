@@ -47,6 +47,10 @@
 	width: 100%;
 	padding: 6px 0;
 
+	b {
+		color: hsl(var(--primary));
+	}
+
 	&__icon {
 		grid-area: icon;
 		color: hsl(var(--muted-foreground));
