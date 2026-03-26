@@ -6,7 +6,7 @@ import {
 	ChevronRightIcon,
 	FileTextIcon,
 	PlayIcon,
-	PlusIcon,
+	XIcon,
 } from 'lucide-react';
 
 import { Button } from '@/components/Button';
@@ -88,8 +88,8 @@ export const ScriptDialog: React.FC<ScriptDialogProps> = (props) => {
 	return (
 		<div className={cls.scriptDialog.block()}>
 			<Button
-				icon={<PlusIcon />}
-				minimal
+				icon={<XIcon />}
+				borderless
 				size='small'
 				round
 				className={cls.scriptDialog.close()}

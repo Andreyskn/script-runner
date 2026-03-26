@@ -1,8 +1,9 @@
 import { useRef } from 'react';
 
-import { FileTextIcon, PenSquareIcon, Trash2Icon } from 'lucide-react';
+import { FileTextIcon, PenSquareIcon, Trash2Icon, ZapIcon } from 'lucide-react';
 
 import { useContextMenu } from '@/components/ContextMenu';
+import { Tooltip } from '@/components/Tooltip';
 import type {
 	FileNodeWithPath,
 	TreeDragData,
@@ -73,7 +74,17 @@ export const File: React.FC<FileProps> = (props) => {
 			{isRenaming ? (
 				<NameEditorAnchor />
 			) : (
-				<span className={cls.file.name()}>{name}</span>
+				<>
+					<span className={cls.file.name()}>{name}</span>
+					{false && (
+						<Tooltip content='Autorun' className={cls.file.badge()}>
+							<ZapIcon size={12} />
+						</Tooltip>
+					)}
+					{/* <Tooltip content='Scheduled' className={cls.file.badge()}>
+						<ClockIcon size={12} />
+					</Tooltip> */}
+				</>
 			)}
 		</div>
 	);

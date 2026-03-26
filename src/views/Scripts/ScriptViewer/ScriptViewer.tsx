@@ -1,6 +1,7 @@
-import { CodeXmlIcon, PenLineIcon, PlayIcon } from 'lucide-react';
+import { CodeXmlIcon, PenLineIcon, PlayIcon, SettingsIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
+import { showScriptSettingsDialog } from '@/components/Dialog/ScriptSettingsDialog';
 import { Section } from '@/components/Section';
 import { OutputSection } from '@/views/Scripts/ScriptViewer/Output';
 import { ScriptContent } from '@/views/Scripts/ScriptViewer/ScriptContent';
@@ -85,6 +86,11 @@ const Header: React.FC<HeaderProps> = (props) => {
 						onClick={execute}
 					/>
 				)}
+
+				<Button
+					icon={<SettingsIcon size={16} />}
+					onClick={() => showScriptSettingsDialog({})}
+				/>
 			</div>
 		</div>
 	);

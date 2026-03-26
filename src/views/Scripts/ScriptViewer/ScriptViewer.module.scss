@@ -28,6 +28,13 @@
 		color: hsl(var(--primary));
 	}
 
+	&__title,
+	&__subtitle {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
 	&__title {
 		grid-area: title;
 		font-size: 16px;

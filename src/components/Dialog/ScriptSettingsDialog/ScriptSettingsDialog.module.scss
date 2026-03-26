@@ -1,0 +1,102 @@
+.dialog {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+
+	width: 336px;
+	max-width: 100%;
+
+	&__close {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+
+		&:hover {
+			background-color: transparent;
+		}
+
+		&:not(&:hover) {
+			color: hsl(var(--muted-foreground));
+		}
+	}
+
+	&__title {
+		display: flex;
+		gap: 8px;
+
+		font-size: 18px;
+		font-weight: 600;
+		letter-spacing: -0.45px;
+	}
+
+	&__info {
+		padding-bottom: 16px;
+		border-bottom-width: 1px;
+		color: hsl(var(--muted-foreground));
+	}
+
+	&__info-key {
+		font-size: 12px;
+		line-height: 16px;
+	}
+
+	&__info-value {
+		margin-top: 8px;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+			'Liberation Mono', 'Courier New', monospace;
+		font-size: 14px;
+		line-height: 20px;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		justify-content: flex-end;
+	}
+}
+
+.setting {
+	display: grid;
+	grid-template:
+		'title . control' auto
+		'subtitle . control' auto
+		/ 1fr 16px auto;
+
+	padding: 12px;
+	border-radius: var(--radius);
+
+	background-color: hsl(var(--muted) / 50%);
+
+	&__title {
+		cursor: pointer;
+
+		grid-area: title;
+
+		width: fit-content;
+
+		font-size: 14px;
+		line-height: 20px;
+	}
+
+	&__subtitle {
+		grid-area: subtitle;
+
+		margin-top: 4px;
+
+		font-size: 12px;
+		line-height: 16px;
+		color: hsl(var(--muted-foreground));
+	}
+
+	&__control {
+		grid-area: control;
+		align-content: center;
+	}
+
+	&__autorun-checkbox {
+		width: 20px;
+		height: 20px;
+	}
+}
