@@ -16,6 +16,7 @@ import type {
 	TreeDropData,
 	TreeNodeType,
 	TreeNodeWithPath,
+	TreeProps,
 } from '@/components/Tree/treeTypes';
 import { useDnD } from '@/utils';
 
@@ -32,6 +33,7 @@ export type FolderProps = {
 	onToggleOpen: (id: FolderProps['id'], isOpen: boolean) => void;
 	onCreate: (type: TreeNodeType, parent: FolderNodeWithPath) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
+	renderBadge?: TreeProps['renderNodeBadge'];
 };
 
 export const Folder: React.FC<FolderProps> = (props) => {
@@ -45,6 +47,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		renameOnMount,
 		onCreate,
 		onDelete,
+		renderBadge,
 	} = props;
 
 	const [isOpen, setIsOpen] = useState(false);
@@ -146,7 +149,10 @@ export const Folder: React.FC<FolderProps> = (props) => {
 				{isRenaming ? (
 					<NameEditorAnchor />
 				) : (
-					<span className={cls.folder.name()}>{name}</span>
+					<>
+						<span className={cls.folder.name()}>{name}</span>
+						{renderBadge?.(node.current)}
+					</>
 				)}
 			</div>
 			<div className={cls.folder.content({ hidden: !isOpen })}>

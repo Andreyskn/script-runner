@@ -8,6 +8,13 @@
       "when": 1774640556356,
       "tag": "0000_rare_charles_xavier",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1774648984317,
+      "tag": "0001_thankful_mauler",
+      "breakpoints": true
     }
   ]
 }

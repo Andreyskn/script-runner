@@ -32,13 +32,23 @@ export const db = {
 		return await _db.delete(files).where(inArray(files.id, ids));
 	},
 
-	updateFileVersion: async (id: number, version: number) => {
+	setFileVersion: async (id: number, version: number) => {
 		return (
 			await _db
 				.update(files)
 				.set({ version })
 				.where(eq(files.id, id))
 				.returning({ id: files.id, version: files.version })
+		).map(bigintToNumber);
+	},
+
+	setFileAutorun: async (id: number, autorun: boolean) => {
+		return (
+			await _db
+				.update(files)
+				.set({ autorun })
+				.where(eq(files.id, id))
+				.returning({ id: files.id, autorun: files.autorun })
 		).map(bigintToNumber);
 	},
 };

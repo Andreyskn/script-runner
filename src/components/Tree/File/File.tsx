@@ -1,14 +1,14 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 
-import { FileTextIcon, PenSquareIcon, Trash2Icon, ZapIcon } from 'lucide-react';
+import { FileTextIcon, PenSquareIcon, Trash2Icon } from 'lucide-react';
 
 import { useContextMenu } from '@/components/ContextMenu';
-import { Tooltip } from '@/components/Tooltip';
 import type {
 	FileNodeWithPath,
 	TreeDragData,
 	TreeDropData,
 	TreeNodeWithPath,
+	TreeProps,
 } from '@/components/Tree/treeTypes';
 import { useDnD } from '@/utils';
 
@@ -23,10 +23,20 @@ export type FileProps = {
 	renameOnMount?: boolean;
 	onSelect?: (id: FileProps['id'], path: string[]) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
+	renderBadge?: TreeProps['renderNodeBadge'];
 };
 
 export const File: React.FC<FileProps> = (props) => {
-	const { name, open, onSelect, id, path, renameOnMount, onDelete } = props;
+	const {
+		name,
+		open,
+		onSelect,
+		id,
+		path,
+		renameOnMount,
+		onDelete,
+		renderBadge,
+	} = props;
 
 	const node = useRef<FileNodeWithPath>(null as any);
 	node.current = {
@@ -76,14 +86,7 @@ export const File: React.FC<FileProps> = (props) => {
 			) : (
 				<>
 					<span className={cls.file.name()}>{name}</span>
-					{false && (
-						<Tooltip content='Autorun' className={cls.file.badge()}>
-							<ZapIcon size={12} />
-						</Tooltip>
-					)}
-					{/* <Tooltip content='Scheduled' className={cls.file.badge()}>
-						<ClockIcon size={12} />
-					</Tooltip> */}
+					{renderBadge?.(node.current)}
 				</>
 			)}
 		</div>

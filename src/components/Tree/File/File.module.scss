@@ -33,15 +33,4 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-
-	&__badge {
-		flex-shrink: 0;
-		align-items: center;
-
-		height: 20px;
-		padding: 0 8px;
-		border-radius: 999px;
-
-		background-color: hsl(var(--primary));
-	}
 }

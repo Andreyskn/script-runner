@@ -6,6 +6,7 @@ import { Section } from '@/components/Section';
 import { OutputSection } from '@/views/Scripts/ScriptViewer/Output';
 import { ScriptContent } from '@/views/Scripts/ScriptViewer/ScriptContent';
 
+import { ScriptBadge } from '../ScriptBadge';
 import type { File } from '../stores/filesStore';
 import { cls } from './ScriptViewer.styles';
 
@@ -37,6 +38,7 @@ const Header: React.FC<HeaderProps> = (props) => {
 	const { script } = props;
 
 	const {
+		id,
 		name,
 		path,
 		scriptStore: {
@@ -51,7 +53,10 @@ const Header: React.FC<HeaderProps> = (props) => {
 		<div className={cls.header.block()}>
 			<div className={cls.header.info()}>
 				<CodeXmlIcon size={20} className={cls.header.icon()} />
-				<span className={cls.header.title()}>{name}</span>
+				<span className={cls.header.title()}>
+					{name}
+					<ScriptBadge id={id} className={cls.header.badge()} />
+				</span>
 				<span className={cls.header.subtitle()}>/{path}</span>
 			</div>
 			<div className={cls.header.actions()}>
@@ -89,7 +94,9 @@ const Header: React.FC<HeaderProps> = (props) => {
 
 				<Button
 					icon={<SettingsIcon size={16} />}
-					onClick={() => showScriptSettingsDialog({})}
+					onClick={() =>
+						showScriptSettingsDialog({ script: script.scriptStore })
+					}
 				/>
 			</div>
 		</div>

@@ -6,6 +6,7 @@ export const cls = bem(
 	styles as {
 		header: string;
 		header__actions: string;
+		header__badge: string;
 		header__icon: string;
 		header__info: string;
 		header__subtitle: string;

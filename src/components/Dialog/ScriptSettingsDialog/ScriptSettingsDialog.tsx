@@ -1,16 +1,25 @@
 import { SettingsIcon, XIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
+import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 import { dialog } from '../dialogApi';
 import { cls } from './ScriptSettingsDialog.styles';
 
-export type ScriptSettingsDialogProps = {};
+export type ScriptSettingsDialogProps = {
+	script: ScriptStore;
+};
 
 export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 	props
 ) => {
-	const {} = props;
+	const {
+		script: {
+			id,
+			setAutorun,
+			state: { autorun },
+		},
+	} = props;
 
 	return (
 		<div className={cls.dialog.block()}>
@@ -48,10 +57,9 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 						type='checkbox'
 						id='autorun-setting'
 						name='autorun'
-						onChange={(e) => {
-							console.log(e.target.checked);
-						}}
+						onChange={(e) => setAutorun(id, e.target.checked)}
 						className={cls.setting.autorunCheckbox()}
+						defaultChecked={autorun}
 					/>
 				</div>
 			</div>

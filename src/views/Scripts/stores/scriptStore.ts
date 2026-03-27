@@ -24,6 +24,7 @@ type State = {
 	exitCode: number | null;
 	startedAt: Date | null;
 	endedAt: Date | null;
+	autorun: boolean;
 };
 
 export class ScriptStore extends ComponentStore<State> {
@@ -39,15 +40,19 @@ export class ScriptStore extends ComponentStore<State> {
 		exitCode: null,
 		startedAt: null,
 		endedAt: null,
+		autorun: false,
 	};
 
 	disposables: (() => void)[] = [];
 
 	constructor(
 		public id: FileId,
+		autorun: boolean,
 		runningSince?: string
 	) {
 		super();
+
+		this.state.autorun = autorun;
 
 		this.packState({
 			id,
@@ -215,5 +220,18 @@ export class ScriptStore extends ComponentStore<State> {
 
 	interruptExecution = () => {
 		api.abortScript(this.id);
+	};
+
+	setAutorun = async (id: FileId, autorun: boolean) => {
+		const result = await api.setScriptAutorun(id, autorun);
+
+		if (!result.ok) {
+			// TODO: show notification
+			return;
+		}
+
+		this.setState((s) => {
+			s.autorun = autorun;
+		});
 	};
 }

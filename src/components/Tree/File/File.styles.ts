@@ -7,7 +7,6 @@ export const cls = bem(
 		file: string;
 		'file--highlighted': string;
 		'file--outlined': string;
-		file__badge: string;
 		file__icon: string;
 		file__name: string;
 	}
