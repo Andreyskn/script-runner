@@ -11,7 +11,10 @@
 		"lint": "eslint src",
 		"check": "tsc --build",
 		"package": "NODE_ENV=production bunx --bun electron-forge package",
-		"make": "NODE_ENV=production bunx --bun electron-forge make"
+		"make": "NODE_ENV=production bunx --bun electron-forge make",
+		"db-push": "cd server && bun db-push",
+		"db-gen": "cd server && bun db-gen",
+		"db-migrate": "cd server && bun db-migrate"
 	},
 	"dependencies": {
 		"@andrey/bem": "^0.1.1",
