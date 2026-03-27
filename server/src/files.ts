@@ -1,10 +1,11 @@
-import { chmod, mkdir, readdir } from 'node:fs/promises';
+import { chmod, mkdir, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'os';
 
 import { func, type AsyncFuncGen, type DefaultErrorSet } from '@andrey/func';
 import { ensureDir, move } from 'fs-extra';
 
+import { db } from './db';
 import { errors, type ServiceErrors } from './errors';
 import type { ScriptRunner } from './runner';
 import { ws, type FileMoveData } from './websocket';
@@ -12,10 +13,6 @@ import { ws, type FileMoveData } from './websocket';
 const SCRIPTS_DIR = `${homedir()}/Projects/scripts` as const;
 
 const abs = (path: string) => join(SCRIPTS_DIR, path);
-
-let nextId = 0;
-
-const getId = () => nextId++;
 
 export type FileId = number & {};
 
@@ -145,8 +142,12 @@ const deleteFile = func(async function* (
 		registry.delete(id);
 	});
 
-	ws.publish('files-change', { type: 'delete', ids: [...affected] });
-	return [...affected];
+	const affectedArray = [...affected];
+
+	await db.deleteFiles(affectedArray);
+	ws.publish('files-change', { type: 'delete', ids: affectedArray });
+
+	return affectedArray;
 });
 
 const createFolder = func(async function* (
@@ -156,8 +157,10 @@ const createFolder = func(async function* (
 
 	await mkdir(fullPath);
 
+	const { ino } = await stat(fullPath, { bigint: true });
+	const { id } = (await db.insertFile({ inode: ino }))[0]!;
 	const data: FileData = {
-		id: getId(),
+		id,
 		clientPath: path,
 		fullPath,
 		type: 'folder',
@@ -183,8 +186,10 @@ const createScript = func(async function* (
 	await Bun.write(fullPath, '');
 	await chmod(fullPath, 0o755);
 
+	const { ino } = await stat(fullPath, { bigint: true });
+	const { id } = (await db.insertFile({ inode: ino }))[0]!;
 	const data: FileData = {
-		id: getId(),
+		id,
 		clientPath: path,
 		fullPath,
 		type: 'script',
@@ -228,6 +233,7 @@ const updateScript = func(async function* (
 
 	await Bun.write(file.fullPath, data);
 	await chmod(file.fullPath, 0o755);
+	await db.updateFileVersion(id, version);
 
 	file.textVersion = version;
 
@@ -290,33 +296,41 @@ export const files = {
 readdir(SCRIPTS_DIR, {
 	recursive: true,
 	withFileTypes: true,
-}).then((files) => {
-	// Files are sorted to maintain consistent IDs across server restarts.
-	const collator = new Intl.Collator('en', { numeric: true });
-	const filtered = files
-		.filter((f) => {
-			const notHidden =
-				!f.parentPath.includes('/.') && !f.name.startsWith('.');
+}).then(async (files) => {
+	const dbFiles = new Map((await db.getAllFiles()).map((f) => [f.inode, f]));
 
-			return notHidden;
-		})
-		.map((f) => {
-			const file = f as typeof f & { fullPath: string };
-			file.fullPath = join(f.parentPath, f.name);
+	const validFiles = files.filter((f) => {
+		const notHidden =
+			!f.parentPath.includes('/.') && !f.name.startsWith('.');
 
-			return file;
-		})
-		.sort((a, b) => collator.compare(a.fullPath, b.fullPath));
+		return notHidden;
+	});
 
-	filtered.forEach((f) => {
+	for await (const f of validFiles) {
+		const fullPath = join(f.parentPath, f.name);
+		const { ino } = await stat(fullPath, { bigint: true });
+		let dbEntry = dbFiles.get(ino);
+
+		dbFiles.delete(ino);
+
+		if (!dbEntry) {
+			dbEntry = (await db.insertFile({ inode: ino }))[0]!;
+		}
+
 		const data: CombinedFileData = {
-			id: getId(),
-			fullPath: f.fullPath,
-			clientPath: f.fullPath.slice(SCRIPTS_DIR.length + 1),
+			id: dbEntry.id,
+			fullPath,
+			clientPath: fullPath.slice(SCRIPTS_DIR.length + 1),
 			type: f.isDirectory() ? 'folder' : 'script',
-			textVersion: 0,
+			textVersion: dbEntry.version,
 		};
 
 		registry.set(data.id, data as FileData);
-	});
+	}
+
+	const leftoverIds = [...dbFiles.values()].map((f) => f.id);
+
+	if (leftoverIds.length) {
+		await db.deleteFiles(leftoverIds);
+	}
 });

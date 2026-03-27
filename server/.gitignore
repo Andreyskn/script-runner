@@ -1,3 +1,5 @@
+db.*.sqlite
+
 # dependencies (bun install)
 node_modules
 

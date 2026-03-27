@@ -8,6 +8,7 @@ declare global {
 			NODE_ENV: 'production' | 'development';
 			STATIC_DIR: string;
 			CERT_DIR: string;
+			DB_PATH: string;
 		}
 	}
 }
