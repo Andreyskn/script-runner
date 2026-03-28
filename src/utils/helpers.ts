@@ -2,11 +2,14 @@ export const sleep = async (ms: number) => {
 	return new Promise((r) => setTimeout(r, ms));
 };
 
-export const getFilename = (path: string) => {
-	return path.slice(path.lastIndexOf('/') + 1);
-};
-
-// TODO: use instead of getFilename()
+/**
+ * @example
+ * path: '/home/user/dir/file.txt'
+ * dir: '/home/user/dir'
+ * base: 'file.txt'
+ * ext: '.txt'
+ * name: 'file'
+ */
 export const parsePath = (path: string) => {
 	const lastSlashIndex = path.lastIndexOf('/');
 	const base = path.slice(lastSlashIndex + 1);

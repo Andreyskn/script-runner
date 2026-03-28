@@ -2,7 +2,7 @@ import type { FileId } from '@server/files';
 import type { ExecEndData, ExecId, ExecStartData } from '@server/runner';
 
 import { api, ws } from '@/api';
-import { ComponentStore, getFilename } from '@/utils';
+import { ComponentStore, parsePath } from '@/utils';
 
 import { filesStore } from '../Scripts/stores/filesStore';
 import type { OutputLine } from '../Scripts/stores/scriptStore';
@@ -177,7 +177,7 @@ class Entry<
 			path,
 			startedAt: new Date(startedAt),
 			textVersion,
-			name: getFilename(path),
+			name: parsePath(path).base,
 			duration: undefined,
 			endedAt: undefined,
 			exitCode: undefined,
@@ -200,7 +200,7 @@ class Entry<
 					if (file.path !== this.state.path) {
 						this.setState((s) => {
 							s.path = file.path;
-							s.name = getFilename(file.path);
+							s.name = file.name;
 						});
 					}
 				}

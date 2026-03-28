@@ -1,12 +1,14 @@
 import type { ClientFileData, FileId } from '@server/files';
 
 import { api, ws } from '@/api';
-import { ComponentStore, getFilename } from '@/utils';
+import { ComponentStore, parsePath } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 export type File = OmitType<ClientFileData, 'runningSince' | 'autorun'> & {
-	name: string;
 	scriptStore: ScriptStore;
+	name: string;
+	dir: string;
+	ext: string;
 };
 
 type State = {
@@ -84,21 +86,37 @@ export class FilesStore extends ComponentStore<State> {
 	}
 
 	initFileData = (file: ClientFileData): File => {
-		const fileData: File = {
-			id: file.id,
-			get name() {
-				return getFilename(this.path);
-			},
-			path: file.path,
-			type: file.type,
-			scriptStore: new ScriptStore(
-				file.id,
-				file.autorun,
-				file.runningSince
-			),
+		const { id, type, path, autorun, runningSince } = file;
+
+		let lastParsedPath: File['path'] = undefined as any;
+		let parseResult: ReturnType<typeof parsePath> = undefined as any;
+
+		const getParsedPath = ({ path }: File) => {
+			if (path === lastParsedPath) {
+				return parseResult;
+			}
+
+			lastParsedPath = path;
+			parseResult = parsePath(path);
+
+			return parseResult;
 		};
 
-		return fileData;
+		return {
+			id,
+			path,
+			type,
+			scriptStore: new ScriptStore(id, autorun, runningSince),
+			get name() {
+				return getParsedPath(this).base;
+			},
+			get dir() {
+				return getParsedPath(this).dir;
+			},
+			get ext() {
+				return getParsedPath(this).ext;
+			},
+		} satisfies File;
 	};
 
 	moveFile = async (id: FileId, newPath: string) => {

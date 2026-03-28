@@ -95,7 +95,10 @@ const Header: React.FC<HeaderProps> = (props) => {
 				<Button
 					icon={<SettingsIcon size={16} />}
 					onClick={() =>
-						showScriptSettingsDialog({ script: script.scriptStore })
+						showScriptSettingsDialog({
+							script: script.scriptStore,
+							path,
+						})
 					}
 				/>
 			</div>

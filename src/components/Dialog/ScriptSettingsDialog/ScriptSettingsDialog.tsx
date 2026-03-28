@@ -8,6 +8,7 @@ import { cls } from './ScriptSettingsDialog.styles';
 
 export type ScriptSettingsDialogProps = {
 	script: ScriptStore;
+	path: string;
 };
 
 export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
@@ -19,6 +20,7 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 			setAutorun,
 			state: { autorun },
 		},
+		path,
 	} = props;
 
 	return (
@@ -37,9 +39,7 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 			</div>
 			<div className={cls.dialog.info()}>
 				<div className={cls.dialog.infoKey()}>Path</div>
-				<div className={cls.dialog.infoValue()}>
-					utilities/cleanup.sh
-				</div>
+				<div className={cls.dialog.infoValue()}>{path}</div>
 			</div>
 
 			<div className={cls.setting.block()}>
