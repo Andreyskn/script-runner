@@ -58,6 +58,7 @@ export type TreeProps = {
 	onRename?: TreeNodeRenameHandler;
 	onCreate?: (data: Pick<TreeNodeWithPath, 'name' | 'path' | 'type'>) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
+	renderNodeBadge?: (node: TreeNodeWithPath) => React.ReactNode;
 };
 
 export type TreeMiddleProps = Replace<

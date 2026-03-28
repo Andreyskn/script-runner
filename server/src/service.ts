@@ -30,6 +30,9 @@ export const service = {
 	readScript: async (id: FileId) => {
 		return files.readScript(id).result();
 	},
+	setScriptAutorun: async (id: FileId, autorun: boolean) => {
+		return files.setAutorun(id, autorun).result();
+	},
 	runScript: async (id: FileId) => {
 		return runner.runScript(id).result();
 	},

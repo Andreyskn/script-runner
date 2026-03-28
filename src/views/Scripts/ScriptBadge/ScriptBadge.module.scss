@@ -1,0 +1,12 @@
+.script-badge {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+
+	width: 18px;
+	height: 18px;
+	border-radius: 999px;
+
+	background-color: hsl(var(--primary));
+}

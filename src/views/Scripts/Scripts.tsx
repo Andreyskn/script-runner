@@ -20,6 +20,7 @@ import {
 	type FilesStore,
 } from '@/views/Scripts/stores/filesStore';
 
+import { ScriptBadge } from './ScriptBadge';
 import { cls } from './Scripts.styles';
 
 const getNodes = (files: FilesStore['state']['files']) => {
@@ -194,6 +195,7 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 							await deleteFile(node.id);
 						}
 					}}
+					renderNodeBadge={(node) => <ScriptBadge id={node.id} />}
 				/>
 			</Section>
 			<Responsive

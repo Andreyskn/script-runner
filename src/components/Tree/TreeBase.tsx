@@ -19,6 +19,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 		outlined,
 		onDelete,
 		onCreate,
+		renderNodeBadge,
 	} = props;
 
 	const tmpNode = treeStore.useSelector(
@@ -62,6 +63,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 							onSelect={onFileSelect}
 							onDelete={onDelete}
 							renameOnMount={n.isTemporary}
+							renderBadge={renderNodeBadge}
 						/>
 					);
 				} else {
@@ -79,6 +81,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 							onDelete={onDelete}
 							onCreate={onCreate}
 							renameOnMount={n.isTemporary}
+							renderBadge={renderNodeBadge}
 						>
 							<TreeBase
 								nodes={n.nodes}

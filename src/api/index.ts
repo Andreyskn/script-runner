@@ -14,8 +14,8 @@ import { rpcClient } from 'typed-rpc';
 
 export const ipc = ipcBase as IPC<RendererIpcMessages, MainIpcMessages>;
 
+//#region codegen scripts/rpcHandles.ts
 const RPC_HANDLES = [
-	//#region codegen scripts/rpcHandles.ts
 	'getFilesList',
 	'moveFile',
 	'deleteFile',
@@ -23,13 +23,14 @@ const RPC_HANDLES = [
 	'createScript',
 	'updateScript',
 	'readScript',
+	'setScriptAutorun',
 	'runScript',
 	'abortScript',
 	'getScriptOutput',
 	'getActiveScripts',
 	'getArchivedExecs',
-	//#endregion
 ] as const;
+//#endregion
 
 const rpc = rpcClient<Service>(
 	import.meta.env.DEV ? 'https://10.42.0.18:3001/api/' : '/api/'

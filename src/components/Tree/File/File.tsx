@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 
 import { FileTextIcon, PenSquareIcon, Trash2Icon } from 'lucide-react';
 
@@ -8,6 +8,7 @@ import type {
 	TreeDragData,
 	TreeDropData,
 	TreeNodeWithPath,
+	TreeProps,
 } from '@/components/Tree/treeTypes';
 import { useDnD } from '@/utils';
 
@@ -22,10 +23,20 @@ export type FileProps = {
 	renameOnMount?: boolean;
 	onSelect?: (id: FileProps['id'], path: string[]) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
+	renderBadge?: TreeProps['renderNodeBadge'];
 };
 
 export const File: React.FC<FileProps> = (props) => {
-	const { name, open, onSelect, id, path, renameOnMount, onDelete } = props;
+	const {
+		name,
+		open,
+		onSelect,
+		id,
+		path,
+		renameOnMount,
+		onDelete,
+		renderBadge,
+	} = props;
 
 	const node = useRef<FileNodeWithPath>(null as any);
 	node.current = {
@@ -73,7 +84,10 @@ export const File: React.FC<FileProps> = (props) => {
 			{isRenaming ? (
 				<NameEditorAnchor />
 			) : (
-				<span className={cls.file.name()}>{name}</span>
+				<>
+					<span className={cls.file.name()}>{name}</span>
+					{renderBadge?.(node.current)}
+				</>
 			)}
 		</div>
 	);

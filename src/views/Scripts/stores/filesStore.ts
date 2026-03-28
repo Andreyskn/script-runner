@@ -4,7 +4,7 @@ import { api, ws } from '@/api';
 import { ComponentStore, getFilename } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
-export type File = OmitType<ClientFileData, 'runningSince'> & {
+export type File = OmitType<ClientFileData, 'runningSince' | 'autorun'> & {
 	name: string;
 	scriptStore: ScriptStore;
 };
@@ -91,7 +91,11 @@ export class FilesStore extends ComponentStore<State> {
 			},
 			path: file.path,
 			type: file.type,
-			scriptStore: new ScriptStore(file.id, file.runningSince),
+			scriptStore: new ScriptStore(
+				file.id,
+				file.autorun,
+				file.runningSince
+			),
 		};
 
 		return fileData;

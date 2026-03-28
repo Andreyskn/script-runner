@@ -26,6 +26,7 @@ export type ScriptData = BaseFileData & {
 	type: 'script';
 	textVersion: number;
 	activeRunner?: ScriptRunner;
+	autorun: boolean;
 };
 
 export type FolderData = BaseFileData & {
@@ -39,6 +40,7 @@ export type ClientFileData = {
 	path: string;
 	type: 'folder' | 'script';
 	runningSince?: string;
+	autorun: boolean;
 };
 
 type CombinedFileData = Combine<FileData>;
@@ -172,6 +174,7 @@ const createFolder = func(async function* (
 		id: data.id,
 		path: data.clientPath,
 		type: data.type,
+		autorun: false,
 	};
 
 	ws.publish('files-change', { type: 'create', file });
@@ -194,6 +197,7 @@ const createScript = func(async function* (
 		fullPath,
 		type: 'script',
 		textVersion: 0,
+		autorun: false,
 	};
 
 	registry.set(data.id, data);
@@ -202,6 +206,7 @@ const createScript = func(async function* (
 		id: data.id,
 		path: data.clientPath,
 		type: data.type,
+		autorun: data.autorun,
 	};
 
 	ws.publish('files-change', { type: 'create', file });
@@ -233,7 +238,7 @@ const updateScript = func(async function* (
 
 	await Bun.write(file.fullPath, data);
 	await chmod(file.fullPath, 0o755);
-	await db.updateFileVersion(id, version);
+	await db.setFileVersion(id, version);
 
 	file.textVersion = version;
 
@@ -277,8 +282,37 @@ const getClientFileList = func(async function* (): AsyncFuncGen<
 			path: data.clientPath,
 			type: data.type,
 			runningSince: (data as CombinedFileData).activeRunner?.startedAt,
+			autorun: (data as CombinedFileData).autorun!,
 		})
 	);
+});
+
+const setAutorun = func(async function* (
+	id: FileId,
+	autorun: boolean
+): AsyncFuncGen<
+	boolean,
+	Pick<ServiceErrors, 'fileNotFound' | 'fileNotRunnable'>
+> {
+	yield {
+		fileNotFound: errors.fileNotFound,
+		fileNotRunnable: errors.fileNotRunnable,
+	};
+	const { error } = setAutorun.utils;
+
+	const file = registry.get(id) as ScriptData | undefined;
+	if (!file) {
+		throw yield* error.fileNotFound();
+	}
+
+	if (file.type !== 'script') {
+		throw yield* error.fileNotRunnable();
+	}
+
+	file.autorun = autorun;
+	await db.setFileAutorun(id, autorun);
+
+	return true;
 });
 
 export const files = {
@@ -290,6 +324,7 @@ export const files = {
 	updateScript,
 	readScript,
 	getClientFileList,
+	setAutorun,
 };
 
 // initialization
@@ -323,6 +358,7 @@ readdir(SCRIPTS_DIR, {
 			clientPath: fullPath.slice(SCRIPTS_DIR.length + 1),
 			type: f.isDirectory() ? 'folder' : 'script',
 			textVersion: dbEntry.version,
+			autorun: dbEntry.autorun,
 		};
 
 		registry.set(data.id, data as FileData);
