@@ -7,8 +7,11 @@
 
 #root {
 	overflow: hidden;
+
 	height: 100dvh;
+
 	color-scheme: dark;
+	accent-color: hsl(var(--primary));
 
 	-webkit-tap-highlight-color: transparent;
 

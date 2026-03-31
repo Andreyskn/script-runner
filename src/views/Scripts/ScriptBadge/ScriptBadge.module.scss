@@ -9,4 +9,8 @@
 	border-radius: 999px;
 
 	background-color: hsl(var(--primary));
+
+	&--schedule {
+		background-color: #2563eb;
+	}
 }

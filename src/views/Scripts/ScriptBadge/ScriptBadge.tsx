@@ -1,5 +1,5 @@
 import type { FileId } from '@server/files';
-import { ZapIcon } from 'lucide-react';
+import { ClockIcon, ZapIcon } from 'lucide-react';
 
 import { Tooltip } from '@/components/Tooltip';
 
@@ -26,18 +26,25 @@ export const ScriptBadge: React.FC<ScriptBadgeProps> = (props) => {
 
 	if (autorun) {
 		return (
-			<Tooltip
-				content='Autorun'
-				className={cls.scriptBadge.block(null, className)}
-			>
-				<ZapIcon size={12} />
-			</Tooltip>
+			<>
+				<Tooltip
+					content='Autorun'
+					className={cls.scriptBadge.block(null, className)}
+				>
+					<ZapIcon size={12} />
+				</Tooltip>
+				<Tooltip
+					content='Scheduled'
+					className={cls.scriptBadge.block(
+						{ schedule: true },
+						className
+					)}
+				>
+					<ClockIcon size={12} />
+				</Tooltip>
+			</>
 		);
 	}
-
-	/* <Tooltip content='Scheduled' className={cls.treeNodeBadge.block()}>
-		<ClockIcon size={12} />
-	</Tooltip> */
 
 	return null;
 };
