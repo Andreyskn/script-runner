@@ -29,6 +29,10 @@
 	background-color: hsl(var(--background));
 	outline: none;
 
+	&--small {
+		height: 32px;
+	}
+
 	&--with-icon {
 		padding-left: 36px;
 	}

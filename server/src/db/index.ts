@@ -53,6 +53,10 @@ export const db = {
 	},
 };
 
+export const schedulerDB = {
+	// getNext, add, remove, update
+};
+
 const bigintToNumber = <T extends Record<string, unknown>>(row: T) => {
 	return Object.fromEntries(
 		Object.entries(row).map(([k, v]) => {
