@@ -146,7 +146,7 @@ const deleteFile = func(async function* (
 
 	const affectedArray = [...affected];
 
-	await db.deleteFiles(affectedArray);
+	await db.files.deleteFiles(affectedArray);
 	ws.publish('files-change', { type: 'delete', ids: affectedArray });
 
 	return affectedArray;
@@ -160,7 +160,7 @@ const createFolder = func(async function* (
 	await mkdir(fullPath);
 
 	const { ino } = await stat(fullPath, { bigint: true });
-	const { id } = (await db.insertFile({ inode: ino }))[0]!;
+	const { id } = (await db.files.insertFiles([{ inode: ino }]))[0]!;
 	const data: FileData = {
 		id,
 		clientPath: path,
@@ -190,7 +190,7 @@ const createScript = func(async function* (
 	await chmod(fullPath, 0o755);
 
 	const { ino } = await stat(fullPath, { bigint: true });
-	const { id } = (await db.insertFile({ inode: ino }))[0]!;
+	const { id } = (await db.files.insertFiles([{ inode: ino }]))[0]!;
 	const data: FileData = {
 		id,
 		clientPath: path,
@@ -238,7 +238,7 @@ const updateScript = func(async function* (
 
 	await Bun.write(file.fullPath, data);
 	await chmod(file.fullPath, 0o755);
-	await db.setFileVersion(id, version);
+	await db.files.updateFile(id, { version });
 
 	file.textVersion = version;
 
@@ -310,7 +310,7 @@ const setAutorun = func(async function* (
 	}
 
 	file.autorun = autorun;
-	await db.setFileAutorun(id, autorun);
+	await db.files.updateFile(id, { autorun });
 
 	return true;
 });
@@ -332,7 +332,9 @@ readdir(SCRIPTS_DIR, {
 	recursive: true,
 	withFileTypes: true,
 }).then(async (files) => {
-	const dbFiles = new Map((await db.getAllFiles()).map((f) => [f.inode, f]));
+	const dbFiles = new Map(
+		(await db.files.getAllFiles()).map((f) => [f.inode, f])
+	);
 
 	const validFiles = files.filter((f) => {
 		const notHidden =
@@ -349,7 +351,7 @@ readdir(SCRIPTS_DIR, {
 		dbFiles.delete(ino);
 
 		if (!dbEntry) {
-			dbEntry = (await db.insertFile({ inode: ino }))[0]!;
+			dbEntry = (await db.files.insertFiles([{ inode: ino }]))[0]!;
 		}
 
 		const data: CombinedFileData = {
@@ -367,6 +369,6 @@ readdir(SCRIPTS_DIR, {
 	const leftoverIds = [...dbFiles.values()].map((f) => f.id);
 
 	if (leftoverIds.length) {
-		await db.deleteFiles(leftoverIds);
+		await db.files.deleteFiles(leftoverIds);
 	}
 });
