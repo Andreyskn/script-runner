@@ -16,6 +16,8 @@ export const Scheduler: React.FC<SchedulerProps> = (props) => {
 		'disabled'
 	);
 
+	// TODO: prompt before disabling the schedule
+
 	return (
 		<div className={cls.scheduler.block()}>
 			<Button

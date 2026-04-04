@@ -27,15 +27,15 @@ export const db = {
 			return (await _db.select().from(files)).map(bigintToNumber);
 		},
 
-		deleteFile: async (id: number) => {
+		deleteFile: async (id: File['id']) => {
 			return await _db.delete(files).where(eq(files.id, id));
 		},
 
-		deleteFiles: async (ids: number[]) => {
+		deleteFiles: async (ids: File['id'][]) => {
 			return await _db.delete(files).where(inArray(files.id, ids));
 		},
 
-		updateFile: async (id: number, data: Partial<NewFile>) => {
+		updateFile: async (id: File['id'], data: Partial<NewFile>) => {
 			return (
 				await _db
 					.update(files)
@@ -52,45 +52,79 @@ export const db = {
 			)[0]!;
 		},
 
-		createTriggers: async (
-			scheduleId: Schedule['id'],
-			data: OmitType<NewTrigger, 'scheduleId'>[]
-		) => {
+		createTrigger: async (data: NewTrigger) => {
+			return (await _db.insert(triggers).values(data).returning()).map(
+				bigintToNumber
+			)[0]!;
+		},
+
+		deleteSchedule: async (id: Schedule['id']) => {
 			return (
 				await _db
-					.insert(triggers)
-					.values(data.map((d) => ({ scheduleId, ...d })))
+					.delete(schedules)
+					.where(eq(schedules.id, id))
 					.returning()
-			).map(bigintToNumber);
+			)[0];
 		},
 
-		deleteSchedule: async (id: number) => {
-			return await _db.delete(schedules).where(eq(schedules.id, id));
+		deleteTrigger: async (id: Trigger['id']) => {
+			return (
+				await _db
+					.delete(triggers)
+					.where(eq(triggers.id, id))
+					.returning()
+			)[0];
 		},
 
-		deleteTrigger: async (id: number) => {
-			return await _db.delete(triggers).where(eq(triggers.id, id));
-		},
-
-		deleteTriggerByScheduleId: async (scheduleId: number) => {
+		deleteTriggersByScheduleId: async (scheduleId: Schedule['id']) => {
 			return await _db
 				.delete(triggers)
-				.where(eq(triggers.scheduleId, scheduleId));
+				.where(eq(triggers.scheduleId, scheduleId))
+				.returning();
 		},
 
-		updateSchedule: async (id: number, data: Partial<NewSchedule>) => {
+		updateSchedule: async (
+			id: Schedule['id'],
+			data: Partial<NewSchedule>
+		) => {
 			return (
 				await _db
 					.update(schedules)
 					.set(data)
 					.where(eq(schedules.id, id))
 					.returning()
+			).map(bigintToNumber)[0]!;
+		},
+
+		getScheduleById: async (id: Schedule['id']) => {
+			return (
+				await _db.select().from(schedules).where(eq(schedules.id, id))
+			).map(bigintToNumber)[0];
+		},
+
+		getTriggersByScheduleId: async (scheduleId: Schedule['id']) => {
+			return (
+				await _db
+					.select()
+					.from(triggers)
+					.where(eq(triggers.scheduleId, scheduleId))
+					.orderBy(triggers.id)
 			).map(bigintToNumber);
 		},
 
-		getScheduleById: async (id: number) => {
+		getTriggerById: async (id: Trigger['id']) => {
 			return (
-				await _db.select().from(schedules).where(eq(schedules.id, id))
+				await _db.select().from(triggers).where(eq(triggers.id, id))
+			).map(bigintToNumber)[0];
+		},
+
+		getNextTrigger: async () => {
+			return (
+				await _db
+					.select()
+					.from(triggers)
+					.orderBy(triggers.triggerAt)
+					.limit(1)
 			).map(bigintToNumber)[0];
 		},
 	},

@@ -95,7 +95,7 @@ export const Interval: React.FC<IntervalProps> = (props) => {
 					/>
 				)}
 			</div>
-			<div className={cls.interval.title()}>First Run</div>
+			<div className={cls.interval.title()}>Next Run</div>
 			<div className={cls.interval.btnRow()}>
 				<Button
 					text='Auto'

@@ -13,12 +13,9 @@ export const files = sqliteTable('files', {
 
 export const schedules = sqliteTable('schedules', {
 	id: integer().primaryKey({ autoIncrement: true }),
-	payload: text({ mode: 'json' }).notNull(),
+	scriptId: integer('script_id').notNull(),
 	interval: text({ mode: 'json' }).$type<Duration>(), // NULL for one-time
 	runsLeft: integer('runs_left'), // NULL for infinite
-	status: text({ enum: ['active', 'suspended', 'completed'] })
-		.notNull()
-		.default('active'),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
 		.notNull()
 		.default(sql`(unixepoch() * 1000)`),

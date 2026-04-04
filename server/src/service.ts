@@ -2,12 +2,19 @@ import { type CallReturn } from '@andrey/func';
 import type { JsonValue } from 'typed-rpc/server';
 
 import { archive } from './archive';
+import type { Schedule, Trigger } from './db';
 import type { ServiceErrors } from './errors';
 import { files, type FileId } from './files';
 import { runner, type ExecId } from './runner';
+import {
+	schedules,
+	type CreateScheduleData,
+	type CreateTriggerData,
+} from './schedules';
 
 export type Service = typeof service;
 
+// (Link to client API)[/home/andrey/Projects/script-runner/src/api/index.ts]
 export const service = {
 	getFilesList: async () => {
 		return files.getClientFileList().result();
@@ -47,6 +54,21 @@ export const service = {
 	},
 	getArchivedExecs: async () => {
 		return archive.getArchivedExecs().result();
+	},
+	getSchedule: async (scheduleId: Schedule['id']) => {
+		return schedules.getSchedule(scheduleId).result();
+	},
+	createSchedule: async (data: CreateScheduleData) => {
+		return schedules.createSchedule(data).result();
+	},
+	deleteSchedule: async (scheduleId: Schedule['id']) => {
+		return schedules.deleteSchedule(scheduleId).result();
+	},
+	createTriggerDate: async (data: CreateTriggerData) => {
+		return schedules.createTriggerDate(data).result();
+	},
+	deleteTriggerDate: async (triggerId: Trigger['id']) => {
+		return schedules.deleteTriggerDate(triggerId).result();
 	},
 } satisfies Record<
 	string,
