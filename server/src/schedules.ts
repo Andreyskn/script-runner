@@ -42,27 +42,26 @@ export type CreateTriggerData = {
 	date: DateISO;
 };
 
-type GetScheduleResult = Pick<Schedule, 'id' | 'scriptId' | 'interval'> & {
+export type ClientScheduleData = Pick<
+	Schedule,
+	'id' | 'scriptId' | 'interval'
+> & {
+	type: 'interval' | 'dates';
 	triggers: { id: Trigger['id']; date: DateISO }[];
 };
 
 export const schedules = {
 	createSchedule: func(async function* (
 		data: CreateScheduleData
-	): AsyncFuncGen<
-		{ scheduleId: Schedule['id']; triggerId: Trigger['id'] },
-		DefaultErrorSet
-	> {
+	): AsyncFuncGen<ClientScheduleData, DefaultErrorSet> {
 		const { defer } = schedules.createSchedule.utils;
 
 		let triggerAt: Date;
 
 		yield* defer((error) => {
-			if (error) {
-				return;
+			if (!error) {
+				pendingTrigger.compareAndProcessEarliest(triggerAt);
 			}
-
-			pendingTrigger.compareAndProcessEarliest(triggerAt);
 		});
 
 		switch (data.type) {
@@ -71,6 +70,7 @@ export const schedules = {
 
 				const schedule = await db.schedules.createSchedule({
 					scriptId: data.scriptId,
+					runsLeft: 1,
 				});
 				const trigger = await db.schedules.createTrigger({
 					scheduleId: schedule.id,
@@ -80,8 +80,13 @@ export const schedules = {
 				await files.setScheduleId(data.scriptId, schedule.id).try();
 
 				return {
-					scheduleId: schedule.id,
-					triggerId: trigger.id,
+					type: 'dates',
+					id: schedule.id,
+					interval: null,
+					scriptId: data.scriptId,
+					triggers: [
+						{ id: trigger.id, date: triggerAt.toISOString() },
+					],
 				};
 			}
 			case 'interval': {
@@ -112,8 +117,13 @@ export const schedules = {
 				await files.setScheduleId(data.scriptId, schedule.id).try();
 
 				return {
-					scheduleId: schedule.id,
-					triggerId: trigger.id,
+					type: 'interval',
+					id: schedule.id,
+					interval,
+					scriptId,
+					triggers: [
+						{ id: trigger.id, date: triggerAt.toISOString() },
+					],
 				};
 			}
 		}
@@ -127,6 +137,8 @@ export const schedules = {
 			scheduleId: data.scheduleId,
 			triggerAt,
 		});
+
+		await db.schedules.incrementScheduleRunsLeft(data.scheduleId);
 
 		pendingTrigger.compareAndProcessEarliest(triggerAt);
 
@@ -143,7 +155,13 @@ export const schedules = {
 			scheduleNotFound: errors.scheduleNotFound,
 			triggerNotFound: errors.triggerNotFound,
 		};
-		const { error } = schedules.deleteTriggerDate.utils;
+		const { error, defer } = schedules.deleteTriggerDate.utils;
+
+		yield* defer((error) => {
+			if (!error) {
+				pendingTrigger.cancelDeletedTrigger(triggerId);
+			}
+		});
 
 		const trigger = await db.schedules.getTriggerById(triggerId);
 
@@ -164,14 +182,10 @@ export const schedules = {
 		}
 
 		if (schedule.runsLeft === 1) {
-			await db.schedules.deleteSchedule(schedule.id);
+			await schedules.deleteSchedule(schedule.id).try();
 		} else {
-			await db.schedules.updateSchedule(schedule.id, {
-				runsLeft: schedule.runsLeft - 1,
-			});
+			await db.schedules.decrementScheduleRunsLeft(schedule.id);
 		}
-
-		pendingTrigger.cancelDeletedTrigger(triggerId);
 
 		return true;
 	}),
@@ -193,7 +207,7 @@ export const schedules = {
 
 	getSchedule: func(async function* (
 		scheduleId: Schedule['id']
-	): AsyncFuncGen<GetScheduleResult | null, DefaultErrorSet> {
+	): AsyncFuncGen<ClientScheduleData | null, DefaultErrorSet> {
 		const schedule = await db.schedules.getScheduleById(scheduleId);
 
 		if (!schedule) {
@@ -205,6 +219,7 @@ export const schedules = {
 		);
 
 		return {
+			type: schedule.interval ? 'interval' : 'dates',
 			id: schedule.id,
 			interval: schedule.interval,
 			scriptId: schedule.scriptId,

@@ -332,7 +332,7 @@ const setScheduleId = func(async function* (
 		fileNotFound: errors.fileNotFound,
 		fileNotRunnable: errors.fileNotRunnable,
 	};
-	const { error } = setAutorun.utils;
+	const { error } = setScheduleId.utils;
 
 	const file = registry.get(id) as ScriptData | undefined;
 	if (!file) {

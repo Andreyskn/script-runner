@@ -2,10 +2,13 @@ import { useState } from 'react';
 
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
+import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 import { cls } from './Interval.styles';
 
-export type IntervalProps = {};
+export type IntervalProps = {
+	script: ScriptStore;
+};
 
 export const Interval: React.FC<IntervalProps> = (props) => {
 	const {} = props;

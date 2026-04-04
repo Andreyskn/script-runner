@@ -16,6 +16,7 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 	props
 ) => {
 	const {
+		script,
 		script: {
 			id,
 			setAutorun,
@@ -78,7 +79,7 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 					<ClockIcon size={16} /> Schedule
 				</div>
 				<div className={cls.setting.content()}>
-					<Scheduler />
+					<Scheduler script={script} />
 				</div>
 			</div>
 

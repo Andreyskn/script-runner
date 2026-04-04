@@ -1,6 +1,7 @@
 import { type ScriptOutput, type ScriptOutputMetadata } from '@server/common';
 import type { FileId } from '@server/files';
 import type { ExecData, ExecId } from '@server/runner';
+import type { ClientScheduleData, CreateScheduleData } from '@server/schedules';
 
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
@@ -11,6 +12,18 @@ export type OutputLine = {
 	text: string;
 	isError: boolean;
 } & ScriptOutputMetadata;
+
+export type Schedule = Replace<
+	ClientScheduleData,
+	{
+		triggers: Replace<
+			ClientScheduleData['triggers'][number],
+			{
+				date: Date;
+			}
+		>[];
+	}
+>;
 
 type State = {
 	execId: ExecId;
@@ -25,6 +38,8 @@ type State = {
 	startedAt: Date | null;
 	endedAt: Date | null;
 	autorun: boolean;
+	scheduleId: number | null;
+	schedule: Schedule | null;
 };
 
 export class ScriptStore extends ComponentStore<State> {
@@ -41,6 +56,8 @@ export class ScriptStore extends ComponentStore<State> {
 		startedAt: null,
 		endedAt: null,
 		autorun: false,
+		scheduleId: null,
+		schedule: null,
 	};
 
 	disposables: (() => void)[] = [];
@@ -48,11 +65,13 @@ export class ScriptStore extends ComponentStore<State> {
 	constructor(
 		public id: FileId,
 		autorun: boolean,
+		scheduleId: number | null,
 		runningSince?: string
 	) {
 		super();
 
 		this.state.autorun = autorun;
+		this.state.scheduleId = scheduleId;
 
 		this.packState({
 			id,
@@ -232,6 +251,114 @@ export class ScriptStore extends ComponentStore<State> {
 
 		this.setState((s) => {
 			s.autorun = autorun;
+		});
+	};
+
+	fetchSchedule = async () => {
+		if (!this.state.scheduleId || this.state.schedule) {
+			return;
+		}
+
+		const result = await api.getSchedule(this.state.scheduleId);
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((s) => {
+			if (result.value) {
+				s.schedule = {
+					...result.value,
+					triggers: result.value.triggers.map((t) => ({
+						...t,
+						date: new Date(t.date),
+					})),
+				};
+			} else {
+				s.scheduleId = null;
+			}
+		});
+	};
+
+	createSchedule = async (data: CreateScheduleData) => {
+		const result = await api.createSchedule(data);
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((s) => {
+			s.scheduleId = result.value.id;
+			s.schedule = {
+				...result.value,
+				triggers: result.value.triggers.map((t) => ({
+					...t,
+					date: new Date(t.date),
+				})),
+			};
+		});
+	};
+
+	deleteSchedule = async () => {
+		if (!this.state.scheduleId) {
+			return;
+		}
+
+		const result = await api.deleteSchedule(this.state.scheduleId);
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((s) => {
+			s.scheduleId = null;
+			s.schedule = null;
+		});
+	};
+
+	addTriggerDate = async (date: string) => {
+		const scheduleId = this.state.schedule?.id;
+
+		if (!scheduleId) {
+			return;
+		}
+
+		const result = await api.createTriggerDate({ scheduleId, date });
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((s) => {
+			s.schedule = {
+				...s.schedule!,
+				triggers: [
+					...s.schedule!.triggers,
+					{ date: new Date(date), id: result.value },
+				].sort((a, b) => +a.date - +b.date),
+			};
+		});
+	};
+
+	deleteTriggerDate = async (triggerId: number) => {
+		const result = await api.deleteTriggerDate(triggerId);
+
+		if (!result.ok) {
+			return;
+		}
+
+		this.setState((s) => {
+			if (s.schedule?.triggers.length === 1) {
+				s.scheduleId = null;
+				s.schedule = null;
+			} else {
+				s.schedule = {
+					...s.schedule!,
+					triggers: s.schedule!.triggers.filter(
+						(t) => t.id !== triggerId
+					),
+				};
+			}
 		});
 	};
 }

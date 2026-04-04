@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 
 import { files, schedules, triggers } from './schema';
@@ -64,7 +64,7 @@ export const db = {
 					.delete(schedules)
 					.where(eq(schedules.id, id))
 					.returning()
-			)[0];
+			).map(bigintToNumber)[0];
 		},
 
 		deleteTrigger: async (id: Trigger['id']) => {
@@ -73,14 +73,16 @@ export const db = {
 					.delete(triggers)
 					.where(eq(triggers.id, id))
 					.returning()
-			)[0];
+			).map(bigintToNumber)[0];
 		},
 
 		deleteTriggersByScheduleId: async (scheduleId: Schedule['id']) => {
-			return await _db
-				.delete(triggers)
-				.where(eq(triggers.scheduleId, scheduleId))
-				.returning();
+			return (
+				await _db
+					.delete(triggers)
+					.where(eq(triggers.scheduleId, scheduleId))
+					.returning()
+			).map(bigintToNumber);
 		},
 
 		updateSchedule: async (
@@ -96,6 +98,24 @@ export const db = {
 			).map(bigintToNumber)[0]!;
 		},
 
+		incrementScheduleRunsLeft: async (scheduleId: Schedule['id']) => {
+			return await _db
+				.update(schedules)
+				.set({
+					runsLeft: sql`${schedules.runsLeft} + 1`,
+				})
+				.where(eq(schedules.id, scheduleId));
+		},
+
+		decrementScheduleRunsLeft: async (scheduleId: Schedule['id']) => {
+			return await _db
+				.update(schedules)
+				.set({
+					runsLeft: sql`${schedules.runsLeft} - 1`,
+				})
+				.where(eq(schedules.id, scheduleId));
+		},
+
 		getScheduleById: async (id: Schedule['id']) => {
 			return (
 				await _db.select().from(schedules).where(eq(schedules.id, id))
@@ -108,7 +128,7 @@ export const db = {
 					.select()
 					.from(triggers)
 					.where(eq(triggers.scheduleId, scheduleId))
-					.orderBy(triggers.id)
+					.orderBy(triggers.triggerAt)
 			).map(bigintToNumber);
 		},
 

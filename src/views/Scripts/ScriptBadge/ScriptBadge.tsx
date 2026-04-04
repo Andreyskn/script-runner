@@ -21,18 +21,20 @@ export const ScriptBadge: React.FC<ScriptBadgeProps> = (props) => {
 	}
 
 	const {
-		selectors: { autorun },
+		selectors: { autorun, scheduleId },
 	} = file.scriptStore;
 
-	if (autorun) {
-		return (
-			<>
+	return (
+		<>
+			{autorun && (
 				<Tooltip
 					content='Autorun'
 					className={cls.scriptBadge.block(null, className)}
 				>
 					<ZapIcon size={12} />
 				</Tooltip>
+			)}
+			{scheduleId !== null && (
 				<Tooltip
 					content='Scheduled'
 					className={cls.scriptBadge.block(
@@ -42,9 +44,7 @@ export const ScriptBadge: React.FC<ScriptBadgeProps> = (props) => {
 				>
 					<ClockIcon size={12} />
 				</Tooltip>
-			</>
-		);
-	}
-
-	return null;
+			)}
+		</>
+	);
 };

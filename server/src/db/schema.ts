@@ -1,7 +1,28 @@
 import { sql } from 'drizzle-orm';
-import { blob, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+	blob,
+	customType,
+	integer,
+	sqliteTable,
+	text,
+} from 'drizzle-orm/sqlite-core';
 
 import type { Duration } from '../schedules';
+
+const timestampMsInteger = customType<{
+	data: Date;
+	driverData: bigint;
+}>({
+	dataType() {
+		return 'INTEGER';
+	},
+	toDriver(value: Date): bigint {
+		return BigInt(value.getTime());
+	},
+	fromDriver(value: bigint): Date {
+		return new Date(Number(value));
+	},
+});
 
 export const files = sqliteTable('files', {
 	id: integer().primaryKey({ autoIncrement: true }),
@@ -16,10 +37,10 @@ export const schedules = sqliteTable('schedules', {
 	scriptId: integer('script_id').notNull(),
 	interval: text({ mode: 'json' }).$type<Duration>(), // NULL for one-time
 	runsLeft: integer('runs_left'), // NULL for infinite
-	createdAt: integer('created_at', { mode: 'timestamp_ms' })
+	createdAt: timestampMsInteger('created_at')
 		.notNull()
 		.default(sql`(unixepoch() * 1000)`),
-	updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+	updatedAt: timestampMsInteger('updated_at')
 		.notNull()
 		.$onUpdate(() => sql`(unixepoch() * 1000)`),
 });
@@ -29,5 +50,5 @@ export const triggers = sqliteTable('triggers', {
 	scheduleId: integer('schedule_id')
 		.references(() => schedules.id)
 		.notNull(),
-	triggerAt: integer('trigger_at', { mode: 'timestamp_ms' }).notNull(),
+	triggerAt: timestampMsInteger('trigger_at').notNull(),
 });

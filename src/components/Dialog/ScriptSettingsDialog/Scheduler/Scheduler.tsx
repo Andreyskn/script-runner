@@ -1,20 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { CalendarIcon, RepeatIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
+import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
 import { Dates } from './Dates';
 import { Interval } from './Interval';
 import { cls } from './Scheduler.styles';
 
-export type SchedulerProps = {};
+export type SchedulerProps = {
+	script: ScriptStore;
+};
 
 export const Scheduler: React.FC<SchedulerProps> = (props) => {
-	const {} = props;
+	const {
+		script,
+		script: {
+			selectors: { scheduleId, schedule },
+			fetchSchedule,
+		},
+	} = props;
+
 	const [selected, setSelected] = useState<'disabled' | 'interval' | 'dates'>(
 		'disabled'
 	);
+
+	useEffect(() => {
+		if (schedule?.type) {
+			setSelected(schedule.type);
+		}
+	}, [schedule?.type]);
+
+	useEffect(() => {
+		fetchSchedule();
+	}, []);
 
 	// TODO: prompt before disabling the schedule
 
@@ -42,13 +62,13 @@ export const Scheduler: React.FC<SchedulerProps> = (props) => {
 					case 'interval':
 						return (
 							<div className={cls.scheduler.content()}>
-								<Interval />
+								<Interval script={script} />
 							</div>
 						);
 					case 'dates':
 						return (
 							<div className={cls.scheduler.content()}>
-								<Dates />
+								<Dates script={script} />
 							</div>
 						);
 					default:
