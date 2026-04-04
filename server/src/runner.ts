@@ -7,6 +7,7 @@ import {
 	type RawScriptOutput,
 	type ScriptOutput,
 } from './common';
+import type { Trigger } from './db';
 import { errors, type ServiceErrors } from './errors';
 import { files, type FileId, type ScriptData } from './files';
 import { ws } from './websocket';
@@ -34,6 +35,7 @@ export type ExecStartData = {
 	fileId: FileId;
 	startedAt: string;
 	textVersion: number;
+	triggerId?: Trigger['id'];
 };
 
 export type ExecEndData = Replace<ExecStartData, { active: false }> & {
@@ -54,9 +56,11 @@ export class ScriptRunner {
 	execId: ExecId = -1;
 	startedAt: string | undefined;
 	endedAt: string | undefined;
+	triggerId: Trigger['id'] | undefined;
 
-	constructor(fileId: FileId) {
+	constructor(fileId: FileId, triggerId?: Trigger['id']) {
 		this.fileId = fileId;
+		this.triggerId = triggerId;
 		const data = files.registry.get(fileId) as ScriptData;
 		data.activeRunner = this;
 		this.run(this, data.fullPath).option();
@@ -85,6 +89,7 @@ export class ScriptRunner {
 			startedAt: this.startedAt ?? timestamp,
 			path: clientPath,
 			textVersion,
+			triggerId: this.triggerId,
 		};
 
 		switch (status) {
@@ -182,14 +187,17 @@ export class ScriptRunner {
 	});
 }
 
-const runScript = func(function* (id: FileId): FuncGen<boolean, {}> {
+const runScript = func(function* (
+	id: FileId,
+	triggerId?: Trigger['id']
+): FuncGen<boolean, {}> {
 	const file = files.registry.get(id) as ScriptData;
 
 	if (file.activeRunner) {
 		return false;
 	}
 
-	const runner = new ScriptRunner(id);
+	const runner = new ScriptRunner(id, triggerId);
 	return runner.status === 'running';
 });
 

@@ -7,14 +7,13 @@ import type { ServiceErrors } from './errors';
 import { files, type FileId } from './files';
 import { runner, type ExecId } from './runner';
 import {
-	schedules,
+	scheduler,
 	type CreateScheduleData,
 	type CreateTriggerData,
-} from './schedules';
+} from './scheduler';
 
 export type Service = typeof service;
 
-// (Link to client API)[/home/andrey/Projects/script-runner/src/api/index.ts]
 export const service = {
 	getFilesList: async () => {
 		return files.getClientFileList().result();
@@ -56,19 +55,19 @@ export const service = {
 		return archive.getArchivedExecs().result();
 	},
 	getSchedule: async (scheduleId: Schedule['id']) => {
-		return schedules.getSchedule(scheduleId).result();
+		return scheduler.getSchedule(scheduleId).result();
 	},
 	createSchedule: async (data: CreateScheduleData) => {
-		return schedules.createSchedule(data).result();
+		return scheduler.createSchedule(data).result();
 	},
 	deleteSchedule: async (scheduleId: Schedule['id']) => {
-		return schedules.deleteSchedule(scheduleId).result();
+		return scheduler.deleteSchedule(scheduleId).result();
 	},
 	createTriggerDate: async (data: CreateTriggerData) => {
-		return schedules.createTriggerDate(data).result();
+		return scheduler.createTriggerDate(data).result();
 	},
 	deleteTriggerDate: async (triggerId: Trigger['id']) => {
-		return schedules.deleteTriggerDate(triggerId).result();
+		return scheduler.deleteTriggerDate(triggerId).result();
 	},
 } satisfies Record<
 	string,

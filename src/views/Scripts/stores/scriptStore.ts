@@ -1,7 +1,7 @@
 import { type ScriptOutput, type ScriptOutputMetadata } from '@server/common';
 import type { FileId } from '@server/files';
 import type { ExecData, ExecId } from '@server/runner';
-import type { ClientScheduleData, CreateScheduleData } from '@server/schedules';
+import type { ClientScheduleData, CreateScheduleData } from '@server/scheduler';
 
 import { api, ws } from '@/api';
 import { ComponentStore } from '@/utils';
@@ -221,6 +221,10 @@ export class ScriptStore extends ComponentStore<State> {
 				state.exitCode = data.exitCode;
 			}
 		});
+
+		if (data.triggerId && data.active) {
+			this.deleteTriggerDate(data.triggerId, true);
+		}
 	};
 
 	execute = async () => {
@@ -340,15 +344,17 @@ export class ScriptStore extends ComponentStore<State> {
 		});
 	};
 
-	deleteTriggerDate = async (triggerId: number) => {
-		const result = await api.deleteTriggerDate(triggerId);
+	deleteTriggerDate = async (triggerId: number, clientOnly?: boolean) => {
+		if (!clientOnly) {
+			const result = await api.deleteTriggerDate(triggerId);
 
-		if (!result.ok) {
-			return;
+			if (!result.ok) {
+				return;
+			}
 		}
 
 		this.setState((s) => {
-			if (s.schedule?.triggers.length === 1) {
+			if (s.schedule!.triggers.length === 1) {
 				s.scheduleId = null;
 				s.schedule = null;
 			} else {

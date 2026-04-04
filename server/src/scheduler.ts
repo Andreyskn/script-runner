@@ -50,11 +50,11 @@ export type ClientScheduleData = Pick<
 	triggers: { id: Trigger['id']; date: DateISO }[];
 };
 
-export const schedules = {
+export const scheduler = {
 	createSchedule: func(async function* (
 		data: CreateScheduleData
 	): AsyncFuncGen<ClientScheduleData, DefaultErrorSet> {
-		const { defer } = schedules.createSchedule.utils;
+		const { defer } = scheduler.createSchedule.utils;
 
 		let triggerAt: Date;
 
@@ -155,7 +155,7 @@ export const schedules = {
 			scheduleNotFound: errors.scheduleNotFound,
 			triggerNotFound: errors.triggerNotFound,
 		};
-		const { error, defer } = schedules.deleteTriggerDate.utils;
+		const { error, defer } = scheduler.deleteTriggerDate.utils;
 
 		yield* defer((error) => {
 			if (!error) {
@@ -182,7 +182,7 @@ export const schedules = {
 		}
 
 		if (schedule.runsLeft === 1) {
-			await schedules.deleteSchedule(schedule.id).try();
+			await scheduler.deleteSchedule(schedule.id).try();
 		} else {
 			await db.schedules.decrementScheduleRunsLeft(schedule.id);
 		}
@@ -236,8 +236,8 @@ const executeTrigger = async (
 	scheduleId: Schedule['id'],
 	scriptId: FileId
 ) => {
-	runner.runScript(scriptId).try();
-	await schedules.deleteTriggerDate(triggerId).try();
+	runner.runScript(scriptId, triggerId).try();
+	await scheduler.deleteTriggerDate(triggerId).try();
 
 	const schedule = await db.schedules.getScheduleById(scheduleId);
 
@@ -276,7 +276,7 @@ const pendingTrigger = {
 		await pendingTrigger.ready.promise;
 
 		if (!pendingTrigger.data || triggerAt < pendingTrigger.data.triggerAt) {
-			processNextTrigger();
+			processNextTrigger().option();
 		}
 	},
 
@@ -324,13 +324,21 @@ const processNextTrigger = func(async function* (): AsyncFuncGen<
 		return;
 	}
 
-	const timeout = setTimeout(async () => {
-		try {
-			await executeTrigger(trigger.id, schedule.id, schedule.scriptId);
-		} catch (error) {}
+	const delay = +trigger.triggerAt - +new Date();
+	const timeout = setTimeout(
+		async () => {
+			try {
+				await executeTrigger(
+					trigger.id,
+					schedule.id,
+					schedule.scriptId
+				);
+			} catch (error) {}
 
-		processNextTrigger();
-	}, +trigger.triggerAt - +new Date());
+			processNextTrigger().option();
+		},
+		delay < 0 ? 0 : delay
+	);
 
 	pendingTrigger.data = {
 		triggerId: trigger.id,
@@ -341,4 +349,4 @@ const processNextTrigger = func(async function* (): AsyncFuncGen<
 	};
 });
 
-processNextTrigger();
+processNextTrigger().option();

@@ -17,7 +17,7 @@ export const Scheduler: React.FC<SchedulerProps> = (props) => {
 	const {
 		script,
 		script: {
-			selectors: { scheduleId, schedule },
+			selectors: { schedule },
 			fetchSchedule,
 		},
 	} = props;

@@ -7,7 +7,7 @@ import {
 	text,
 } from 'drizzle-orm/sqlite-core';
 
-import type { Duration } from '../schedules';
+import type { Duration } from '../scheduler';
 
 const timestampMsInteger = customType<{
 	data: Date;

@@ -28,6 +28,7 @@ export const Dialog: React.FC = () => {
 
 		dialogRef.current?.addEventListener('close', () => {
 			result.current?.resolve(undefined);
+			setContent(null);
 		});
 	}, []);
 
