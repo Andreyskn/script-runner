@@ -90,10 +90,6 @@ export const Interval: React.FC<IntervalProps> = (props) => {
 		}
 	}, [schedule]);
 
-	useEffect(() => {
-		console.log(interval);
-	}, [interval]);
-
 	const handleIntervalChange = (
 		unit: keyof Interval,
 		e: React.ChangeEvent<HTMLInputElement>

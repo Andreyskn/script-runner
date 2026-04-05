@@ -10,6 +10,7 @@ import { cls } from './ScriptSettingsDialog.styles';
 export type ScriptSettingsDialogProps = {
 	script: ScriptStore;
 	path: string;
+	name: string;
 };
 
 export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
@@ -23,7 +24,14 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 			state: { autorun },
 		},
 		path,
+		name,
 	} = props;
+
+	const reopenSettingsDialog = () => {
+		setTimeout(() => {
+			dialog.open(<ScriptSettingsDialog {...props} />);
+		}, 100);
+	};
 
 	return (
 		<div className={cls.dialog.block()}>
@@ -79,7 +87,11 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 					<ClockIcon size={16} /> Schedule
 				</div>
 				<div className={cls.setting.content()}>
-					<Scheduler script={script} />
+					<Scheduler
+						script={script}
+						name={name}
+						reopenSettingsDialog={reopenSettingsDialog}
+					/>
 				</div>
 			</div>
 

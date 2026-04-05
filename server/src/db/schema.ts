@@ -14,7 +14,7 @@ const timestampMsInteger = customType<{
 	driverData: bigint;
 }>({
 	dataType() {
-		return 'INTEGER';
+		return 'integer';
 	},
 	toDriver(value: Date): bigint {
 		return BigInt(value.getTime());

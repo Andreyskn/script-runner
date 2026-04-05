@@ -5,22 +5,27 @@ import { CalendarIcon, RepeatIcon } from 'lucide-react';
 import { Button } from '@/components/Button';
 import type { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
+import { showDisableScheduleDialog } from '../../DisableScheduleDialog';
 import { Dates } from './Dates';
 import { Interval } from './Interval';
 import { cls } from './Scheduler.styles';
 
 export type SchedulerProps = {
 	script: ScriptStore;
+	name: string;
+	reopenSettingsDialog: () => void;
 };
 
 export const Scheduler: React.FC<SchedulerProps> = (props) => {
 	const {
+		name,
 		script,
 		script: {
 			selectors: { schedule, isStaleSchedule },
 			fetchSchedule,
 			deleteSchedule,
 		},
+		reopenSettingsDialog,
 	} = props;
 
 	const [tab, setTab] = useState<'disabled' | 'interval' | 'dates'>(
@@ -37,16 +42,19 @@ export const Scheduler: React.FC<SchedulerProps> = (props) => {
 		fetchSchedule();
 	}, [schedule, isStaleSchedule]);
 
-	// TODO: prompt before disabling the schedule
-
 	return (
 		<div className={cls.scheduler.block()}>
 			<Button
 				text='Disabled'
 				fill={tab === 'disabled' ? 'green' : 'none'}
-				onClick={() => {
+				onClick={async () => {
+					if (script.state.schedule) {
+						if (await showDisableScheduleDialog({ name })) {
+							deleteSchedule();
+						}
+						reopenSettingsDialog();
+					}
 					setTab('disabled');
-					deleteSchedule();
 				}}
 			/>
 			<Button
