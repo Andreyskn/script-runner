@@ -42,11 +42,13 @@
 
 	&__info-value {
 		margin-top: 8px;
+
 		font-family:
 			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
 			'Liberation Mono', 'Courier New', monospace;
 		font-size: 14px;
 		line-height: 20px;
+		overflow-wrap: anywhere;
 	}
 
 	&__actions {

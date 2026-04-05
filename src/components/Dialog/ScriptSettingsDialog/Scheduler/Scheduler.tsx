@@ -17,24 +17,25 @@ export const Scheduler: React.FC<SchedulerProps> = (props) => {
 	const {
 		script,
 		script: {
-			selectors: { schedule },
+			selectors: { schedule, isStaleSchedule },
 			fetchSchedule,
+			deleteSchedule,
 		},
 	} = props;
 
-	const [selected, setSelected] = useState<'disabled' | 'interval' | 'dates'>(
+	const [tab, setTab] = useState<'disabled' | 'interval' | 'dates'>(
 		'disabled'
 	);
 
 	useEffect(() => {
 		if (schedule?.type) {
-			setSelected(schedule.type);
+			setTab(schedule.type);
 		}
 	}, [schedule?.type]);
 
 	useEffect(() => {
 		fetchSchedule();
-	}, []);
+	}, [schedule, isStaleSchedule]);
 
 	// TODO: prompt before disabling the schedule
 
@@ -42,23 +43,26 @@ export const Scheduler: React.FC<SchedulerProps> = (props) => {
 		<div className={cls.scheduler.block()}>
 			<Button
 				text='Disabled'
-				fill={selected === 'disabled' ? 'green' : 'none'}
-				onClick={() => setSelected('disabled')}
+				fill={tab === 'disabled' ? 'green' : 'none'}
+				onClick={() => {
+					setTab('disabled');
+					deleteSchedule();
+				}}
 			/>
 			<Button
 				text='Interval'
-				fill={selected === 'interval' ? 'green' : 'none'}
+				fill={tab === 'interval' ? 'green' : 'none'}
 				icon={<RepeatIcon size={16} />}
-				onClick={() => setSelected('interval')}
+				onClick={() => setTab('interval')}
 			/>
 			<Button
 				text='Dates'
-				fill={selected === 'dates' ? 'green' : 'none'}
+				fill={tab === 'dates' ? 'green' : 'none'}
 				icon={<CalendarIcon size={16} />}
-				onClick={() => setSelected('dates')}
+				onClick={() => setTab('dates')}
 			/>
 			{(() => {
-				switch (selected) {
+				switch (tab) {
 					case 'interval':
 						return (
 							<div className={cls.scheduler.content()}>

@@ -23,6 +23,7 @@ export const Input: React.FC<InputProps> = (props) => {
 			<input
 				ref={ref}
 				type={type}
+				autoComplete='off'
 				{...attrs}
 				className={cls.input.block(
 					{ withIcon: !!icon, small: size === 'small' },
@@ -38,12 +39,6 @@ export const Input: React.FC<InputProps> = (props) => {
 							Number.isNaN(int) ? '' : int
 						);
 					} else if (type === 'float') {
-						if (value.startsWith('.')) {
-							currentTarget.value = '0.';
-							lastValue.current = '0.';
-							return;
-						}
-
 						if (!value || /^\d*\.?\d{0,3}$/.test(value)) {
 							lastValue.current = value;
 						}

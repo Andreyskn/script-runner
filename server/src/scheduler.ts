@@ -44,7 +44,7 @@ export type CreateTriggerData = {
 
 export type ClientScheduleData = Pick<
 	Schedule,
-	'id' | 'scriptId' | 'interval'
+	'id' | 'scriptId' | 'interval' | 'runsLeft'
 > & {
 	type: 'interval' | 'dates';
 	triggers: { id: Trigger['id']; date: DateISO }[];
@@ -84,6 +84,7 @@ export const scheduler = {
 					id: schedule.id,
 					interval: null,
 					scriptId: data.scriptId,
+					runsLeft: 1,
 					triggers: [
 						{ id: trigger.id, date: triggerAt.toISOString() },
 					],
@@ -107,7 +108,7 @@ export const scheduler = {
 					});
 				} else {
 					const now = Temporal.Now.zonedDateTimeISO();
-					triggerAt = new Date(now.add(interval).toString());
+					triggerAt = new Date(now.add(interval).toLocaleString());
 					trigger = await db.schedules.createTrigger({
 						scheduleId: schedule.id,
 						triggerAt,
@@ -121,6 +122,7 @@ export const scheduler = {
 					id: schedule.id,
 					interval,
 					scriptId,
+					runsLeft: runCount ?? null,
 					triggers: [
 						{ id: trigger.id, date: triggerAt.toISOString() },
 					],
@@ -131,7 +133,7 @@ export const scheduler = {
 
 	createTriggerDate: func(async function* (
 		data: CreateTriggerData
-	): AsyncFuncGen<Trigger['id'], DefaultErrorSet> {
+	): AsyncFuncGen<ClientScheduleData, DefaultErrorSet> {
 		const triggerAt = new Date(data.date);
 		const trigger = await db.schedules.createTrigger({
 			scheduleId: data.scheduleId,
@@ -142,13 +144,15 @@ export const scheduler = {
 
 		pendingTrigger.compareAndProcessEarliest(triggerAt);
 
-		return trigger.id;
+		const schedule = await scheduler.getSchedule(data.scheduleId).try();
+
+		return schedule!;
 	}),
 
 	deleteTriggerDate: func(async function* (
 		triggerId: Trigger['id']
 	): AsyncFuncGen<
-		boolean,
+		ClientScheduleData | null,
 		Pick<ServiceErrors, 'scheduleNotFound' | 'triggerNotFound'>
 	> {
 		yield {
@@ -177,17 +181,13 @@ export const scheduler = {
 			throw yield* error.scheduleNotFound();
 		}
 
-		if (schedule.runsLeft === null) {
-			return true;
-		}
-
 		if (schedule.runsLeft === 1) {
 			await scheduler.deleteSchedule(schedule.id).try();
-		} else {
+		} else if (schedule.runsLeft) {
 			await db.schedules.decrementScheduleRunsLeft(schedule.id);
 		}
 
-		return true;
+		return scheduler.getSchedule(schedule.id).try();
 	}),
 
 	deleteSchedule: func(async function* (
@@ -223,6 +223,7 @@ export const scheduler = {
 			id: schedule.id,
 			interval: schedule.interval,
 			scriptId: schedule.scriptId,
+			runsLeft: schedule.runsLeft,
 			triggers: triggers.map((t) => ({
 				id: t.id,
 				date: t.triggerAt.toISOString(),
@@ -231,22 +232,21 @@ export const scheduler = {
 	}),
 };
 
-const executeTrigger = async (
-	triggerId: Trigger['id'],
-	scheduleId: Schedule['id'],
-	scriptId: FileId
-) => {
-	runner.runScript(scriptId, triggerId).try();
+const executeTrigger = async (triggerId: Trigger['id'], schedule: Schedule) => {
+	const { id: scheduleId, scriptId, runsLeft, interval } = schedule;
+	const isFinalTrigger = runsLeft === 1;
+
+	runner
+		.runScript(scriptId, { triggerId, scheduleId, done: isFinalTrigger })
+		.try();
+
 	await scheduler.deleteTriggerDate(triggerId).try();
 
-	const schedule = await db.schedules.getScheduleById(scheduleId);
-
-	if (schedule?.interval) {
+	if (interval) {
 		const now = Temporal.Now.zonedDateTimeISO();
-
 		const trigger = await db.schedules.createTrigger({
-			scheduleId: schedule.id,
-			triggerAt: new Date(now.add(schedule.interval).toString()),
+			scheduleId,
+			triggerAt: new Date(now.add(interval).toLocaleString()),
 		});
 
 		pendingTrigger.compareAndProcessEarliest(trigger.triggerAt);
@@ -263,7 +263,7 @@ type PendingTriggerData = {
 
 const pendingTrigger = {
 	data: null as PendingTriggerData | null,
-	ready: Promise.withResolvers(),
+	ready: Promise.withResolvers<void>(),
 
 	clear: () => {
 		clearTimeout(pendingTrigger.data?.timeout);
@@ -328,11 +328,7 @@ const processNextTrigger = func(async function* (): AsyncFuncGen<
 	const timeout = setTimeout(
 		async () => {
 			try {
-				await executeTrigger(
-					trigger.id,
-					schedule.id,
-					schedule.scriptId
-				);
+				await executeTrigger(trigger.id, schedule);
 			} catch (error) {}
 
 			processNextTrigger().option();

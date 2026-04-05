@@ -63,7 +63,7 @@
         "stylelint-config-clean-order": "^7.0.0",
         "stylelint-config-standard-scss": "^15.0.1",
         "ts-morph": "^27.0.2",
-        "typescript": "5.9.2",
+        "typescript": "^6.0.2",
         "typescript-eslint": "^8.40.0",
         "vite": "^7.3.0",
         "vite-tsconfig-paths": "^5.1.4",
@@ -1371,7 +1371,7 @@
 
     "typed-rpc": ["typed-rpc@6.1.2", "http://asrv:4873/typed-rpc/-/typed-rpc-6.1.2.tgz", {}, "sha512-w8qRwZ56eIDb6sSgTPz2YrnvaXWa7dF9gyRX1A1P8aKA8gxWe2fCTcGlppcgjec9R+pcYD3OCdzDu/ssYrkNHg=="],
 
-    "typescript": ["typescript@5.9.2", "http://asrv:4873/typescript/-/typescript-5.9.2.tgz", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A=="],
+    "typescript": ["typescript@6.0.2", "http://asrv:4873/typescript/-/typescript-6.0.2.tgz", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ=="],
 
     "typescript-eslint": ["typescript-eslint@8.40.0", "http://asrv:4873/typescript-eslint/-/typescript-eslint-8.40.0.tgz", { "dependencies": { "@typescript-eslint/eslint-plugin": "8.40.0", "@typescript-eslint/parser": "8.40.0", "@typescript-eslint/typescript-estree": "8.40.0", "@typescript-eslint/utils": "8.40.0" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0", "typescript": ">=4.8.4 <6.0.0" } }, "sha512-Xvd2l+ZmFDPEt4oj1QEXzA4A2uUK6opvKu3eGN9aGjB8au02lIVcLyi375w94hHyejTOmzIU77L8ol2sRg9n7Q=="],
 

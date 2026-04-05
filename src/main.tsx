@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 
-import { App } from 'src/App';
-import { MainProvider } from 'src/MainProvider';
+import { App } from './App';
+import { MainProvider } from './MainProvider';
 
 if (import.meta.env.DEV) {
 	const originalError = console.error;

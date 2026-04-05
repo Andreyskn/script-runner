@@ -40,6 +40,7 @@ type State = {
 	autorun: boolean;
 	scheduleId: number | null;
 	schedule: Schedule | null;
+	isStaleSchedule: boolean;
 };
 
 export class ScriptStore extends ComponentStore<State> {
@@ -58,6 +59,7 @@ export class ScriptStore extends ComponentStore<State> {
 		autorun: false,
 		scheduleId: null,
 		schedule: null,
+		isStaleSchedule: false,
 	};
 
 	disposables: (() => void)[] = [];
@@ -216,15 +218,21 @@ export class ScriptStore extends ComponentStore<State> {
 				state.exitCode = null;
 				state.startedAt = new Date(data.startedAt);
 				state.endedAt = null;
+
+				if (data.schedule) {
+					state.isStaleSchedule = true;
+
+					if (data.schedule.done) {
+						state.scheduleId = null;
+						state.schedule = null;
+						state.isStaleSchedule = false;
+					}
+				}
 			} else {
 				state.endedAt = new Date(data.endedAt);
 				state.exitCode = data.exitCode;
 			}
 		});
-
-		if (data.triggerId && data.active) {
-			this.deleteTriggerDate(data.triggerId, true);
-		}
 	};
 
 	execute = async () => {
@@ -258,8 +266,27 @@ export class ScriptStore extends ComponentStore<State> {
 		});
 	};
 
+	private setSchedule = (schedule: ClientScheduleData | null) => {
+		this.setState((s) => {
+			if (schedule) {
+				s.scheduleId = schedule.id;
+				s.schedule = {
+					...schedule,
+					triggers: schedule.triggers.map((t) => ({
+						...t,
+						date: new Date(t.date),
+					})),
+				};
+			} else {
+				s.scheduleId = null;
+				s.schedule = null;
+			}
+			s.isStaleSchedule = false;
+		});
+	};
+
 	fetchSchedule = async () => {
-		if (!this.state.scheduleId || this.state.schedule) {
+		if (!this.state.scheduleId || !this.state.isStaleSchedule) {
 			return;
 		}
 
@@ -269,19 +296,7 @@ export class ScriptStore extends ComponentStore<State> {
 			return;
 		}
 
-		this.setState((s) => {
-			if (result.value) {
-				s.schedule = {
-					...result.value,
-					triggers: result.value.triggers.map((t) => ({
-						...t,
-						date: new Date(t.date),
-					})),
-				};
-			} else {
-				s.scheduleId = null;
-			}
-		});
+		this.setSchedule(result.value);
 	};
 
 	createSchedule = async (data: CreateScheduleData) => {
@@ -291,16 +306,7 @@ export class ScriptStore extends ComponentStore<State> {
 			return;
 		}
 
-		this.setState((s) => {
-			s.scheduleId = result.value.id;
-			s.schedule = {
-				...result.value,
-				triggers: result.value.triggers.map((t) => ({
-					...t,
-					date: new Date(t.date),
-				})),
-			};
-		});
+		this.setSchedule(result.value);
 	};
 
 	deleteSchedule = async () => {
@@ -314,10 +320,7 @@ export class ScriptStore extends ComponentStore<State> {
 			return;
 		}
 
-		this.setState((s) => {
-			s.scheduleId = null;
-			s.schedule = null;
-		});
+		this.setSchedule(null);
 	};
 
 	addTriggerDate = async (date: string) => {
@@ -333,38 +336,16 @@ export class ScriptStore extends ComponentStore<State> {
 			return;
 		}
 
-		this.setState((s) => {
-			s.schedule = {
-				...s.schedule!,
-				triggers: [
-					...s.schedule!.triggers,
-					{ date: new Date(date), id: result.value },
-				].sort((a, b) => +a.date - +b.date),
-			};
-		});
+		this.setSchedule(result.value);
 	};
 
-	deleteTriggerDate = async (triggerId: number, clientOnly?: boolean) => {
-		if (!clientOnly) {
-			const result = await api.deleteTriggerDate(triggerId);
+	deleteTriggerDate = async (triggerId: number) => {
+		const result = await api.deleteTriggerDate(triggerId);
 
-			if (!result.ok) {
-				return;
-			}
+		if (!result.ok) {
+			return;
 		}
 
-		this.setState((s) => {
-			if (s.schedule!.triggers.length === 1) {
-				s.scheduleId = null;
-				s.schedule = null;
-			} else {
-				s.schedule = {
-					...s.schedule!,
-					triggers: s.schedule!.triggers.filter(
-						(t) => t.id !== triggerId
-					),
-				};
-			}
-		});
+		this.setSchedule(result.value);
 	};
 }
