@@ -7,5 +7,7 @@ import {
 } from './ScriptSettingsDialog';
 
 export const showScriptSettingsDialog = (props: ScriptSettingsDialogProps) => {
-	return dialog.open(createElement(ScriptSettingsDialog, props));
+	return dialog.open(
+		createElement(ScriptSettingsDialog, { ...props, key: props.path })
+	);
 };

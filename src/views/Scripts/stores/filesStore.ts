@@ -4,7 +4,10 @@ import { api, ws } from '@/api';
 import { ComponentStore, parsePath } from '@/utils';
 import { ScriptStore } from '@/views/Scripts/stores/scriptStore';
 
-export type File = OmitType<ClientFileData, 'runningSince' | 'autorun'> & {
+export type File = OmitType<
+	ClientFileData,
+	'runningSince' | 'autorun' | 'scheduleId'
+> & {
 	scriptStore: ScriptStore;
 	name: string;
 	dir: string;
@@ -86,7 +89,7 @@ export class FilesStore extends ComponentStore<State> {
 	}
 
 	initFileData = (file: ClientFileData): File => {
-		const { id, type, path, autorun, runningSince } = file;
+		const { id, type, path, autorun, runningSince, scheduleId } = file;
 
 		let lastParsedPath: File['path'] = undefined as any;
 		let parseResult: ReturnType<typeof parsePath> = undefined as any;
@@ -106,7 +109,7 @@ export class FilesStore extends ComponentStore<State> {
 			id,
 			path,
 			type,
-			scriptStore: new ScriptStore(id, autorun, runningSince),
+			scriptStore: new ScriptStore(id, autorun, scheduleId, runningSince),
 			get name() {
 				return getParsedPath(this).base;
 			},

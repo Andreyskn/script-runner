@@ -82,7 +82,7 @@
 		background-color: hsl(var(--destructive));
 
 		&:hover {
-			background-color: hsl(var(--destructive) / 90%);
+			background-color: hsl(var(--destructive) / 80%);
 		}
 	}
 
@@ -90,15 +90,17 @@
 		background-color: hsl(var(--primary));
 
 		&:hover {
-			background-color: hsl(var(--primary) / 90%);
+			background-color: hsl(var(--primary) / 80%);
 		}
 	}
 
 	&--color-red {
+		border-color: hsl(var(--destructive));
 		color: hsl(var(--destructive));
 	}
 
 	&--color-green {
+		border-color: hsl(var(--primary));
 		color: hsl(var(--primary));
 	}
 

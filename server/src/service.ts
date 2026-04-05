@@ -2,9 +2,15 @@ import { type CallReturn } from '@andrey/func';
 import type { JsonValue } from 'typed-rpc/server';
 
 import { archive } from './archive';
+import type { Schedule, Trigger } from './db';
 import type { ServiceErrors } from './errors';
 import { files, type FileId } from './files';
 import { runner, type ExecId } from './runner';
+import {
+	scheduler,
+	type CreateScheduleData,
+	type CreateTriggerData,
+} from './scheduler';
 
 export type Service = typeof service;
 
@@ -47,6 +53,21 @@ export const service = {
 	},
 	getArchivedExecs: async () => {
 		return archive.getArchivedExecs().result();
+	},
+	getSchedule: async (scheduleId: Schedule['id']) => {
+		return scheduler.getSchedule(scheduleId).result();
+	},
+	createSchedule: async (data: CreateScheduleData) => {
+		return scheduler.createSchedule(data).result();
+	},
+	deleteSchedule: async (scheduleId: Schedule['id']) => {
+		return scheduler.deleteSchedule(scheduleId).result();
+	},
+	createTriggerDate: async (data: CreateTriggerData) => {
+		return scheduler.createTriggerDate(data).result();
+	},
+	deleteTriggerDate: async (triggerId: Trigger['id']) => {
+		return scheduler.deleteTriggerDate(triggerId).result();
 	},
 } satisfies Record<
 	string,

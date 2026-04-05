@@ -1,0 +1,16 @@
+.scheduler {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-rows: auto auto;
+	column-gap: 8px;
+
+	&__content {
+		grid-column: span 3;
+
+		margin-top: 16px;
+		padding: 12px;
+		border-radius: var(--radius);
+
+		background-color: hsl(var(--muted) / 50%);
+	}
+}

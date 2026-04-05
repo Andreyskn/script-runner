@@ -4,6 +4,11 @@ import styles from './ScriptSettingsDialog.module.scss';
 
 export const cls = bem(
 	styles as {
+		autorun: string;
+		'autorun__autorun-checkbox': string;
+		autorun__control: string;
+		autorun__subtitle: string;
+		autorun__title: string;
 		dialog: string;
 		dialog__actions: string;
 		dialog__close: string;
@@ -12,9 +17,7 @@ export const cls = bem(
 		'dialog__info-value': string;
 		dialog__title: string;
 		setting: string;
-		'setting__autorun-checkbox': string;
-		setting__control: string;
-		setting__subtitle: string;
+		setting__content: string;
 		setting__title: string;
 	}
 );

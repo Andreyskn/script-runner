@@ -98,6 +98,7 @@ const Header: React.FC<HeaderProps> = (props) => {
 						showScriptSettingsDialog({
 							script: script.scriptStore,
 							path,
+							name,
 						})
 					}
 				/>

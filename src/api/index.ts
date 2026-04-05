@@ -29,6 +29,11 @@ const RPC_HANDLES = [
 	'getScriptOutput',
 	'getActiveScripts',
 	'getArchivedExecs',
+	'getSchedule',
+	'createSchedule',
+	'deleteSchedule',
+	'createTriggerDate',
+	'deleteTriggerDate',
 ] as const;
 //#endregion
 

@@ -1,0 +1,50 @@
+.interval {
+	&__title {
+		font-size: 12px;
+		line-height: 16px;
+
+		&:not(:first-child) {
+			margin-top: 12px;
+		}
+	}
+
+	&__duration {
+		display: grid;
+		grid-column-gap: 8px;
+		grid-template-columns: repeat(3, 1fr);
+		grid-template-rows: repeat(4, auto);
+
+		label {
+			margin-top: 12px;
+			font-size: 12px;
+			line-height: 16px;
+			color: hsl(var(--muted-foreground));
+		}
+
+		input {
+			margin-top: 4px;
+			font-size: 14px;
+			line-height: 20px;
+		}
+	}
+
+	&__btn-row {
+		display: flex;
+		gap: 8px;
+		margin-top: 12px;
+
+		button {
+			width: 90px;
+			background-color: hsl(var(--background));
+		}
+	}
+
+	&__input-wrap {
+		flex-grow: 1;
+		width: 0;
+	}
+
+	&__save-btn {
+		margin-top: 16px;
+	}
+}

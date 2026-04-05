@@ -6,6 +6,8 @@ export const errors = {
 	versionTooLow: (version: number) =>
 		`Version must be higher than ${version}`,
 	fileNotRunnable: 'File not runnable',
+	scheduleNotFound: 'Schedule not found',
+	triggerNotFound: 'Trigger not found',
 } satisfies ErrorSet;
 
 export type ServiceErrors = typeof errors & DefaultErrorSet;

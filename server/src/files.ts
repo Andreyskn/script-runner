@@ -5,7 +5,7 @@ import { homedir } from 'os';
 import { func, type AsyncFuncGen, type DefaultErrorSet } from '@andrey/func';
 import { ensureDir, move } from 'fs-extra';
 
-import { db } from './db';
+import { db, type Schedule } from './db';
 import { errors, type ServiceErrors } from './errors';
 import type { ScriptRunner } from './runner';
 import { ws, type FileMoveData } from './websocket';
@@ -27,6 +27,7 @@ export type ScriptData = BaseFileData & {
 	textVersion: number;
 	activeRunner?: ScriptRunner;
 	autorun: boolean;
+	scheduleId: Schedule['id'] | null;
 };
 
 export type FolderData = BaseFileData & {
@@ -41,6 +42,7 @@ export type ClientFileData = {
 	type: 'folder' | 'script';
 	runningSince?: string;
 	autorun: boolean;
+	scheduleId: Schedule['id'] | null;
 };
 
 type CombinedFileData = Combine<FileData>;
@@ -146,7 +148,7 @@ const deleteFile = func(async function* (
 
 	const affectedArray = [...affected];
 
-	await db.deleteFiles(affectedArray);
+	await db.files.deleteFiles(affectedArray);
 	ws.publish('files-change', { type: 'delete', ids: affectedArray });
 
 	return affectedArray;
@@ -160,7 +162,7 @@ const createFolder = func(async function* (
 	await mkdir(fullPath);
 
 	const { ino } = await stat(fullPath, { bigint: true });
-	const { id } = (await db.insertFile({ inode: ino }))[0]!;
+	const { id } = (await db.files.insertFiles([{ inode: ino }]))[0]!;
 	const data: FileData = {
 		id,
 		clientPath: path,
@@ -175,6 +177,7 @@ const createFolder = func(async function* (
 		path: data.clientPath,
 		type: data.type,
 		autorun: false,
+		scheduleId: null,
 	};
 
 	ws.publish('files-change', { type: 'create', file });
@@ -190,7 +193,7 @@ const createScript = func(async function* (
 	await chmod(fullPath, 0o755);
 
 	const { ino } = await stat(fullPath, { bigint: true });
-	const { id } = (await db.insertFile({ inode: ino }))[0]!;
+	const { id } = (await db.files.insertFiles([{ inode: ino }]))[0]!;
 	const data: FileData = {
 		id,
 		clientPath: path,
@@ -198,6 +201,7 @@ const createScript = func(async function* (
 		type: 'script',
 		textVersion: 0,
 		autorun: false,
+		scheduleId: null,
 	};
 
 	registry.set(data.id, data);
@@ -207,6 +211,7 @@ const createScript = func(async function* (
 		path: data.clientPath,
 		type: data.type,
 		autorun: data.autorun,
+		scheduleId: data.scheduleId,
 	};
 
 	ws.publish('files-change', { type: 'create', file });
@@ -238,7 +243,7 @@ const updateScript = func(async function* (
 
 	await Bun.write(file.fullPath, data);
 	await chmod(file.fullPath, 0o755);
-	await db.setFileVersion(id, version);
+	await db.files.updateFile(id, { version });
 
 	file.textVersion = version;
 
@@ -283,6 +288,7 @@ const getClientFileList = func(async function* (): AsyncFuncGen<
 			type: data.type,
 			runningSince: (data as CombinedFileData).activeRunner?.startedAt,
 			autorun: (data as CombinedFileData).autorun!,
+			scheduleId: (data as CombinedFileData).scheduleId!,
 		})
 	);
 });
@@ -310,7 +316,35 @@ const setAutorun = func(async function* (
 	}
 
 	file.autorun = autorun;
-	await db.setFileAutorun(id, autorun);
+	await db.files.updateFile(id, { autorun });
+
+	return true;
+});
+
+const setScheduleId = func(async function* (
+	id: FileId,
+	scheduleId: Schedule['id'] | null
+): AsyncFuncGen<
+	boolean,
+	Pick<ServiceErrors, 'fileNotFound' | 'fileNotRunnable'>
+> {
+	yield {
+		fileNotFound: errors.fileNotFound,
+		fileNotRunnable: errors.fileNotRunnable,
+	};
+	const { error } = setScheduleId.utils;
+
+	const file = registry.get(id) as ScriptData | undefined;
+	if (!file) {
+		throw yield* error.fileNotFound();
+	}
+
+	if (file.type !== 'script') {
+		throw yield* error.fileNotRunnable();
+	}
+
+	file.scheduleId = scheduleId;
+	await db.files.updateFile(id, { scheduleId });
 
 	return true;
 });
@@ -325,6 +359,7 @@ export const files = {
 	readScript,
 	getClientFileList,
 	setAutorun,
+	setScheduleId,
 };
 
 // initialization
@@ -332,7 +367,9 @@ readdir(SCRIPTS_DIR, {
 	recursive: true,
 	withFileTypes: true,
 }).then(async (files) => {
-	const dbFiles = new Map((await db.getAllFiles()).map((f) => [f.inode, f]));
+	const dbFiles = new Map(
+		(await db.files.getAllFiles()).map((f) => [f.inode, f])
+	);
 
 	const validFiles = files.filter((f) => {
 		const notHidden =
@@ -349,7 +386,7 @@ readdir(SCRIPTS_DIR, {
 		dbFiles.delete(ino);
 
 		if (!dbEntry) {
-			dbEntry = (await db.insertFile({ inode: ino }))[0]!;
+			dbEntry = (await db.files.insertFiles([{ inode: ino }]))[0]!;
 		}
 
 		const data: CombinedFileData = {
@@ -359,6 +396,7 @@ readdir(SCRIPTS_DIR, {
 			type: f.isDirectory() ? 'folder' : 'script',
 			textVersion: dbEntry.version,
 			autorun: dbEntry.autorun,
+			scheduleId: dbEntry.scheduleId,
 		};
 
 		registry.set(data.id, data as FileData);
@@ -367,6 +405,6 @@ readdir(SCRIPTS_DIR, {
 	const leftoverIds = [...dbFiles.values()].map((f) => f.id);
 
 	if (leftoverIds.length) {
-		await db.deleteFiles(leftoverIds);
+		await db.files.deleteFiles(leftoverIds);
 	}
 });

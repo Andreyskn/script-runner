@@ -3,8 +3,8 @@ import { CodeXml, HistoryIcon, TerminalIcon } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useBreakpoint } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
-import { appStore } from 'src/App/appStore';
 
+import { appStore } from '../appStore';
 import { cls } from './Sidebar.styles';
 
 export type SidebarProps = {

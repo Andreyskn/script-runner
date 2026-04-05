@@ -1,8 +1,7 @@
 import { History } from '@/views/History';
 import { Scripts } from '@/views/Scripts';
 
-import { appStore } from 'src/App/appStore';
-
+import { appStore } from '../appStore';
 import { cls } from './Main.styles';
 
 export type MainProps = {

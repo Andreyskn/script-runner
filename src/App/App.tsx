@@ -3,12 +3,12 @@ import { useEffect } from 'react';
 import { ipc } from '@/api';
 import { search } from '@/components/Search';
 import { Section } from '@/components/Section';
-import { Header } from 'src/App/Header';
-import { Main } from 'src/App/Main';
-import { Sidebar } from 'src/App/Sidebar';
 
 import { cls } from './App.styles';
 import { appStore } from './appStore';
+import { Header } from './Header';
+import { Main } from './Main';
+import { Sidebar } from './Sidebar';
 
 export const App: React.FC = () => {
 	useEffect(() => {
