@@ -86,7 +86,7 @@ export const createWindowAPI = (
 	const ready = Promise.withResolvers();
 
 	ipcRenderer.on('port', (e) => {
-		port = e.ports[0];
+		port = e.ports[0]!;
 		port.start();
 		ready.resolve();
 	});

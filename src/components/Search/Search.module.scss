@@ -27,8 +27,6 @@
 		color: transparent;
 
 		&::picker(select) {
-			translate: -50%;
-
 			&:popover-open {
 				transition: all 0ms allow-discrete;
 			}

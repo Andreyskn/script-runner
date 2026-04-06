@@ -31,7 +31,7 @@ export type WsClientMessageRecord = {
 };
 
 export const websocket: Bun.WebSocketHandler<undefined> = {
-	open(ws) {},
+	open(_ws) {},
 	close(ws) {
 		ws.subscriptions.forEach((topic) => {
 			ws.unsubscribe(topic);

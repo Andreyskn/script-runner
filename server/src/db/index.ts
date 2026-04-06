@@ -1,11 +1,11 @@
-import { Database } from 'bun:sqlite';
+import { createClient } from '@libsql/client';
 import { eq, inArray, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { drizzle } from 'drizzle-orm/libsql';
 
 import { files, schedules, triggers } from './schema';
 
-const sqlite = new Database(process.env.DB_PATH, { safeIntegers: true });
-const _db = drizzle(sqlite);
+const client = createClient({ url: process.env.DB_PATH, intMode: 'bigint' });
+const _db = drizzle({ client });
 
 export type File = typeof files.$inferSelect;
 export type NewFile = typeof files.$inferInsert;

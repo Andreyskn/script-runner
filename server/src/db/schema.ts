@@ -48,7 +48,7 @@ export const schedules = sqliteTable('schedules', {
 export const triggers = sqliteTable('triggers', {
 	id: integer().primaryKey({ autoIncrement: true }),
 	scheduleId: integer('schedule_id')
-		.references(() => schedules.id)
+		.references(() => schedules.id, { onDelete: 'cascade' })
 		.notNull(),
 	triggerAt: timestampMsInteger('trigger_at').notNull(),
 });

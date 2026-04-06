@@ -135,7 +135,7 @@ export const scheduler = {
 		data: CreateTriggerData
 	): AsyncFuncGen<ClientScheduleData, DefaultErrorSet> {
 		const triggerAt = new Date(data.date);
-		const trigger = await db.schedules.createTrigger({
+		await db.schedules.createTrigger({
 			scheduleId: data.scheduleId,
 			triggerAt,
 		});

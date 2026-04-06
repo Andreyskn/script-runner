@@ -1,1 +1,0 @@
-ALTER TABLE `files` ADD `autorun` integer DEFAULT false NOT NULL;
