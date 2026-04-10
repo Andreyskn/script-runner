@@ -33,7 +33,6 @@ const args = [isDev && '--watch', paths.server, '--socket', socket.name].filter(
 exec(`curl -s https://localhost:${process.env.PORT}/stop`);
 
 spawn('bun', args, {
-	shell: true,
 	stdio: [
 		'ignore',
 		isDev ? 'inherit' : 'ignore',
