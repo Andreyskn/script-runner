@@ -19,10 +19,12 @@ export type ContextMenuProps = {
 	menu: React.ReactNode;
 };
 
-export type ContextMenuItem = Pick<
-	ButtonProps,
-	'icon' | 'text' | 'onClick' | 'color'
->;
+export type ContextMenuItem =
+	| { type: 'delimiter' }
+	| ({ type: 'button' } & Pick<
+			ButtonProps,
+			'icon' | 'text' | 'onClick' | 'color'
+	  >);
 
 type PositionX = number;
 type PositionY = number;
@@ -33,6 +35,7 @@ export const ContextMenu: React.FC = () => {
 
 	const [menuItems, setMenuItems] = useState<ContextMenuItem[]>([]);
 	const [anchorPos, setAnchorPos] = useState<Position>([0, 0]);
+	const anchorPosString = anchorPos.toString();
 
 	useEffect(() => {
 		contextMenu.register = (data) => {
@@ -76,20 +79,32 @@ export const ContextMenu: React.FC = () => {
 			/>
 
 			<div ref={menu} popover='auto' className={cls.menu.block()}>
-				{menuItems.map((item, i) => (
-					<Button
-						key={i}
-						{...item}
-						borderless
-						size='small'
-						align='left'
-						stretch
-						onClick={(ev) => {
-							menu.current?.hidePopover();
-							item.onClick?.(ev);
-						}}
-					/>
-				))}
+				{menuItems.map((item, i) => {
+					switch (item.type) {
+						case 'button':
+							return (
+								<Button
+									key={anchorPosString + i}
+									{...item}
+									borderless
+									size='small'
+									align='left'
+									stretch
+									onClick={(ev) => {
+										menu.current?.hidePopover();
+										item.onClick?.(ev);
+									}}
+								/>
+							);
+						case 'delimiter':
+							return (
+								<div
+									key={anchorPosString + i}
+									className={cls.menu.delimiter()}
+								/>
+							);
+					}
+				})}
 			</div>
 		</>
 	);

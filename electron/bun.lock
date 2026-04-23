@@ -1,0 +1,42 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "electron",
+      "dependencies": {
+        "dotenv": "^17.2.3",
+        "electron-is-dev": "^3.0.1",
+        "electron-window-state": "^5.0.3",
+        "fs-extra": "^11.3.3",
+        "typed-rpc": "^6.1.2",
+        "ws": "^8.19.0",
+      },
+    },
+  },
+  "packages": {
+    "dotenv": ["dotenv@17.4.2", "http://asrv:4873/dotenv/-/dotenv-17.4.2.tgz", {}, "sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw=="],
+
+    "electron-is-dev": ["electron-is-dev@3.0.1", "http://asrv:4873/electron-is-dev/-/electron-is-dev-3.0.1.tgz", {}, "sha512-8TjjAh8Ec51hUi3o4TaU0mD3GMTOESi866oRNavj9A3IQJ7pmv+MJVmdZBFGw4GFT36X7bkqnuDNYvkQgvyI8Q=="],
+
+    "electron-window-state": ["electron-window-state@5.0.3", "http://asrv:4873/electron-window-state/-/electron-window-state-5.0.3.tgz", { "dependencies": { "jsonfile": "^4.0.0", "mkdirp": "^0.5.1" } }, "sha512-1mNTwCfkolXl3kMf50yW3vE2lZj0y92P/HYWFBrb+v2S/pCka5mdwN3cagKm458A7NjndSwijynXgcLWRodsVg=="],
+
+    "fs-extra": ["fs-extra@11.3.4", "http://asrv:4873/fs-extra/-/fs-extra-11.3.4.tgz", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-CTXd6rk/M3/ULNQj8FBqBWHYBVYybQ3VPBw0xGKFe3tuH7ytT6ACnvzpIQ3UZtB8yvUKC2cXn1a+x+5EVQLovA=="],
+
+    "graceful-fs": ["graceful-fs@4.2.11", "http://asrv:4873/graceful-fs/-/graceful-fs-4.2.11.tgz", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
+
+    "jsonfile": ["jsonfile@4.0.0", "http://asrv:4873/jsonfile/-/jsonfile-4.0.0.tgz", { "optionalDependencies": { "graceful-fs": "^4.1.6" } }, "sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg=="],
+
+    "minimist": ["minimist@1.2.8", "http://asrv:4873/minimist/-/minimist-1.2.8.tgz", {}, "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA=="],
+
+    "mkdirp": ["mkdirp@0.5.6", "http://asrv:4873/mkdirp/-/mkdirp-0.5.6.tgz", { "dependencies": { "minimist": "^1.2.6" }, "bin": { "mkdirp": "bin/cmd.js" } }, "sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw=="],
+
+    "typed-rpc": ["typed-rpc@6.1.2", "http://asrv:4873/typed-rpc/-/typed-rpc-6.1.2.tgz", {}, "sha512-w8qRwZ56eIDb6sSgTPz2YrnvaXWa7dF9gyRX1A1P8aKA8gxWe2fCTcGlppcgjec9R+pcYD3OCdzDu/ssYrkNHg=="],
+
+    "universalify": ["universalify@2.0.1", "http://asrv:4873/universalify/-/universalify-2.0.1.tgz", {}, "sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw=="],
+
+    "ws": ["ws@8.20.0", "http://asrv:4873/ws/-/ws-8.20.0.tgz", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA=="],
+
+    "fs-extra/jsonfile": ["jsonfile@6.2.0", "http://asrv:4873/jsonfile/-/jsonfile-6.2.0.tgz", { "dependencies": { "universalify": "^2.0.0" }, "optionalDependencies": { "graceful-fs": "^4.1.6" } }, "sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg=="],
+  }
+}

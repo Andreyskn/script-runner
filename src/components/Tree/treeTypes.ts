@@ -3,6 +3,8 @@ import type { FolderProps } from '@/components/Tree/Folder';
 import type { TreeNodeRenameHandler } from '@/components/Tree/NameEditor';
 import type { DnDProviderProps } from '@/utils';
 
+import type { ContextMenuItem } from '../ContextMenu';
+
 export type TreeNodeType = 'script' | 'folder';
 
 type TreeNodeBase = {
@@ -59,6 +61,7 @@ export type TreeProps = {
 	onCreate?: (data: Pick<TreeNodeWithPath, 'name' | 'path' | 'type'>) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
 	renderNodeBadge?: (node: TreeNodeWithPath) => React.ReactNode;
+	extendContextMenu?: (node: TreeNodeWithPath) => ContextMenuItem[] | void;
 };
 
 export type TreeMiddleProps = Replace<

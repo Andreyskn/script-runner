@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'url';
+import path from 'path';
 
 import { app, BrowserWindow, screen } from 'electron';
 import createPositioner, { type State as WinPos } from 'electron-window-state';
@@ -7,9 +7,7 @@ import fs from 'fs-extra';
 import { ipc } from './ipc';
 import { paths } from './paths';
 
-const PRELOAD_PATH = fileURLToPath(
-	new URL('../build/mainPreload.js', import.meta.url)
-);
+const PRELOAD_PATH = path.resolve(__dirname, '../build/mainPreload.js');
 
 let win: BrowserWindow | null = null;
 let winPos: WinPos;

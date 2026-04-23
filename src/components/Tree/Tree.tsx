@@ -99,11 +99,13 @@ const TreeMiddle: React.FC<TreeMiddleProps> = (props) => {
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
 		{
+			type: 'button',
 			icon: <FileTextIcon />,
 			text: 'New Script',
 			onClick: () => onCreate('script', root),
 		},
 		{
+			type: 'button',
 			icon: <FolderIcon />,
 			text: 'New Folder',
 			onClick: () => onCreate('folder', root),

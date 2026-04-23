@@ -52,6 +52,7 @@ ws.on('message', (data) => {
 				const notification = new Notification({
 					title: `Script ${outcomeIndicator(exitCode)}`,
 					body: `Execution complete: ${path}`,
+					urgency: 'low',
 				});
 
 				notification.on('click', () => {

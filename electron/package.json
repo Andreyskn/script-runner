@@ -1,0 +1,20 @@
+{
+	"name": "script-runner",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"main": "build/main.js",
+	"homepage": "https://github.com/Andreyskn/script-runner",
+	"description": "Manage and execute shell scripts",
+	"dependencies": {
+		"dotenv": "^17.2.3",
+		"electron-is-dev": "^3.0.1",
+		"electron-window-state": "^5.0.3",
+		"fs-extra": "^11.3.3",
+		"typed-rpc": "^6.1.2",
+		"ws": "^8.19.0"
+	},
+	"scripts": {
+		"make": "NODE_ENV=production bun electron-builder.config.ts"
+	}
+}

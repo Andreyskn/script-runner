@@ -47,6 +47,48 @@ const HighlightChars: React.FC<HighlightCharsProps> = (props) => {
 export type SearchProps = {};
 
 export const Search: React.FC<SearchProps> = () => {
+	const [shouldRenderContent, setShouldRenderContent] = useState(false);
+
+	const dialogRef = useRef<HTMLDialogElement>(null);
+
+	useEffect(() => {
+		Object.assign(search, {
+			show: () => {
+				dialogRef.current?.showModal();
+				setShouldRenderContent(true);
+			},
+			hide: () => {
+				dialogRef.current?.close();
+			},
+		} satisfies SearchAPI);
+	}, []);
+
+	useHotkeys('ctrl+p', search.show, {
+		preventDefault: true,
+		enableOnFormTags: true,
+	});
+
+	useHotkeys('esc', search.hide, {
+		enableOnFormTags: true,
+	});
+
+	return (
+		<dialog
+			// @ts-expect-error
+			closedby='any'
+			ref={dialogRef}
+			className={cls.dialog.block({
+				standalone: ipc.config?.windowId === 'search',
+			})}
+			onClose={() => setShouldRenderContent(false)}
+			onCancel={() => setShouldRenderContent(false)}
+		>
+			{shouldRenderContent && <DialogContent />}
+		</dialog>
+	);
+};
+
+const DialogContent: React.FC = () => {
 	const { useSelector, setSelectedScript } = filesStore;
 
 	const { getFile, find, initialOptions } = useSelector(
@@ -55,7 +97,7 @@ export const Search: React.FC<SearchProps> = () => {
 			const searchList: Pick<File, 'id' | 'path'>[] = [];
 
 			const items = Object.fromEntries(
-				sortNodes([...files.values()])
+				sortNodes([...files.values()], 'name')
 					.filter(({ type }) => type === 'script')
 					.map(({ path, id, name }) => {
 						const { dir } = parsePath(path);
@@ -96,35 +138,8 @@ export const Search: React.FC<SearchProps> = () => {
 
 	useEffect(() => setResults(initialOptions), [initialOptions]);
 
-	const showSearch = () => {
-		dialogRef.current?.showModal();
-		inputRef.current?.focus();
-	};
-
-	useEffect(() => {
-		Object.assign(search, {
-			show: showSearch,
-		} satisfies SearchAPI);
-	}, []);
-
-	const dialogRef = useRef<HTMLDialogElement>(null);
 	const selectRef = useRef<HTMLSelectElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
-
-	useHotkeys('ctrl+p', showSearch, {
-		preventDefault: true,
-		enableOnFormTags: true,
-	});
-
-	useHotkeys(
-		'esc',
-		() => {
-			dialogRef.current?.close();
-		},
-		{
-			enableOnFormTags: true,
-		}
-	);
 
 	const renderOption = (option: ComboboxOption) => {
 		if (option.value === 'NO_RESULT') {
@@ -167,44 +182,31 @@ export const Search: React.FC<SearchProps> = () => {
 
 		setSelectedScript(id);
 		appStore.setView('scripts');
-		dialogRef.current?.close();
+		search.hide();
 	};
 
-	const handleClose = async () => {
-		if (ipc.config?.windowId === 'search') {
-			await api.endSearch();
-		}
+	useEffect(() => {
+		inputRef.current?.focus();
 
-		const input = inputRef.current;
-		if (input) {
-			input.value = '';
-		}
-		setResults(find(''));
-	};
+		return () => {
+			if (ipc.config?.windowId === 'search') {
+				api.endSearch();
+			}
+		};
+	}, []);
 
 	return (
-		<dialog
-			// @ts-expect-error
-			closedby='any'
-			ref={dialogRef}
-			className={cls.dialog.block({
-				standalone: ipc.config?.windowId === 'search',
-			})}
-			onClose={handleClose}
-			onCancel={handleClose}
-		>
-			<Combobox
-				selectRef={selectRef}
-				inputRef={inputRef}
-				selectClassName={cls.search.select()}
-				placeholder='Search scripts... (Tab ↑↓ to navigate)'
-				options={results.length ? results : NO_RESULTS}
-				renderOption={renderOption}
-				onInputChange={handleInputChange}
-				onSelect={handleSelect}
-				inputId='search-input'
-				selectId='search-select'
-			/>
-		</dialog>
+		<Combobox
+			selectRef={selectRef}
+			inputRef={inputRef}
+			selectClassName={cls.search.select()}
+			placeholder='Search scripts... (Tab ↑↓ to navigate)'
+			options={results.length ? results : NO_RESULTS}
+			renderOption={renderOption}
+			onInputChange={handleInputChange}
+			onSelect={handleSelect}
+			inputId='search-input'
+			selectId='search-select'
+		/>
 	);
 };

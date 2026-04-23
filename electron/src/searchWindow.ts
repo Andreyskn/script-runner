@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'url';
+import path from 'path';
 
 import { BrowserWindow, screen } from 'electron';
 
@@ -24,9 +24,7 @@ const createSearchWindow = () => {
 
 			contextIsolation: false,
 			nodeIntegration: false,
-			preload: fileURLToPath(
-				new URL('../build/searchPreload.js', import.meta.url)
-			),
+			preload: path.resolve(__dirname, '../build/searchPreload.js'),
 		},
 	});
 

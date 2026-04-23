@@ -1,10 +1,13 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+
+import { PlayIcon } from 'lucide-react';
 
 import { showDeleteConfirmDialog } from '@/components/Dialog/DeleteConfirmDialog/dialogApi';
 import { showReplaceConfirmDialog } from '@/components/Dialog/ReplaceConfirmDialog/dialogApi';
 import { showScriptDialog } from '@/components/Dialog/ScriptDialog';
 import { Section } from '@/components/Section';
 import {
+	openFolders,
 	Tree,
 	type FolderNode,
 	type TreeNode,
@@ -12,6 +15,7 @@ import {
 } from '@/components/Tree';
 import { sortNodes } from '@/components/Tree/treeUtils';
 import { parseBase, Responsive, useBreakpoint } from '@/utils';
+import { createStatePack } from '@/utils/statePacker';
 import { Placeholder } from '@/views/Scripts/Placeholder';
 import { ScriptViewer } from '@/views/Scripts/ScriptViewer';
 import {
@@ -31,13 +35,13 @@ const getNodes = (files: FilesStore['state']['files']) => {
 		nodes: [],
 	};
 
-	const sorted = sortNodes([...files.values()]);
+	const sorted = sortNodes([...files.values()], 'path');
 	const folders = new Map<string, FolderNode>([['', root]]);
 	const byPath = new Map<string, File>();
 
 	sorted.forEach((file) => {
-		const { id, name, path, type } = file;
-		const parentPath = path.slice(0, -name.length - 1);
+		const { id, name, path, type, dir } = file;
+
 		const node: TreeNode = { id, name, type };
 
 		if (type === 'folder') {
@@ -45,7 +49,7 @@ const getNodes = (files: FilesStore['state']['files']) => {
 			folders.set(path, node as FolderNode);
 		}
 
-		folders.get(parentPath)!.nodes!.push(node);
+		folders.get(dir)!.nodes!.push(node);
 		byPath.set(path, file);
 	});
 
@@ -63,6 +67,16 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 		deleteFile,
 		useSelector,
 	} = filesStore;
+
+	useState(() => {
+		createStatePack(
+			'Component:Scripts',
+			() => ({ openFolders: [...openFolders] }),
+			(data) => {
+				data.openFolders.forEach((f) => openFolders.add(f));
+			}
+		);
+	});
 
 	const { nodes, byPath } = useSelector((state) => state.files, getNodes);
 	const selectedScript = useSelector(
@@ -196,6 +210,26 @@ export const Scripts: React.FC<ScriptsProps> = () => {
 						}
 					}}
 					renderNodeBadge={(node) => <ScriptBadge id={node.id} />}
+					extendContextMenu={(n) => {
+						if (n.type === 'script') {
+							return [
+								{
+									type: 'button',
+									icon: <PlayIcon />,
+									text: 'Run',
+									color: 'green',
+									onClick: () => {
+										const { files } = filesStore.state;
+										const script = files.get(n.id)!;
+
+										script.scriptStore.execute();
+										setSelectedScript(n.id);
+									},
+								},
+								{ type: 'delimiter' },
+							];
+						}
+					}}
 				/>
 			</Section>
 			<Responsive

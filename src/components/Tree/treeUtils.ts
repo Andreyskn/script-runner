@@ -1,3 +1,5 @@
+import type { File } from '@/views/Scripts/stores/filesStore';
+
 import type { TreeNode } from './treeTypes';
 
 export type MatchingPathOptions = {
@@ -24,14 +26,22 @@ export const isMatchingPath = (
 	return path.every((v, i) => v === targetPath[i]);
 };
 
+type StringValueKey<T extends Record<string, unknown>> = ValueOf<{
+	[K in keyof T]: T[K] extends string ? K : never;
+}>;
+
 const collator = new Intl.Collator('en', { numeric: true });
 
-export const sortNodes = <T extends Pick<TreeNode, 'name' | 'type'>>(
-	nodes: T[]
+export const sortNodes = <T extends TreeNode | File>(
+	nodes: T[],
+	compareBy: StringValueKey<T>
 ) => {
 	return nodes.toSorted((a, b) => {
 		if (a.type === b.type) {
-			return collator.compare(a.name, b.name);
+			return collator.compare(
+				a[compareBy] as string,
+				b[compareBy] as string
+			);
 		}
 
 		if (a.type === 'script' && b.type === 'folder') {

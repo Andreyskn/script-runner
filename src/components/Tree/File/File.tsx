@@ -24,6 +24,7 @@ export type FileProps = {
 	onSelect?: (id: FileProps['id'], path: string[]) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
 	renderBadge?: TreeProps['renderNodeBadge'];
+	extendContextMenu?: TreeProps['extendContextMenu'];
 };
 
 export const File: React.FC<FileProps> = (props) => {
@@ -36,6 +37,7 @@ export const File: React.FC<FileProps> = (props) => {
 		renameOnMount,
 		onDelete,
 		renderBadge,
+		extendContextMenu,
 	} = props;
 
 	const node = useRef<FileNodeWithPath>(null as any);
@@ -52,14 +54,17 @@ export const File: React.FC<FileProps> = (props) => {
 	);
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
+		...(extendContextMenu?.(node.current) ?? []),
 		{
+			type: 'button',
 			icon: <PenSquareIcon />,
-			text: 'Rename Script',
+			text: 'Rename...',
 			onClick: showNameEditor,
 		},
 		{
+			type: 'button',
 			icon: <Trash2Icon />,
-			text: 'Delete Script',
+			text: 'Delete',
 			color: 'red',
 			onClick: () => onDelete?.(node.current),
 		},

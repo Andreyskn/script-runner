@@ -117,7 +117,13 @@ export const HistoryEntry: React.FC<HistoryEntryProps> = (props) => {
 				)}
 				{!active && (
 					<Button
-						text={hasOutput ? 'Show Output' : 'No Output'}
+						text={
+							hasOutput
+								? shouldShowOutput
+									? 'Hide Output'
+									: 'Show Output'
+								: 'No Output'
+						}
 						icon={<TerminalIcon />}
 						iconEnd={hasOutput && <ChevronRightIcon />}
 						borderless

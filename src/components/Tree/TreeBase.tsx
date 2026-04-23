@@ -6,7 +6,7 @@ import { isMatchingPath, sortNodes } from '@/components/Tree/treeUtils';
 
 import { cls } from './Tree.styles';
 
-const openFolders = new Set<FolderNode['id']>();
+export const openFolders = new Set<FolderNode['id']>();
 
 export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 	let { nodes = [] } = props;
@@ -20,6 +20,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 		onDelete,
 		onCreate,
 		renderNodeBadge,
+		extendContextMenu,
 	} = props;
 
 	const tmpNode = treeStore.useSelector(
@@ -35,7 +36,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 	);
 
 	if (tmpNode) {
-		nodes = sortNodes([...nodes, tmpNode]);
+		nodes = sortNodes([...nodes, tmpNode], 'name');
 	}
 
 	const handleFolderOpenToggle: FolderProps['onToggleOpen'] = (
@@ -64,6 +65,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 							onDelete={onDelete}
 							renameOnMount={n.isTemporary}
 							renderBadge={renderNodeBadge}
+							extendContextMenu={extendContextMenu}
 						/>
 					);
 				} else {
@@ -82,6 +84,7 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 							onCreate={onCreate}
 							renameOnMount={n.isTemporary}
 							renderBadge={renderNodeBadge}
+							extendContextMenu={extendContextMenu}
 						>
 							<TreeBase
 								nodes={n.nodes}
@@ -90,6 +93,8 @@ export const TreeBase: React.FC<TreeBaseProps> = (props) => {
 								onFileSelect={onFileSelect}
 								onDelete={onDelete}
 								onCreate={onCreate}
+								renderNodeBadge={renderNodeBadge}
+								extendContextMenu={extendContextMenu}
 							/>
 						</Folder>
 					);

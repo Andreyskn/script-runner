@@ -53,10 +53,12 @@ export const useNameEditor = (
 		}
 	}, []);
 
-	const isRenaming = nameEditorSession.useSelector(
-		(state) => state.activeNode,
-		(activeNode) => activeNode?.id === getNode().id
-	);
+	const isRenaming =
+		renameOnMount ||
+		nameEditorSession.useSelector(
+			(state) => state.activeNode,
+			(activeNode) => activeNode?.id === getNode().id
+		);
 
 	return { showNameEditor, isRenaming, NameEditorAnchor };
 };

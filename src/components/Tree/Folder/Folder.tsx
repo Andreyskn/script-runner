@@ -34,6 +34,7 @@ export type FolderProps = {
 	onCreate: (type: TreeNodeType, parent: FolderNodeWithPath) => void;
 	onDelete?: (node: TreeNodeWithPath) => void;
 	renderBadge?: TreeProps['renderNodeBadge'];
+	extendContextMenu?: TreeProps['extendContextMenu'];
 };
 
 export const Folder: React.FC<FolderProps> = (props) => {
@@ -48,6 +49,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 		onCreate,
 		onDelete,
 		renderBadge,
+		extendContextMenu,
 	} = props;
 
 	const [isOpen, setIsOpen] = useState(false);
@@ -66,7 +68,9 @@ export const Folder: React.FC<FolderProps> = (props) => {
 	);
 
 	const { contextMenuTrigger, isContextMenuOpen } = useContextMenu(() => [
+		...(extendContextMenu?.(node.current) ?? []),
 		{
+			type: 'button',
 			icon: <FileTextIcon />,
 			text: 'New Script',
 			onClick: () => {
@@ -75,6 +79,7 @@ export const Folder: React.FC<FolderProps> = (props) => {
 			},
 		},
 		{
+			type: 'button',
 			icon: <FolderIcon />,
 			text: 'New Folder',
 			onClick: () => {
@@ -82,14 +87,17 @@ export const Folder: React.FC<FolderProps> = (props) => {
 				onCreate('folder', node.current);
 			},
 		},
+		{ type: 'delimiter' },
 		{
+			type: 'button',
 			icon: <PenSquareIcon />,
-			text: 'Rename Folder',
+			text: 'Rename...',
 			onClick: showNameEditor,
 		},
 		{
+			type: 'button',
 			icon: <Trash2Icon />,
-			text: 'Delete Folder',
+			text: 'Delete',
 			color: 'red',
 			onClick: () => onDelete?.(node.current),
 		},
