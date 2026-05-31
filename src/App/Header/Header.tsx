@@ -1,6 +1,9 @@
 import { memo } from 'react';
 
-import { TerminalIcon } from 'lucide-react';
+import { SettingsIcon, TerminalIcon } from 'lucide-react';
+
+import { Button } from '@/components/Button';
+import { showAppSettingsDialog } from '@/components/Dialog/AppSettingsDialog';
 
 import { cls } from './Header.styles';
 
@@ -17,7 +20,10 @@ export const Header: React.FC<HeaderProps> = memo((props) => {
 				<TerminalIcon />
 				Script Runner
 			</div>
-			{/* <Button icon='plus' text='New Script' /> */}
+			<Button
+				icon={<SettingsIcon size={16} />}
+				onClick={() => showAppSettingsDialog({})}
+			/>
 		</div>
 	);
 });

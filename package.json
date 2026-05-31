@@ -10,7 +10,7 @@
 		"bundle": "NODE_ENV=production bun scripts/bundle",
 		"lint": "eslint src",
 		"check": "tsc --build",
-		"make": "cd electron && bun aa",
+		"make": "cd electron && bun make",
 		"db-push": "cd server && bun db-push",
 		"db-gen": "cd server && bun db-gen",
 		"db-migrate": "cd server && bun db-migrate"

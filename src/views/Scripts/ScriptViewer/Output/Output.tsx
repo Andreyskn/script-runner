@@ -106,8 +106,6 @@ export const Output: React.FC<OutputProps> = (props) => {
 
 	return (
 		<div className={cls.output.block(null, className)}>
-			{!lines.length && !result && <Loader />}
-
 			{lines.map((line, i) => (
 				<div
 					key={i}
@@ -118,21 +116,30 @@ export const Output: React.FC<OutputProps> = (props) => {
 				</div>
 			))}
 
-			{result === 'success' && (
-				<div className={cls.output.line({ success: true })}>
-					✅ Script completed successfully
-				</div>
-			)}
-			{result === 'fail' && (
-				<div className={cls.output.line({ error: true })}>
-					❌ Script failed with exit code: {exitCode}
-				</div>
-			)}
-			{result === 'interrupt' && (
-				<div className={cls.output.line({ error: true })}>
-					🚫 Script interrupted
-				</div>
-			)}
+			{(() => {
+				switch (result) {
+					case 'success':
+						return (
+							<div className={cls.output.line({ success: true })}>
+								✅ Script completed successfully
+							</div>
+						);
+					case 'fail':
+						return (
+							<div className={cls.output.line({ error: true })}>
+								❌ Script failed with exit code: {exitCode}
+							</div>
+						);
+					case 'interrupt':
+						return (
+							<div className={cls.output.line({ error: true })}>
+								🚫 Script interrupted
+							</div>
+						);
+					default:
+						return <Loader />;
+				}
+			})()}
 		</div>
 	);
 };

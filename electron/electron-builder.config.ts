@@ -1,7 +1,7 @@
 import { $ } from 'bun';
 import { build, Platform, type Configuration } from 'electron-builder';
 
-const options = {
+const config = {
 	electronVersion: require('electron/package.json').version,
 	appId: 'com.electron.script-runner',
 	productName: 'Script Runner',
@@ -36,7 +36,7 @@ const options = {
 
 build({
 	targets: Platform.LINUX.createTarget(),
-	config: options,
+	config,
 }).then(() => {
 	console.log(`
 sudo dpkg -r script-runner && sudo dpkg -i ./out/script-runner_0.0.0_amd64.deb

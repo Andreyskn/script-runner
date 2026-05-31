@@ -24,13 +24,11 @@
 
 	&__line {
 		min-height: 1lh;
+		margin-bottom: 4px;
+
 		text-wrap: balance;
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
-
-		& + & {
-			margin-top: 4px;
-		}
 
 		&--success {
 			color: hsl(var(--primary));
