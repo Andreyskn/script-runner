@@ -79,6 +79,9 @@
 }
 
 .autorun {
+	cursor: pointer;
+	user-select: none;
+
 	display: grid;
 	grid-template:
 		'title . control' auto
@@ -91,12 +94,8 @@
 	background-color: hsl(var(--muted) / 50%);
 
 	&__title {
-		cursor: pointer;
-
 		grid-area: title;
-
 		width: fit-content;
-
 		font-size: 14px;
 		line-height: 20px;
 	}
@@ -117,6 +116,7 @@
 	}
 
 	&__autorun-checkbox {
+		cursor: pointer;
 		width: 20px;
 		height: 20px;
 	}

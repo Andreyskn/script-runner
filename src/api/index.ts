@@ -38,7 +38,9 @@ const RPC_HANDLES = [
 //#endregion
 
 const rpc = rpcClient<Service>(
-	import.meta.env.DEV ? 'https://10.42.0.18:3001/api/' : '/api/'
+	import.meta.env.DEV
+		? `https://10.42.0.18:${import.meta.env.VITE_PORT}/api/`
+		: '/api/'
 );
 
 const originalFetch = window.fetch.bind(window);

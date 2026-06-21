@@ -32,7 +32,7 @@ export const App: React.FC = () => {
 	}, []);
 
 	if (ipc.config?.windowId === 'search') {
-		return null;
+		return <div className={cls.app.block({ searchBackground: true })} />;
 	}
 
 	return (

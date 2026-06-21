@@ -3,6 +3,10 @@
 	color: hsl(var(--foreground));
 	background-color: hsl(var(--background));
 
+	&--search-background {
+		opacity: 0.8;
+	}
+
 	&__content {
 		display: flex;
 

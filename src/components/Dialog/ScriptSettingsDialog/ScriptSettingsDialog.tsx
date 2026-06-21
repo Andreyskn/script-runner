@@ -57,13 +57,13 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 					<ZapIcon size={16} /> Autorun
 				</div>
 				<div className={cls.setting.content()}>
-					<div className={cls.autorun.block()}>
-						<label
-							htmlFor='autorun-setting'
-							className={cls.autorun.title()}
-						>
+					<label
+						className={cls.autorun.block()}
+						htmlFor='autorun-setting'
+					>
+						<div className={cls.autorun.title()}>
 							Run on Startup
-						</label>
+						</div>
 						<div className={cls.autorun.subtitle()}>
 							Script will automatically run when the app starts
 						</div>
@@ -79,7 +79,7 @@ export const ScriptSettingsDialog: React.FC<ScriptSettingsDialogProps> = (
 								defaultChecked={autorun}
 							/>
 						</div>
-					</div>
+					</label>
 				</div>
 			</div>
 			<div className={cls.setting.block()}>

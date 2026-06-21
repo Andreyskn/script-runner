@@ -286,11 +286,14 @@ export class ScriptStore extends ComponentStore<State> {
 	};
 
 	fetchSchedule = async () => {
-		if (!this.state.scheduleId || !this.state.isStaleSchedule) {
+		const { schedule, isStaleSchedule, scheduleId } = this.state;
+		const hasScheduleData = schedule && !isStaleSchedule;
+
+		if (!scheduleId || hasScheduleData) {
 			return;
 		}
 
-		const result = await api.getSchedule(this.state.scheduleId);
+		const result = await api.getSchedule(scheduleId);
 
 		if (!result.ok) {
 			return;

@@ -20,13 +20,13 @@ const config = {
 		{ from: '../server/cert', to: 'cert' },
 	],
 	linux: {
-		icon: '..public/icon.png',
+		icon: '../public/icon.png',
 		target: ['deb'],
 		category: 'Utility',
 	},
 	deb: {
 		maintainer: 'Andrey <andskipin329@gmail.com>',
-		icon: '..public/icon.png',
+		icon: '../public/icon.png',
 		category: 'Utility',
 	},
 	async beforePack() {

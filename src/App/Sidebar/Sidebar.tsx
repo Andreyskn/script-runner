@@ -1,6 +1,7 @@
-import { CodeXml, HistoryIcon, TerminalIcon } from 'lucide-react';
+import { CodeXml, HistoryIcon, SettingsIcon, TerminalIcon } from 'lucide-react';
 
 import { Button } from '@/components/Button';
+import { showAppSettingsDialog } from '@/components/Dialog/AppSettingsDialog';
 import { useBreakpoint } from '@/utils';
 import { archiveStore } from '@/views/History/archiveStore';
 
@@ -65,6 +66,17 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 					textClassName={cls.sidebar.navButtonText()}
 					onClick={() => setView('history')}
 					badge={unseenCount || undefined}
+					stretch={mobileScreen}
+				/>
+
+				<Button
+					layout={mobileScreen ? 'horizontal' : 'vertical'}
+					icon={<SettingsIcon />}
+					text='Settings'
+					borderless={true}
+					className={cls.sidebar.navButton({ settings: true })}
+					textClassName={cls.sidebar.navButtonText()}
+					onClick={() => showAppSettingsDialog({})}
 					stretch={mobileScreen}
 				/>
 			</div>

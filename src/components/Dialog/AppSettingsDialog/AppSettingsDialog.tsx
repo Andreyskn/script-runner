@@ -22,7 +22,7 @@ export const AppSettingsDialog: React.FC<AppSettingsDialogProps> = (props) => {
 			/>
 			<div className={cls.dialog.title()}>
 				<SettingsIcon size={20} />
-				Script Settings
+				App Settings
 			</div>
 		</div>
 	);

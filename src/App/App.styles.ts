@@ -5,6 +5,7 @@ import styles from './App.module.scss';
 export const cls = bem(
 	styles as {
 		app: string;
+		'app--search-background': string;
 		app__content: string;
 		app__main: string;
 		app__sidebar: string;

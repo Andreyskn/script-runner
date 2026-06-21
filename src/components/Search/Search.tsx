@@ -14,6 +14,9 @@ import { sortNodes } from '../Tree/treeUtils';
 import { cls } from './Search.styles';
 import { search, type SearchAPI } from './searchApi';
 
+// TODO: always keep input focused and first item selected
+// TODO: show recently used items at the top
+
 const NO_RESULTS: ComboboxOption[] = [
 	{
 		value: 'NO_RESULT',
@@ -63,12 +66,12 @@ export const Search: React.FC<SearchProps> = () => {
 		} satisfies SearchAPI);
 	}, []);
 
-	useHotkeys('ctrl+p', search.show, {
+	useHotkeys('ctrl+p', () => search.show(), {
 		preventDefault: true,
 		enableOnFormTags: true,
 	});
 
-	useHotkeys('esc', search.hide, {
+	useHotkeys('esc', () => search.hide(), {
 		enableOnFormTags: true,
 	});
 

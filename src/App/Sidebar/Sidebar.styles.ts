@@ -7,6 +7,7 @@ export const cls = bem(
 		sidebar: string;
 		sidebar__nav: string;
 		'sidebar__nav-button': string;
+		'sidebar__nav-button--settings': string;
 		'sidebar__nav-button-text': string;
 	}
 );

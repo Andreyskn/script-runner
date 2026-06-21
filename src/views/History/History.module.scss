@@ -25,9 +25,11 @@
 
 	&__subtitle {
 		grid-area: subtitle;
+
 		font-size: 14px;
 		line-height: 20px;
 		color: hsl(var(--muted-foreground));
+		white-space: normal;
 	}
 
 	&__counter {
